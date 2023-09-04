@@ -1,0 +1,141 @@
+.btn-e{
+    display: flex;
+    flex-wrap: wrap;
+    height: 80px;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+    width: 100%;
+    height: 50px;
+
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    color: black;
+    z-index: 1;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-decoration: none;
+    overflow: hidden;
+    transition: 0.5s;
+    backdrop-filter: blur(15px);
+}
+
+.btn-e:hover {
+    letter-spacing: 2px;
+}
+
+.btn-e::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Azul cian brillante con mayor opacidad */
+    box-shadow:  0 0 10px rgba(0, 0, 0, 0.5), /* Sombra exterior para efecto de sombreado */
+                 0 0 20px rgba(0, 0, 0, 0.5),
+                 0 0 30px rgba(0, 0, 0, 0.5);
+    transform: skewX(15deg) translateX(0);
+    transition: width 0.5s, transform 0.5s;
+    z-index: -1;
+}
+
+.btn-e:hover::before {
+    width: 100%;  /* Al pasar el ratón por encima, el ancho se expande al 100% */
+    transform: skewX(45deg) translateX(200%);
+}
+
+.btn-e, .btn-g {
+    margin-right: 10px;  /* Espacio a la derecha de cada botón */
+}
+
+
+
+.btn-g{
+    display: flex;
+    flex-wrap: wrap;
+    height: 80px;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+    width: 100%;
+    height: 50px;
+
+    background: rgba(0, 0, 0, 0.95); /* Fondo negro */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    color: white;
+    z-index: 1;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-decoration: none;
+    overflow: hidden;
+    transition: 0.5s;
+    backdrop-filter: blur(15px);
+}
+
+.btn-g:hover {
+    letter-spacing: 2px;
+}
+
+.btn-g::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;  /* Cambiamos de 'right' a 'left' para que inicie desde el lado izquierdo */
+    width: 0;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* Deslizamiento blanco */
+    box-shadow:  0 0 10px rgba(255, 255, 255, 0.5), /* Sombra exterior para efecto de brillo blanco */
+                 0 0 20px rgba(255, 255, 255, 0.5),
+                 0 0 30px rgba(255, 255, 255, 0.5);
+    transform: skewX(15deg) translateX(0); /* Cambiamos el ángulo de skewX a positivo nuevamente */
+    transition: width 0.5s, transform 0.5s;
+    z-index: -1;
+}
+
+.btn-g:hover::before {
+    width: 100%;
+    transform: skewX(45deg) translateX(200%);
+}
+
+
+.btn-g:hover .google-icon {
+    transform: scale(1.1); /* Aumenta el tamaño en un 10% */
+}
+
+.google-icon {
+    transition: transform 0.3s ease; /* Transición suave de 0.3 segundos */
+}
+
+.btn-g {
+    margin-right: 0; 
+}
+
+
+
+
+
+.button-container {
+    display: flex;       /* Activa Flexbox */
+    justify-content: space-between; /* Alinea los botones horizontalmente y maximiza el espacio entre ellos */
+    gap: 10px;           /* Espacio entre los botones (alternativa a margin-right) */
+}
+
+
+
+.my-confirm-button-class {
+background-color: black !important;
+color: white;
+}
+
+.my-cancel-button-class {
+background-color: #ff7675 !important;
+}

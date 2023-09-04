@@ -1,0 +1,91 @@
+.dashboard-container {
+    background-color: rgba(173, 216, 230, 0.6);
+    border-radius: 12px;
+    margin-top: 2.5rem;
+    margin-bottom: 0.9375rem;
+    margin-left: auto;
+    margin-right: 2.5rem;
+    width: 50%;
+    height: 33.33%;
+    backdrop-filter: blur(10px);
+  }
+
+
+  .main-panel {
+    backdrop-filter: blur(10px);
+    background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+
+  .modal-glass {
+    backdrop-filter: blur(10px);
+    background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.10); /* Sombra ligera */
+  }
+
+  .glass {
+    backdrop-filter: blur(10px);
+    background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+
+  .graph-glass {
+    backdrop-filter: blur(10px);
+    background-color: #e3f2fd; /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+
+
+  .minimal-button {
+    background: transparent;
+    border: 1px solid transparent; /* Añade un borde transparente */
+    color: #000; /* O cualquier color que desees para el texto */
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    transition: 0.3s;
+  }
+  .logout-button {
+    background: transparent;
+    border: 1px solid transparent; /* Añade un borde transparente */
+    color: #000; /* O cualquier color que desees para el texto */
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    transition: 0.3s;
+  }
+  
+.minimal-button:hover {
+  border: 1px solid #000; /* O cualquier color que desees para el borde */
+  } 
+   
+.minimal-button i {
+    margin-right: 5px; /* Ajusta el margen según tus necesidades */
+}
+
+
+
+.btn-primary {
+  padding: 5px 20px;
+  border-radius: 5px;
+  border: none;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: white;
+}
+
+
+.info-box-shadow {
+  box-shadow: 0 5px 22px 0 rgba( 31, 38, 135, 0.37 );
+  backdrop-filter: blur( 0px );
+  -webkit-backdrop-filter: blur( 0px );
+}
+
+

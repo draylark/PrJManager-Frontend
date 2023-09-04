@@ -1,0 +1,31 @@
+  
+  /* #profile-img {
+    width: 52px;
+    height: 50px;
+    border-radius: 50%;
+  }
+   */
+
+
+  .modal {
+  position: absolute;
+  bottom: -200px; /* Inicialmente, fuera de la vista */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+  transition: bottom 0.3s ease; /* Transición suave de la propiedad bottom */
+  z-index: 9999;
+}
+
+/* Opcional: Estilos para el botón de cierre del modal */
+.modal button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
