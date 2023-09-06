@@ -10,7 +10,7 @@ const PrJManager = ({ children } : PanelProps) => {
 
 
   return (
-    <div className="bg-gray-100 h-screen flex flex-col">
+    <div className="bg-gray-100 xl:h-[850px] h-auto flex flex-col">
       {/* Panel del Dashboard */}
 
       <Nav/>

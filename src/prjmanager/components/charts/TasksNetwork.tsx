@@ -22,7 +22,7 @@ export const TasksNetwork = () => {
 
   return (
 
-    <div className='graph-glass h-[250px] w-[250px] rounded-extra'>
+    <div className='graph-glass h-[250px] w-[95%]  xl:w-[250px] rounded-extra'>
         <ResponsiveNetwork
                 data={data}
                 margin={{ top: 0, right: 0, bottom: 0, left: 0 }}

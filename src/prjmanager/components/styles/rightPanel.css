@@ -1,12 +1,6 @@
 .Panel {
-    margin-left: 14px;
-    display: flex;
-    flex-wrap: wrap;
-    height: 81%; /* Cambiar la altura según tus necesidades */
-    width: 390px;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
     /* border: 1px solid black; */
   }
   

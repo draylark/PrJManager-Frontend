@@ -31,7 +31,7 @@ export const AreaBumpChart = () => {
   return (
     
 
-            <div className='h-[250px] w-[450px] graph-glass rounded-extra  ml-10'>
+            <div className='h-[250px] w-[95%] xl:w-[450px] graph-glass rounded-extra'>
                 <ResponsiveAreaBump
                     data={data}
                     margin={{ top: 40, right: 100, bottom: 40, left: 100 }}

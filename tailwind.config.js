@@ -9,6 +9,9 @@ export default {
       },
       borderRadius: {
         'extra': '2rem', // O cualquier otro valor que desees
+      },
+      screens: {
+        'sn': '450px'
       }
     },
   },
