@@ -1,8 +1,8 @@
 import { useSelector } from "react-redux"
 import { useState, useEffect, useRef } from "react";
-import '../styles/styles.css'
+import '../../styles/styles.css'
 import { FC } from 'react'
-import { RootState } from "../../../store/store";
+import { RootState } from "../../../../store/store";
 
 type MyComponentProps = {
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;

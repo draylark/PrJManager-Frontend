@@ -1,0 +1,70 @@
+.treetooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    padding: 5px 10px;
+    pointer-events: none; /* Asegura que el tooltip no interfiera con otros eventos del ratón */
+    font-size: 14px;
+    z-index: 1000;
+    transform: translate(-50%, -100%); /* Centra el tooltip sobre la posición del ratón */
+    white-space: nowrap; /* Asegura que el contenido no se divida en varias líneas */
+  }
+
+.info-box-shadow-treechart {
+    box-shadow: 0 5px 12px 0 rgba( 31, 38, 135, 0.37 );
+  }
+
+.treechart-container {
+    box-shadow: 0 5px 4px 0 rgba( 31, 38, 135, 0.37 );
+
+  }
+
+.dashboard-buttons {
+    box-shadow: 0 2px 4px 0 #1f26875e;
+  }
+
+.top-projects {
+
+    border: 1px solid rgb(171, 171, 171);
+  }
+
+
+.react-calendar-heatmap rect {
+    height: 10px !important;
+    width: 10px !important;
+    stroke: #a4a4a4;  /* Color del borde */
+    stroke-width: 0.2;  /* Ancho del borde */
+  }
+  /* a4a4a4 */
+
+  /* eff7ff */
+.react-calendar-heatmap .color-empty.color-empty {
+    fill: #eff7ff ;  /* Color de fondo predeterminado */
+  }
+
+
+  .barContainer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 65%;
+    margin: 1.5rem 0;
+    width: 2.5rem;
+    border: 2px solid black;
+    border-radius: 12px;
+    background: linear-gradient(to top, #a6d5ff, #ffffff); /* Gradiente de fondo */
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* Sombra interna */
+  }
+  
+  .inner-element {
+    width: 90%;
+    height: 50%;
+    margin-bottom: 0.25rem;
+    border: 2px solid black;
+    border-top: none; /* Remover el borde superior para dar sensación de continuidad */
+    border-radius: 0 0 10px 10px; /* Redondear solo las esquinas inferiores */
+    background-color: #c7f9cc;
+  }
+
+

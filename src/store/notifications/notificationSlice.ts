@@ -1,27 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { Notification } from '../types/stateInterfaces';
+import { NotiType } from '../types/stateTypes';
 
-interface Noti {
-    _id: string;
-    title: string;
-    description: string;
-    status: boolean;
-    to: string;
-    by: string;
-    createdAt: string;
-    updatedAt: string;
-  }
-  
-  interface NotisState {
-    isSaving: boolean;
-    notis: Noti[];
-  }
-
-
-const initialState: NotisState = {
+const initialState: Notification = {
     isSaving: false,
     notis: []
 }
-
 
 export const notisSlice = createSlice({
     name: 'notis',
@@ -34,8 +18,7 @@ export const notisSlice = createSlice({
 
         setNotis: ( state, { payload: notis } ) => {
             state.notis = []
-            notis.forEach( ( noti: Noti ) => {
-                // console.log(noti)
+            notis.forEach( ( noti: NotiType ) => {
                 state.notis.push( noti )
             });
             state.isSaving = false

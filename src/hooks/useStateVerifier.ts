@@ -1,67 +1,135 @@
-import axios from 'axios'
-import { ThunkDispatch } from "@reduxjs/toolkit";
-import { AnyAction } from "@reduxjs/toolkit";
+import axios from 'axios';
+import { ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction } from '@reduxjs/toolkit';
 import { RootState } from '../store/store';
 import { useEffect, useState } from 'react';
-import { useDispatch } from "react-redux";
+import { useDispatch } from 'react-redux';
 import { logout } from '../store/auth/authSlice';
-import { startStatePersistence } from "../store/auth/thunks";
-
+import { startStatePersistence } from '../store/auth/thunks';
+import { setGitlabAuth } from '../store/auth/authSlice';
 
 export const useStateVerifier = () => {
 
-
-    const [loading, setLoading] = useState(true)
-    const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>()
-
-
-    const token = localStorage.getItem('x-token')
-    
-    useEffect(() => {
   
-      const verifyUserState = async() => {
-  
-        if( !token ) {
-            setLoading( false )
-            return dispatch(logout({}))
-           
-        }
-
-        try {    
-              if(token) {
-        
-                    const response = await axios.post('http://localhost:3000/api/auth/me', {},  {
-                          headers: {
-                                'Authorization': token
-                          } 
-                    })
-
-                    if( !response.data.state ){ 
-                        setLoading(false)
-                        return dispatch(logout({}))      
-                    }
+  const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('x-token');
 
 
-                    const notesResponse = await axios.get(`http://localhost:3000/api/notis/${response.data.user.uid}`)
+  // const verifyGitlabToken = async () => {
+  //   try {
 
-                    dispatch( startStatePersistence( response.data, notesResponse.data.notis) )
-                    setLoading( false )              
-              } 
-  
-        } catch (error: unknown) {
-                    // console.error(error.response.data); // No token - error message
-                    setLoading(false)
-                    dispatch(logout({}))
-                
-        }
-  
+  //     const response = await axios.get('http://localhost:3000/api/gitlab/access-token', {
+  //       withCredentials: true
+  //     });
+      
+  //     const token = response.data.token;
+  //     console.log('Token de GitLab:', token)
+  //     if (token) {
+  //       // Verificar si el token es válido haciendo una llamada a la API de GitLab
+  //       try {
+  //         await axios.get('https://gitlab.com/api/v4/user', {
+  //           headers: {
+  //             'Authorization': `Bearer ${token}`
+  //           }
+  //         });
+  //         dispatch(setGitlabAuth(true));
+  //       } catch (error) {
+  //         if (error.response && error.response.status === 401) {
+  //           // Token no válido o ha expirado
+  //           dispatch(setGitlabAuth(false));
+  //         } else {
+  //           // Otro error
+  //           console.error('Error al verificar el token de GitLab:', error);
+  //           dispatch(setGitlabAuth(false));
+  //         }
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error al obtener el token de GitLab:', error);
+  //     dispatch(setGitlabAuth(false));
+  //   }
+  // };
+
+  const getUserData = async (token: string) => {
+    const response = await axios.post(
+      'http://localhost:3000/api/auth/me',
+      {},
+      {
+        headers: {
+          Authorization: token,
+        },
       }
-  
-      verifyUserState()
-  
-    }, [dispatch, token])
+    );
+
+    return response.data;
+  };
+
+  const getData = async (userId: string) => {
+
+    const urls = [
+      `http://localhost:3000/api/notis/${userId}`,
+      `http://localhost:3000/api/projects/get-project/${userId}`,
+      `http://localhost:3000/api/tasks/get-all-tasks/${userId}`,
+      `http://localhost:3000/api/client/${userId}`,
+      `http://localhost:3000/api/event/${userId}`,
+      `http://localhost:3000/api/repos/getAllRepos/${userId}`,
+      `http://localhost:3000/api/gitlab/get-layers/${userId}`,
+    ];
+
+    const promises = urls.map((url) => axios.get(url));
+    const results = await Promise.all(promises);
+
+    return results.map((result) => result.data);
+  };
+
+  useEffect(() => {
+
+    const verifyUserState = async () => {
+      if (!token) {
+        setLoading(false);
+        dispatch(logout({}));
+        return;
+      }
+
+      try {
+
+        const userData = await getUserData(token);
+        if (!userData.state) {
+          setLoading(false);
+          dispatch(logout({}));
+          return;
+        }
+
+        const [notis, projects, tasks, clients, events, repos, layers] = await getData(userData.user.uid);
+
+        // console.log( layers )
+
+        dispatch(
+          startStatePersistence(
+            userData,
+            notis.notis,
+            projects.projects,
+            tasks.tasks,
+            clients.clients.clients,
+            events.events.events,
+            repos,
+            layers.layers
+          )
+        );
+
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        dispatch(logout({}));
+      }
+
+    };
+
+    verifyUserState();
+  }, [dispatch, token]);
 
   return {
-    loading
-  }
-}
+    loading,
+  };
+};

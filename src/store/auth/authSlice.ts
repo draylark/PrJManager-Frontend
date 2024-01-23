@@ -1,28 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { Auth } from '../types/stateInterfaces';
 
 
-interface AuthState {
-  status: string;
-  uid: string | null;
-  email: string | null;
-  username: string | null;
-  photoURL: string | null;
-  description: string | null;
-  site: string | null;
-  errorMessage: string | null;
-  state: boolean | null;  // <-- Reemplaza 'any' con el tipo apropiado si es posible
-}
-
-const initialState: AuthState = {
+const initialState: Auth = {
   status: 'not-authenticated',
-  uid: null,
-  email: null,
-  username: null,
-  photoURL: null,
-  description: null,
-  site: null,
-  errorMessage: null,
-  state: null,
+  uid: '',
+  email: '',
+  username: '',
+  photoURL: '',
+  description: '',
+  site: '',
+  gitlabAuth: false,
+  errorMessage: '',
+  state: true,
+  friendsRequests: [],
+  friends: []
 };
 
 export const authSlice = createSlice({
@@ -44,7 +36,14 @@ export const authSlice = createSlice({
           state.site = payload.site || null,
           state.errorMessage = null,
           state.state = payload.state
+          state.friendsRequests = payload.friendsRequests || []
+          state.friends = payload.friends || []
 
+        },
+
+        setGitlabAuth: ( state, { payload } ) => {
+          // console.log(payload)
+          state.gitlabAuth = payload
         },
 
         logout: ( state, { payload } ) => {
@@ -59,6 +58,7 @@ export const authSlice = createSlice({
 
         },
 
+
         checkingCredentials: (state) => {
           state.status = 'checking'
         }
@@ -67,4 +67,4 @@ export const authSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { login, logout, checkingCredentials } = authSlice.actions;		
+export const { login, logout, setGitlabAuth ,checkingCredentials } = authSlice.actions;		

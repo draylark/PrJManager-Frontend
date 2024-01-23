@@ -6,9 +6,6 @@ import 'animate.css'
 
 export const Home = () => {
   return (
-
-    
-
     <div className="relative flex flex-wrap  xl:flex-nowrap xl:space-x-6 w-full h-full rounded-extra">
       
       <h1 className="text-3xl font-bold text-sky-950 ml-5 mt-5  sn:hidden ">Home</h1>

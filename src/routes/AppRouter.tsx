@@ -13,11 +13,9 @@ export const AppRouter = () => {
   const { status } = useCheckAuth()
   const { loading } = useStateVerifier()
 
-
   if( loading ) return <LoadingCircle/>
   if( status === 'checking' ) return <LoadingCircle/>     
    
- 
   return (
 
       <Routes>

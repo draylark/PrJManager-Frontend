@@ -10,4 +10,4 @@ const LoadingCircle = () => {
     );
   };
   
-  export default LoadingCircle;
+export default LoadingCircle;

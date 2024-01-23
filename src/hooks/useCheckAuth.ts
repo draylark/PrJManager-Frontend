@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/auth/authSlice';
 
-export interface RootState {
+export interface State {
     auth: {
       status: string;
       uid: string | null;
@@ -17,7 +17,7 @@ export interface RootState {
 export const useCheckAuth = () => {
 
     const [ isLoading, setIsLoading ] = useState(true);
-    const { status, uid, email } = useSelector( (state: RootState) => state.auth )
+    const { status, uid, email } = useSelector( (state: State) => state.auth )
     const dispatch = useDispatch()
 
     useEffect( () => {

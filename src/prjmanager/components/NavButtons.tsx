@@ -11,8 +11,8 @@ interface NavButtonProps {
 
 
 export const NavButton: React.FC<NavButtonProps> = ({ icon: IconComponent, label, link }) => {
+
     const [isHovered, setIsHovered] = useState(false);
-  
     const handleMouseEnter = () => setIsHovered(true);
     const handleMouseLeave = () => setIsHovered(false);
   

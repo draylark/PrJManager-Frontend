@@ -1,7 +1,6 @@
 import { ReactNode } from "react"
 import { Navigate } from "react-router-dom"
 import useCheckAuth from "../hooks/useCheckAuth"
-import LoadingCircle from "../auth/helpers/Loading";
 
 
 interface PublicRoutesProps {
@@ -11,9 +10,7 @@ interface PublicRoutesProps {
 
 const PublicRoutes = ({ children }: PublicRoutesProps ) => {
 
-    const { isLoading, status } = useCheckAuth()
-
-    if( isLoading ) return ( <LoadingCircle/> )
+    const { status } = useCheckAuth()
 
     return ( status === 'not-authenticated')
     ? children
