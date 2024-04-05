@@ -45,7 +45,7 @@ export const EditLayerForm: FC<EditLayerProps> = ({ setIsEditLayerOpen }) => {
     const location = useLocation();
     const dispatch = useDispatch();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
-    const { layers, repositories } = useSelector((state: RootState) => state.platypus);
+    const { layers, repositories } = useSelector((state: RootState) => state.platypus2);
 
     const [isCollaboratorsOpen, setIsCollaboratorsOpen] = useState(false)
     const [layerRepos, setlayerRepos] = useState([])

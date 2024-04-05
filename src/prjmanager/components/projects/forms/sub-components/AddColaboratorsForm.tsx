@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Autocomplete } from '@mui/material';
 import Swal from 'sweetalert2';
 
-export const AddColaboratorsForm = ({ onAddColaborador, usuarios, setIsCollaboratorsOpen }) => {
+export const AddColaboratorsForm = ({ onAddCollaborator, friends }) => {
 
     const [colaboradoresSeleccionados, setColaboradoresSeleccionados] = useState([]);
     const [nivelAcceso, setNivelAcceso] = useState('');
@@ -10,7 +10,7 @@ export const AddColaboratorsForm = ({ onAddColaborador, usuarios, setIsCollabora
     const handleSubmit = (e) => {
 
         colaboradoresSeleccionados.forEach(colaborador => {
-            onAddColaborador({
+            onAddCollaborator({
                 id: colaborador.id, // Asegúrate de que tus objetos de usuarios tienen un campo 'id'
                 nombre: colaborador.nombre, 
                 accessLevel: nivelAcceso
@@ -32,7 +32,7 @@ export const AddColaboratorsForm = ({ onAddColaborador, usuarios, setIsCollabora
            <div className='max-h-[100px] pt-2 overflow-y-auto'>
                 <Autocomplete
                     multiple
-                    options={usuarios}
+                    options={friends}
                     getOptionLabel={(option) => option.nombre}
                     onChange={(event, newValue) => {
                         setColaboradoresSeleccionados(newValue);
@@ -65,7 +65,7 @@ export const AddColaboratorsForm = ({ onAddColaborador, usuarios, setIsCollabora
 
             <div className='flex space-x-24 justify-center'>
                 <Button onClick={handleSubmit}>Save</Button>
-                <Button onClick={() => setIsCollaboratorsOpen(false)} type="button">Cancel</Button>
+                <Button type="button">Cancel</Button>
             </div>
         </div>
     );

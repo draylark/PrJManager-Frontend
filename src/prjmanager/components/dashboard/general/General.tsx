@@ -29,7 +29,7 @@ export const General = () => {
 
         <div id='Activity' className='flex w-[96%] ml-auto mr-auto h-[50%] treechart-container rounded-extra bg-[#ffffff26] pl-4 space-x-2'>
 
-            <div className="flex flex-col h-full w-[35%] rounded-extra  ">
+            <div className="flex flex-col h-full w-[35%] rounded-extra">
               <HeatMapCalendar/>
             </div>
 

@@ -20,7 +20,7 @@ export const Nav = () => {
   return (
 
  
-        <div className="hidden xl:flex absolute top-10 left-0 h-[770px] w-[calc(100%-83%)] bg-transparent z-0 flex-col items-center ">
+        <div className="hidden xl:flex flex-col min-h-[840px] w-[calc(100%-83%)] justify-center items-center">
 
             <div>
                 <h1 className='text-sky-950 text-3xl'>PrJManager</h1>

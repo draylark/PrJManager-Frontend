@@ -17,7 +17,7 @@ export const Layers = () => {
     const layerId = location.state?.layerId;
 
     const [projectLayers, setProjectLayers] = useState([])
-    const { layers, loading } = useSelector((state: RootState) => state.platypus)
+    const { layers, loading } = useSelector((state: RootState) => state.platypus2)
     const [ IsLayerModalOpen, setIsLayerModalOpen ] = useState(false)
 
 

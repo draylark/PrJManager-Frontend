@@ -8,7 +8,8 @@ import { eventSlice } from './events/eventSlice';
 import { friendSlice } from './friends/friendSlice';
 import { repositorySlice } from './repos/reposSlice';
 import { commitSlice } from './commits/commitSlice';
-import { platypusSlice } from './gitlab/gitlabSlice';
+import { platypusSlice2 } from './gitlab/gitlabSlice';
+import { platypusSlice } from './platypus/platypusSlice';
 import { Task, Notification, Project, Auth, Client, Event, Friend, Commit, Repository, Platypus } from './types/stateInterfaces';
 
 
@@ -32,13 +33,14 @@ export const store = configureStore({
     auth: authSlice.reducer,
     notis: notisSlice.reducer,
     projects: projectSlice.reducer,
-    platypus: platypusSlice.reducer,
+    platypus2: platypusSlice2.reducer,
     task: taskSlice.reducer,
     clients: clientSlice.reducer,
     events: eventSlice.reducer,
     friends: friendSlice.reducer,
     repos: repositorySlice.reducer,
     commits: commitSlice.reducer,
+    platypus: platypusSlice.reducer,
 
   },
 })

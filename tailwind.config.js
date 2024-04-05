@@ -18,6 +18,7 @@ export default {
         'sn': '450px'
       }
     },
+
   },
   plugins: [],
 }

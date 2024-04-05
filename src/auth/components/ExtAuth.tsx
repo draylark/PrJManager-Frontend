@@ -24,7 +24,7 @@ const ExtAuth = () => {
         }
 
         try {
-            const response = await axios.post(`http://localhost:${port}/receive-code`, { code, FRONTENDTID: socket.id });
+            await axios.post(`http://localhost:${port}/receive-code`, { code, FRONTENDTID: socket.id });
             socket.on('authenticationResult', (data) => {
                 console.log(data)
                 setRespStatus( data.status.authStatus || data.status );
@@ -51,7 +51,6 @@ const ExtAuth = () => {
 
     const handleNpmAuth = async () => {
         if (!socket || !isConnected) {
-            // console.log('Socket no está conectado');
             return;
         }
 
@@ -59,15 +58,17 @@ const ExtAuth = () => {
             const response = await axios.post('http://localhost:3000/api/auth/extension-auth-user', { code: authCode });    
             const { data } = response;
 
-            if( data.status ) {
-                socket.emit('npmAuth', { npmsocketid, success: true, user: data.user, pat: data.pat }, (response) => {                                   
+            console.log('Desde onPrJCUPersistance', data )
+
+            if( data.status === true ) {
+                socket.emit('onPrJCUPersistance', { type: 'NPM', success: true, npmsocketid, user: data.user, pat: data.pat, token: data.token }, (response) => {                                   
                     setRespStatus(response);
                     setIsLoading(false);
                     clearTimeout(timeoutRef.current); // Limpia el temporizador
                     socket.close();
                 });
             } else {
-                socket.emit('npmAuth', { npmsocketid, success: false, message: data.msg } );
+                socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: data.msg } );
                 setRespStatus({ success: false, message: data.msg || 'There was an error during authentication' });
                 setIsLoading(false);
                 clearTimeout(timeoutRef.current); // Limpia el temporizador
@@ -84,7 +85,7 @@ const ExtAuth = () => {
 
         } catch (error) {
             // console.error('Error al enviar al autenticarse', error);
-            socket.emit('npmAuth', { npmsocketid, success: false, message: error.response.data.msg || 'There was an error during authentication' } );
+            socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: error.response.data.msg || 'There was an error during authentication' } );
             setRespStatus({ success: false, message: error.response.data.msg || 'There was an error during authentication' });          
             setIsLoading(false);
             socket.close();   
@@ -92,7 +93,7 @@ const ExtAuth = () => {
     }
 
     useEffect(() => {
-        const newSocket = io('http://localhost:8081');
+        const newSocket = io('https://prj-socketserver-5b972d7517e7.herokuapp.com/');
         setSocket(newSocket);
 
         newSocket.on('connect', () => {
@@ -110,9 +111,9 @@ const ExtAuth = () => {
                     respStatus.message,
                     'success'
                 )
-            setTimeout(() => {
-                window.close()
-            }, 5000);
+            // setTimeout(() => {
+            //     window.close()
+            // }, 5000);
         } else {
             Swal.fire(
                 'Error',

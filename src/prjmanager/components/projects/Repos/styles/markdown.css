@@ -1,0 +1,27 @@
+@import 'github-markdown-css/github-markdown.css';
+
+.custom-markdown {
+    /* Personaliza el color de fondo y el tamaño de la fuente */
+    backdrop-filter: blur(20px) !important;
+    background-color: rgba(4, 17, 44, 0.731) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    font-size: 14px !important; /* Tamaño de fuente general */
+  }
+  
+  .custom-markdown h1 {
+    font-size: 24px !important; /* Tamaño para h1 */
+  }
+  
+  .custom-markdown h2 {
+    font-size: 20px !important; /* Tamaño para h2 */
+  }
+  
+  .custom-markdown h3 {
+    font-size: 18px !important; /* Tamaño para h3 */
+  }
+
+
+  .custom-markdown img {
+    background-color: transparent !important;
+  }

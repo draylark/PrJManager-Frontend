@@ -15,7 +15,7 @@ const PrJManager = ({ children } : PanelProps) => {
 
 
   return (
-    <div className="bg-gray-100 xl:h-[850px] h-auto flex flex-col">
+    <div id="prjmanager" className="flex overflow-y-auto h-screen w-screen bg-gray-100">
       {/* Panel del Dashboard */}
 
       <Nav/>

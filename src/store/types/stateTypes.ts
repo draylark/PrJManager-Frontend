@@ -1,4 +1,3 @@
-import { Group } from "@ricons/carbon"
 
 
 export type ProjectType = {
@@ -9,12 +8,11 @@ export type ProjectType = {
     status: string
     owner: string
     priority: string
-    tasks: []
-    members: []
+    tasks: number
+    collaborators: number
     tags: []
     files: []
     attachments: []
-    clients: []
     comments: []
     startDate: string
     progress: []

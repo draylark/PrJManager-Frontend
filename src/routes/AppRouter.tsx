@@ -1,17 +1,22 @@
-import { Routes, Route } from "react-router-dom"
+import { Routes, Route, useLocation } from "react-router-dom"
 import AuthRoutes from '../auth/routes/AuthRoutes';
-import useCheckAuth from "../hooks/useCheckAuth";
+import useCheckAuth from "../auth/styles/hooks/useCheckAuth";
 import PrivateRoutes from "./PrivateRoutes";
 import PublicRoutes from "./PublicRoutes";
 import ManagerRoutes from "../prjmanager/routes/ManagerRoutes";
 import LoadingCircle from "../auth/helpers/Loading";
-import { useStateVerifier } from "../hooks/useStateVerifier";
+import { useStateVerifier } from "../auth/styles/hooks/useStateVerifier";
+import { isOauthCallback } from "../helpers/isOauthCallback";
+import ExtAuth from "../auth/components/ExtAuth";
 
 
 export const AppRouter = () => {
 
   const { status } = useCheckAuth()
   const { loading } = useStateVerifier()
+  const location = useLocation()
+
+  if( isOauthCallback(location) ) return <ExtAuth/>
 
   if( loading ) return <LoadingCircle/>
   if( status === 'checking' ) return <LoadingCircle/>     
@@ -19,21 +24,18 @@ export const AppRouter = () => {
   return (
 
       <Routes>
-
-
-          <Route path="/*" element={
+          <Route path="/user/*" element={
                 <PublicRoutes>
                         <AuthRoutes/>
                 </PublicRoutes>
           }/> 
 
 
-          <Route path="/user/*" element={
+          <Route path="/*" element={
                 <PrivateRoutes>
                         <ManagerRoutes/>
                 </PrivateRoutes>
           }/>  
- 
       </Routes>
 
   )

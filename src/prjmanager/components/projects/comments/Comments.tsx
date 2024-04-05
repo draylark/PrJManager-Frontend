@@ -1,154 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import { TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, Divider, Box, Typography, IconButton } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import React, { useState, useEffect, useRef, Fragment } from 'react';
+import { TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, Divider, Box, IconButton, Dialog, DialogContent, DialogTitle, DialogActions, Typography } from '@mui/material';
 import ReplyIcon from '@mui/icons-material/Reply';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
-import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import LoadingCircle from '../../../../auth/helpers/Loading';
+import { useFetchComments } from './hooks/useFetchComments';
+import { format } from 'date-fns';
 
 interface Comment {
-    id: number;
+    id: string;
     content: string;
     username: string;
-    avatar: string;
-    answers: Comment[];
+    photoUrl: string;
     likes: number;
-    dislikes: number;
+    commentParent: string;
+    answering_to: string
 }
 
 export const Comments = () => {
 
-    const [isLoading, setisLoading] = useState(false)
-    const { uid, username } = useSelector((state: RootState) => state.auth);
+    const listRef = useRef(null);
+    const location = useLocation();
+    const project = location.state?.project;
 
-    const [comments, setComments] = useState<Comment[]>([]);
-    const [newComment, setNewComment] = useState('');
+    const [commentToDelete, setCommentToDelete] = useState('')
+    const [openDialog, setOpenDialog] = useState(false)
+    const [moreOption, setMoreOption] = useState('')
+    const [showButtons, setShowButtons] = useState(false)
+    const [newComment, setNewComment] = useState(''); 
     const [newAnswer, setNewAnswer] = useState<{ [key: number]: string }>({});
     const [replyField, setReplyField] = useState<{ [key: number]: boolean }>({});
     const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
-    const [likes, setLikes] = useState([])
+    const { uid, username, photoUrl } = useSelector((state: RootState) => state.auth);
+    
+    const { setComments, fetchComments, fetchMoreReplies, handleLikeDislike, setNoCommentsToFetch,
+            comments, likes, noCommentsToFetch, hasMoreComments, currentPage,  isLoading, totalPages } = useFetchComments()
 
-    const [currentPage, setCurrentPage] = useState(0);
-    const [hasMoreComments, setHasMoreComments] = useState(true);
 
-    const location = useLocation();
-    const project = location.state?.projectId;
 
     const handleCommentSubmit = async() => {
+        try {
+            const response = await axios.post('http://localhost:3000/api/comments/create-comment', { project: project.ID, content: newComment, uid, photoUrl })
+            const commentInfo = response.data.newComment
 
-        const response = await axios.post('http://localhost:3000/api/comments/create-comment', { project, content: newComment, uid })
-        const commentInfo = response.data.newComment
+            const comment: Comment = {
+                id: commentInfo._id, // Mejor usar un ID único
+                content: commentInfo.content,
+                username,
+                photoUrl: commentInfo.photoUrl || null, // Suponiendo que tienes la URL del avatar en los datos del usuario
+                likes: commentInfo.likes,
+                commentParent: commentInfo.commentParent,
+                answering_to: commentInfo.answering_to
+            };
+            setComments([ comment, ...comments ]);
+            setNoCommentsToFetch(false)
+            setNewComment('');
+        } catch (error) {
+            console.error('There was an error:', error);        
+        }
 
-        const avatar = "url-to-avatar";
-
-        const comment: Comment = {
-            id: commentInfo._id, // Mejor usar un ID único
-            content: commentInfo.content,
-            username,
-            avatar,
-            answers: [],
-            likes: commentInfo.likes,
-            dislikes: commentInfo.dislikes,
-            comment: commentInfo.comment
-        };
-        setComments([...comments, comment]);
-        setNewComment('');
     };
 
+    const handleAnswerSubmit = async (commentId: number) => {
+        const content = newAnswer[commentId] || '';
+        try {
+            const response = await axios.post('http://localhost:3000/api/comments/create-comment', { project: project.ID, content, uid, answering_to: commentId, photoUrl });
+            const commentInfo = response.data.newComment;
+
+            const c: Comment = {
+                id: commentInfo._id,
+                content: commentInfo.content,
+                username,
+                likes: commentInfo.likes,
+                photoUrl: commentInfo.photoUrl,
+                commentParent: commentInfo.commentParent,
+                answering_to: commentInfo.answering_to
+            }
+
+            setComments([ ...comments, c ]);
+            setNewAnswer(prev => ({ ...prev, [commentId]: '' }));
+            toggleReplyField(commentId, false);
+            toggleShowReplies(commentId)
+        } catch (error) {
+            console.error('There was an error:', error);
+        }
+    };
+    
+
+
+
+    const toggleReplyField = (commentId: number, show: boolean) => {
+        setReplyField(prev => ({ ...prev, [commentId]: show }));
+    };
+    
+    const toggleShowReplies = (commentId: number) => {
+        setShowReplies(prev => {
+            const show = prev[commentId] === true ? true : true
+            return { ...prev, [commentId]: show }
+        });
+    };
+
+
+
+
+    const handleCloseDialog = () => {
+        setCommentToDelete('')
+        setOpenDialog(false); 
+    };
+
+    const handleDeleteComment = async() => {
+        setOpenDialog(false)
+        try {           
+            const { data: { message } } = await axios.put(`http://localhost:3000/api/comments/delete-comment/${commentToDelete}`)
+            console.log('Mensaje de respuesta:', message)
+            setComments(prev => prev.filter(comment => comment.id !== commentToDelete))
+            setCommentToDelete('')
+            
+        } catch (error) {
+            console.error('Error al eliminar el comentario:', error);
+            setCommentToDelete('')   
+        }  
+    }
 
     const handleLoadMore = async () => {
         if (hasMoreComments) {
-            setCurrentPage(prev => prev + 1);
+            fetchComments( currentPage, false );
         }
     };
 
-    useEffect(() => {
-
-        setisLoading(true);
-
-        const fetchComments = async () => {
-            const fetchCommentWithUser = async (comments) => {
-                const idk = await Promise.all( comments.map( async (comment) => {
-                    const userResponse = await axios.get(`http://localhost:3000/api/users/${comment.createdBy}`);
-                    const user = userResponse.data.user;
-                
-                    return {
-                        id: comment._id,
-                        content: comment.content,
-                        username: user.username,
-                        avatar: "url-to-avatar", // Suponiendo que tienes la URL del avatar en los datos del usuario
-                        likes: comment.likes,
-                        dislikes: comment.dislikes,
-                        comment: comment.comment 
-                    };           
-                }))
-
-                return idk
-            };
 
 
-            const processReplies = async (commentsFromServer) => {
+    const getAccurateDate = (date) => {
+        return (
+            <Typography component="span" style={{ color: 'gray', fontSize: '10px' }}>
+                {format(new Date(date), 'MMMM do, yyyy')}
+            </Typography>
+        )
 
-                const repliesResponses = await Promise.all(commentsFromServer.map(comment => 
-                    axios.get(`http://localhost:3000/api/comments/get-replies/${comment._id}`)
-                ));
-                const allReplies = repliesResponses.map(response => response.data.replies).flat();
+    }
 
-                const processedReplies = await fetchCommentWithUser(allReplies)
-                setComments(prev => {
-                    const newComments = processedReplies.filter(comment => !prev.find(c => c.id === comment.id));
-                    return [...prev, ...newComments];      
-                }); 
+    const findOriginalCommentUsername = (commentId) => {
+        const comment = comments.find(comment => comment.id === commentId);
+    
+        if( comment ) {
+            return ( <Typography component="span" style={{ color: 'blue', fontSize: '13px' }}>@{comment.username} </Typography> );
+        } else {
+            return ( <Typography component="span" style={{ color: 'red', fontSize: '13px' }}>@deleted</Typography> );
+        }                   
+    };
 
-            }
-
-            const processComments = async () => {
-
-                const response = await axios.get(`http://localhost:3000/api/comments/get-comments/${project}?page=${currentPage}`);
-                const commentsFromServer = response.data.comments;
-                const totalComments = response.data.total;
-                const filteredComments = commentsFromServer.filter(comment => comment.comment === null)
-                const processedComments = await fetchCommentWithUser(filteredComments);  
-
-                console.log(response)
-
-                if( totalComments === comments.length ) {
-                    setHasMoreComments(false);
-                } else {
-                    setHasMoreComments(true);
-                }
-
-                setComments(prev => {
-                    const newComments = processedComments.filter(comment => !prev.find(c => c.id === comment.id));
-                    return [...prev, ...newComments];      
-                }); 
-
-                processReplies(commentsFromServer)
-
-                setTimeout(() => {
-                    setisLoading(false);
-                }, 2000);
-                
-            };
-
-           processComments();
-        };
-        fetchComments();
-    }, [project, currentPage])
-
-    // Función recursiva para renderizar comentarios y sus respuestas
     const renderComments = (comments: Comment[], parentId: number | null = null) => {
   
+
         const renderShowButtonReplies = (commentId: number, style: React.CSSProperties = {}) => {
-            if (comments.find(comment => comment.comment === commentId)) {
+            if (comments.find(comment => comment.commentParent === commentId)) {
                 return (
                     <Button 
-                        style={style} // Aplicar los estilos adicionales
-                        onClick={() => toggleShowReplies(commentId)}
+                        sx={{ marginLeft: 5 }}
+                        style={style} 
+                        onClick={() => setShowReplies(prev => ({ ...prev, [commentId]: !prev[commentId] }) )}
                     >
                         {showReplies[commentId] ? 'Hide' : 'Show'} Replies
                     </Button>
@@ -158,48 +173,100 @@ export const Comments = () => {
         };
         
         const renderCommentsLikesDislikes = (commentId: number, style: React.CSSProperties = {}) => {
-            const like = likes.filter(like => like.commentId === commentId && like.uid === uid && like.type === 'like').length;
-            const dislike = likes.filter(like => like.commentId === commentId && like.uid === uid && like.type === 'dislike').length;
+            const like = likes.filter(like => like.commentId === commentId && like.uid === uid && like.isLike === true).length;
         
             return (
-                <Box sx={{ display: 'flex', alignItems: 'center', ...style }}> 
-                    <IconButton onClick={() => handleLikeDislike(commentId, uid, 'like')}>
-                        <ThumbUpAltIcon color={like ? 'primary' : 'inherit'} />
+                <Box sx={{ marginRight: 1, display: 'flex', alignItems: 'center', ...style } }> 
+                    <IconButton onClick={() => handleLikeDislike(commentId)}>
+                        <ThumbUpAltIcon sx={{ width: 20, height: 20 }}  color={like ? 'primary' : 'inherit'} />
                     </IconButton>
                     <span>{like}</span>
-                    <IconButton onClick={() => handleLikeDislike(commentId, uid, 'dislike')}>
-                        <ThumbDownAltIcon color={dislike ? 'primary' : 'inherit'} />
-                    </IconButton>
-                    <span>{dislike}</span>
                 </Box>
             );
         };
 
-
-        const renderCommentsReplies = (commentId: number) => {
+        const renderCommentsReplies = (commentId: number, current_page, total_pages ) => {
             return (
                 <List dense>
-                    {comments.filter(comment => comment.comment === commentId).map(comment => (
-                        <React.Fragment key={comment.id}>
+                    {comments.filter(comment => comment.commentParent === commentId).map(comment => (
+                        <Fragment key={comment.id}>
                             <ListItem >
 
                             <ListItemAvatar sx={{ marginRight: '15px !important', minWidth: '30px !important' }}>
-                                <Avatar sx={{ width: 30, height: 30 }} src={comment.avatar} />
+                                <Avatar sx={{ width: 30, height: 30 }}  alt={ comment.username }  src={ comment.photoUrl || comment.username } />
                             </ListItemAvatar>
 
-                                <ListItemText 
-                                    primary={comment.username}
-                                    secondary={comment.comment ? `@${findOriginalCommentUsername(comment.comment)}: ${comment.content}` : comment.content}
-                                    primaryTypographyProps={{ style: { fontSize: '13px' } }} // Cambia el tamaño de fuente del texto primario
-                                    secondaryTypographyProps={{ style: { fontSize: '13px' } }} // Cambia el tamaño de fuente del texto secundario
-                                />
-
+                            <ListItemText 
+                                primary={
+                                    <Fragment>                                       
+                                        {comment.username} {getAccurateDate(comment.createdAt)}                                                                  
+                                    </Fragment>
+                                } 
+                                secondary={
+                                    <Fragment>
+                                        {comment.commentParent ? (
+                                            <span>
+                                                {findOriginalCommentUsername(comment.answering_to !== null ? comment.answering_to : comment.commentParent)} 
+                                                : <span className='text-black'>{comment.content}</span>
+                                                
+                                            </span>
+                                        ) : (
+                                            <span style={{ fontWeight: 'bold' }}>
+                                                {comment.content}
+                                            </span>
+                                        )}
+                                    </Fragment>
+                                }
+                                primaryTypographyProps={{ style: { fontSize: '13px' } }} // Cambia el tamaño de fuente del texto primario
+                                secondaryTypographyProps={{ style: { fontSize: '13px' } }} // Cambia el tamaño de fuente del texto secundario
+                            />
+                                
                                 <IconButton onClick={() => toggleReplyField(comment.id, !replyField[comment.id])}>
                                     <ReplyIcon sx={{fontSize: '1.2rem'}} />
                                 </IconButton>
 
-                                {renderShowButtonReplies(comment.id, { fontSize: '0.75rem' })}
-                                {renderCommentsLikesDislikes(comment.id, { fontSize: '0.75rem' })}                       
+                                {renderCommentsLikesDislikes(comment.id, { fontSize: '0.75rem' })}   
+
+                                {
+                                    moreOption === comment.id && (
+                                        <IconButton onClick={() => {
+                                            setCommentToDelete(comment.id)
+                                            setOpenDialog(true)}
+                                            } >
+                                            <DeleteIcon sx={{ width: 20, height: 20 }} />
+                                        </IconButton>
+                                    )
+                                }
+
+                                <Dialog 
+                                    open={openDialog} 
+                                    onClose={handleCloseDialog}
+                                    PaperProps={{ 
+                                        style: { 
+                                        boxShadow: 'none',
+                                        border: '1px solid #ccc', // Define un borde sólido, ligero y sutil
+                                        borderRadius: '4px' // Opcional: Añade un ligero borde redondeado
+                                        } 
+                                    }}
+                                    componentsProps={{
+                                        backdrop: { style: { backgroundColor: 'transparent' } },
+                                    }}
+                                >
+                                    <DialogTitle>Confirm Comment Deletion</DialogTitle>
+                                    <DialogContent>
+                                        Are you sure you want to delete this comment?                                         
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={handleCloseDialog}>Cancel</Button>
+                                        <Button onClick={handleDeleteComment} autoFocus>
+                                            Confirm
+                                        </Button>
+                                    </DialogActions>
+                                </Dialog>
+                                
+                                <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
+                                    <MoreVertIcon  sx={{ width: 18, height: 18 }}  />
+                                </IconButton>                                              
                                 
                             </ListItem>
                             <Divider variant="inset" component="li" />
@@ -212,7 +279,7 @@ export const Comments = () => {
                                         placeholder="Write a reply..."
                                         variant="outlined"
                                         value={newAnswer[comment.id] || ''}
-                                        onChange={e => setNewAnswer(prev => ({ ...prev, [comment.id]: e.target.value }))}
+                                        onChange={e => setNewAnswer({[comment.id]: e.target.value })}
                                         sx={{ mr: 2 }}
                                     />
                                     <ListItemSecondaryAction>
@@ -222,198 +289,199 @@ export const Comments = () => {
                                     </ListItemSecondaryAction>
                                 </ListItem>
                             )}
-                            {showReplies[comment.id] && (
-                                <Box>
-                                    {renderCommentsReplies(comment.id)}
-                                </Box>
-                            )}
-                        </React.Fragment>
+                        </Fragment>
                     ))}
+
+                    {
+                        current_page !== null && total_pages > 1 && current_page !== total_pages && (
+                            <button 
+                                className="w-[150px] my-2 ml-5 rounded-extra hover:text-blue-400 transition-colors duration-300 p-2 text-sm"  
+                                onClick={() => fetchMoreReplies(commentId, current_page)}
+                            >  
+                                Load more
+                            </button>
+                        )
+                    }
                 </List>
             );
         }
 
         return (
-            <List dense>
-                {comments.filter( comment => comment.comment === null ).map(comment => (
-                    <React.Fragment key={comment.id}>
+            <List dense >
+                {comments.filter( comment => comment.commentParent === null ).map(comment => (
+                    <div key={comment.id} className='w-[96%] mx-auto' >
                         <ListItem>
-
                             <ListItemAvatar>
-                                <Avatar src={comment.avatar} />
+                                <Avatar alt={ comment.username } src={ comment.photoUrl || comment.username } />
                             </ListItemAvatar>
-                            {/* <ListItemText primary={comment.username} secondary={comment.content} /> */}
+
                             <ListItemText 
-                                primary={comment.username} 
-                                secondary={comment.comment ? `@${findOriginalCommentUsername(comment.comment)}: ${comment.content}` : comment.content} 
+                                primary={
+                                    <Fragment>
+                                        {comment.username} {getAccurateDate(comment.createdAt)}                          
+                                    </Fragment>
+                                }   
+                                secondary={
+                                    <span>
+                                        {comment.commentParent ? `@${findOriginalCommentUsername(comment.commentParent)}: ` : ''}
+                                        <span className='text-black'>
+                                            {comment.content}
+                                        </span>
+                                    </span>
+                                }
+                                primaryTypographyProps={{ style: { whiteSpace: 'normal', wordWrap: 'break-word' } }}
+                                secondaryTypographyProps={{ style: { whiteSpace: 'normal', wordWrap: 'break-word' } }}
                             />
 
-                            <IconButton onClick={() => toggleReplyField(comment.id, !replyField[comment.id])}>
-                                <ReplyIcon />
+
+                           {renderShowButtonReplies(comment.id, { fontSize: '0.80rem' })}
+
+                            <IconButton sx={{ marginLeft: 1 }} onClick={() => toggleReplyField(comment.id, !replyField[comment.id])}>
+                                <ReplyIcon sx={{ width: 20, height: 20 }} />
                             </IconButton>
 
-                            {renderShowButtonReplies(comment.id, { fontSize: '0.90rem' })}
                             {renderCommentsLikesDislikes(comment.id, { fontSize: '1rem' })}
 
-                        </ListItem>
-                        <Divider variant="inset" component="li" />
-                        {replyField[comment.id] && (
-                            <ListItem sx={{ pl: 4 }}>
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={2}
-                                    placeholder="Write a reply..."
-                                    variant="outlined"
-                                    value={newAnswer[comment.id] || ''}
-                                    onChange={e => setNewAnswer(prev => ({ ...prev, [comment.id]: e.target.value }))}
-                                    sx={{ mr: 2 }}
-                                />
-                                <ListItemSecondaryAction>
-                                    <Button variant="contained" color="secondary" onClick={() => handleAnswerSubmit(comment.id)} endIcon={<ReplyIcon />}>
-                                        Reply
+                            {
+                                moreOption === comment.id && (
+                                    <IconButton onClick={() => {
+                                        setCommentToDelete(comment.id)
+                                        setOpenDialog(true)}
+                                        } >
+                                        <DeleteIcon sx={{ width: 20, height: 20 }} />
+                                    </IconButton>
+                                )
+                            }
+
+                            <Dialog 
+                                open={openDialog} 
+                                onClose={handleCloseDialog}
+                                PaperProps={{ 
+                                    style: { 
+                                      boxShadow: 'none',
+                                      border: '1px solid #ccc', // Define un borde sólido, ligero y sutil
+                                      borderRadius: '4px' // Opcional: Añade un ligero borde redondeado
+                                    } 
+                                  }}
+                                  componentsProps={{
+                                    backdrop: { style: { backgroundColor: 'transparent' } },
+                                  }}
+                            >
+                                <DialogTitle>Confirm Comment Deletion</DialogTitle>
+                                <DialogContent>
+                                    Are you sure you want to delete this comment?                                         
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                                    <Button onClick={handleDeleteComment} autoFocus>
+                                        Confirm
                                     </Button>
-                                </ListItemSecondaryAction>
-                            </ListItem>
-                        )}
+                                </DialogActions>
+                            </Dialog>
+
+                            <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
+                                <MoreVertIcon  sx={{ width: 20, height: 20 }}  />
+                            </IconButton>
+
+                        </ListItem>
+
+                        <Divider variant="inset" component="li" />
+                            {replyField[comment.id] && (
+                                <ListItem sx={{ pl: 4 }}>
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        placeholder="Write a reply..."
+                                        variant="outlined"
+                                        value={newAnswer[comment.id] || ''}
+                                        onChange={e => setNewAnswer({[comment.id]: e.target.value })}
+                                        sx={{ mr: 2 }}
+                                    />
+                                    <ListItemSecondaryAction>
+                                        <Button variant="contained" color="info" onClick={() => handleAnswerSubmit(comment.id)} endIcon={<ReplyIcon />}>
+                                            Reply
+                                        </Button>
+                                    </ListItemSecondaryAction>
+                                </ListItem>
+                            )}
+
                         {showReplies[comment.id] && (
                             <Box sx={{ ml: 2 }}>
-                                {renderCommentsReplies(comment.id)}
+                                {renderCommentsReplies(comment.id, comment.current_page, comment.total_pages)}
                             </Box>
                         )}
-                    </React.Fragment>
+                    </div>
                 ))}
             </List>
         );
     };
 
-
-
-
-    const handleAnswerSubmit = async (commentId: number) => {
-        const content = newAnswer[commentId] || '';
-        // Realizar la operación asíncrona para obtener la respuesta del servidor
-        const response = await axios.post('http://localhost:3000/api/comments/create-comment', { project, content, uid, parentCommentId: commentId });
-        const commentInfo = response.data.newComment;
-    
-        // Actualizar el estado con la nueva respuesta
-        // const updatedComments = addReply(comments, commentId, commentInfo);
-
-        const c: Comment = {
-            id: commentInfo._id,
-            content: commentInfo.content,
-            username,
-            avatar: "url-to-avatar",
-            likes: commentInfo.likes,
-            dislikes: commentInfo.dislikes,
-            comment: commentInfo.comment
-        }
-
-        setComments([ ...comments, c ]);
-        setNewAnswer(prev => ({ ...prev, [commentId]: '' }));
-        toggleReplyField(commentId, false);
-    };
-    
-    const toggleReplyField = (commentId: number, show: boolean) => {
-        setReplyField(prev => ({ ...prev, [commentId]: show }));
-    };
-
-    const toggleShowReplies = (commentId: number) => {
-        setShowReplies(prev => ({ ...prev, [commentId]: !prev[commentId] }));
-    };
-
-
-    const handleLikeDislike = async (commentId: number, isLike: boolean, type) => {
-        const existingLike = likes.find(like => like.commentId === commentId && like.uid === uid);
-    
-        try {
-            if (existingLike) {
-                if (existingLike.type === type) {
-                    // Si el like/dislike actual es del mismo tipo, eliminarlo
-                    type = null;
-                    await axios.post('http://localhost:3000/api/likes/', { commentId, uid, type });
-                    setLikes(prev => prev.filter(like => like.commentId !== commentId || like.uid !== uid));
-                } else {
-                    // Cambiar el tipo de like/dislike
-                    await axios.post('http://localhost:3000/api/likes/', { commentId, uid, type });
-                    setLikes(prev => prev.map(like => like.commentId === commentId && like.uid === uid ? { ...like, type } : like));
-                }
-            } else {
-                // Agregar un nuevo like/dislike
-                await axios.post('http://localhost:3000/api/likes/', { commentId, uid, type });
-                setLikes(prev => [...prev, { commentId, uid, type }]);
-            }
-        } catch (error) {
-            console.error('Error al manejar like/dislike:', error);
-        }
-    };
-
-
-    const findOriginalCommentUsername = (commentId) => {
-        let queue = [...comments]; // Cola para mantener los comentarios a procesar
-        while (queue.length > 0) {
-            const currentComment = queue.shift(); // Obtiene y elimina el primer elemento de la cola
-    
-            if (currentComment.id === commentId) {
-                return currentComment.username;
-            }
-    
-            // Agrega las respuestas del comentario actual a la cola para procesarlas después
-            if (currentComment.answers && currentComment.answers.length > 0) {
-                queue = queue.concat(currentComment.answers);
-            }
-        }
-    
-        return null; // En caso de que no se encuentre el comentario original
-    };
-
+    useEffect(() => {
+        fetchComments(currentPage, true);
+    }, [])
 
     return (
-        <>
-            {
-                isLoading 
-                ? ( 
-                    
-                    <div className='flex flex-col h-[90%] mb-20 items-center'>
-                         <LoadingCircle /> 
-                    </div>                  
-                )
-                : ( 
-                    <div className='p-5 h-[90%] rounded-extra overflow-y-auto'>
-                        <Typography variant="h5" gutterBottom>
-                            Project Comments
-                        </Typography>
+        <div className='h-full w-full'>
+                    <div className='flex flex-col h-full rounded-extra '>
+                        <h1 className='font-bold text-3xl pl-5'>
+                            Comments
+                        </h1>
 
                         {/* Comment input */}
-                        <Box sx={{ display: 'flex', alignItems: 'flex-end', mb: 3 }}>
+                        <div className='flex flex-col space-x-2 pt-5 px-5 pb-1'>
                             <TextField
                                 fullWidth
                                 multiline
-                                rows={3}
                                 placeholder="Write a comment..."
-                                variant="outlined"
                                 value={newComment}
-                                onChange={e => setNewComment(e.target.value)}
+                                onChange={e => {
+                                    setShowButtons(e.target.value.length > 0 ? true : false)
+                                    setNewComment(e.target.value)}
+                                }
                                 sx={{ mr: 2 }}
                             />
-                            <Button variant="contained" color="primary" onClick={handleCommentSubmit} endIcon={<SendIcon />}>
-                                Post
-                            </Button>
-                        </Box>
-
-                       
-
-                        {renderComments(comments)}  
+                     
+                            <div className={`flex opacity-0 ${ showButtons ? 'opacity-100' : 'opacity-0' } transition-opacity duraation-300 justify-end  pr-2 py-2 space-x-4`}>
+                                <button 
+                                    onClick={ () => setNewComment('') }
+                                    className='w-[120px] hover:bg-red-200 transition-colors duration-300 rounded-extra border-[1px] border-gray-400 text-sm p-2'>
+                                    cancel
+                                </button>
+                                <button
+                                    onClick={handleCommentSubmit} 
+                                    className='w-[120px] backdrop-blur-sm bg-blue-300/20  shadow-sm hover:bg-blue-600/20 transition-colors duration-300 rounded-extra border-[1px] border-gray-400 text-sm p-2'>
+                                    post
+                                </button>
+                            </div>
                         
-                        {hasMoreComments && (
-                            <Button sx={{ mt: 4 }} variant="contained" color="primary" onClick={handleLoadMore}>
-                                Load more
-                            </Button>
-                        )}
-                         
+
+                        </div>
+
+                        {
+                          isLoading 
+                          ? <LoadingCircle />                    
+                          :                         
+                            <div id='comments' ref={listRef} className='flex flex-col flex-grow max-h-[475px] overflow-y-auto px-2'>
+                                {
+                                    noCommentsToFetch 
+                                    ? <div className='flex w-full h-full justify-center'>
+                                        <h1 className="text-xl mt-[15%] text-gray-400 mb-10">There are no comments yet, start the conversation!</h1> 
+                                      </div>                             
+                                    : <>
+                                        {renderComments(comments)}  
+
+                                        {hasMoreComments && (
+                                            <button className="w-[150px] my-2 ml-5 rounded-extra hover:text-blue-400 transition-colors duration-300 p-2 text-sm"  onClick={handleLoadMore}>
+                                                Load more
+                                            </button>
+                                        )}
+                                      </>
+                                }
+                            </div> 
+                        }                                  
                     </div>
-                 )
-            }
-        </>
+ 
+        </div>
     );
 };

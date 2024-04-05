@@ -11,6 +11,32 @@
   }
 
 
+  .text-border {
+    text-shadow: 
+      -1px -1px 0 rgba(96, 96, 96, 0.5),  
+       1px -1px 0 rgba(96, 96, 96, 0.5),
+      -1px  1px 0 rgba(96, 96, 96, 0.5),
+       1px  1px 0 rgba(96, 96, 96, 0.5); /* Borde negro semi-transparente alrededor del texto */
+  }
+
+
+
+  .details-enter {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out;
+  }
+  
+  .details-enter-active {
+    max-height: 500px; /* Ajusta esto según el contenido */
+  }
+
+  /* En tu archivo CSS */
+.custom-syntax-highlighter {
+  font-size: 12px !important;
+}
+
+
   .main-panel {
     backdrop-filter: blur(10px);
     background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
@@ -25,6 +51,12 @@
     box-shadow: 0 8px 10px rgba(0, 0, 0, 0.10); /* Sombra ligera */
   }
 
+  .glassi {
+    backdrop-filter: blur(20px);
+    background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
   .glass {
     backdrop-filter: blur(10px);
     background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
@@ -61,7 +93,7 @@
 
   .glass5 {
     backdrop-filter: blur(10px);
-    background-color: rgba(41, 184, 255, 0.236); /* Color azul claro con transparencia */
+    background-color: rgba(0, 170, 255, 0.236); /* Color azul claro con transparencia */
     border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
     box-shadow: 0 8px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
   }
@@ -85,6 +117,18 @@
     border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
     box-shadow: 0 8px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
   }
+  .glass9 {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 107, 107, 0.3); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 8px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+  .glass10 {
+    backdrop-filter: blur(10px);
+    background-color: rgba(189, 189, 189, 0.4); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 8px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
 
   .graph-glass {
     backdrop-filter: blur(10px);
@@ -93,6 +137,20 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
   }
 
+
+  .glasspecial {
+    backdrop-filter: blur(10px);
+    background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+
+  .glass23 {
+    backdrop-filter: blur(10px);
+    background-color: rgba(41, 255, 77, 0.1); /* Color azul claro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
+    box-shadow: 0 8px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
 
   .minimal-button {
     background: transparent;

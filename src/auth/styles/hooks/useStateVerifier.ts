@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import { AnyAction } from '@reduxjs/toolkit';
-import { RootState } from '../store/store';
+import { RootState } from '../../../store/store';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { logout } from '../store/auth/authSlice';
-import { startStatePersistence } from '../store/auth/thunks';
-import { setGitlabAuth } from '../store/auth/authSlice';
+import { logout } from '../../../store/auth/authSlice';
+import { startStatePersistence } from '../../../store/auth/thunks';
+import { setGitlabAuth } from '../../../store/auth/authSlice';
 
 export const useStateVerifier = () => {
 
@@ -103,7 +103,8 @@ export const useStateVerifier = () => {
 
         const [notis, projects, tasks, clients, events, repos, layers] = await getData(userData.user.uid);
 
-        // console.log( layers )
+        console.log(projects)
+
 
         dispatch(
           startStatePersistence(

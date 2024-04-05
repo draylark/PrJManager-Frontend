@@ -75,9 +75,8 @@ export interface Commit {
 
 
 export interface Platypus {
+    currentProject: ProjectType | null,
     layers: LayerType[],
-    repositories: RepoType[],
-    current: [],
-    loading: false,
-    error: null,
+    currentLayer: LayerType | null,
+    layerRepositories: RepoType[],
 }

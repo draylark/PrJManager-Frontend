@@ -12,7 +12,7 @@ const initialState: Platypus = {
   error: null,
 };
 
-export const platypusSlice = createSlice({
+export const platypusSlice2 = createSlice({
 
     name: 'Platypus',
     initialState,
@@ -52,4 +52,4 @@ export const platypusSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { startLayers, startRepositories, addNewLayer, addNewRepository, checkingGitlab } = platypusSlice.actions;		
+export const { startLayers, startRepositories, addNewLayer, addNewRepository, checkingGitlab } = platypusSlice2.actions;		

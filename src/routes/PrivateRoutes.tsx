@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 import { Navigate } from "react-router-dom"
-import useCheckAuth from "../hooks/useCheckAuth"
+import useCheckAuth from "../auth/styles/hooks/useCheckAuth"
 
 
 
@@ -15,7 +15,7 @@ const PrivateRoutes = ({ children }: PrivateRoutesProps ) => {
 
     return ( status === 'authenticated')
     ? children
-    : <Navigate to='/login'/>
+    : <Navigate to='/user/login'/>
 
 }
 
