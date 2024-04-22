@@ -72,8 +72,16 @@ export const useHeatMapData = ( projectID: string, uid ) => {
 
         const fetchData = async () => {
             try {
-                const tasksData = await axios.get(`${backendUrl}/tasks/activity/${projectID}`, { params: { year, uid } });
-                const commitsData = await axios.get(`${backendUrl}/commits/activity/${projectID}`, { params: { year, uid } });
+                const tasksData = await axios.get(`${backendUrl}/tasks/activity/${projectID}`, { 
+                    params: { year, uid },
+                    headers: { Authorization: localStorage.getItem('x-token') } 
+                });
+                console.log('tasksData',tasksData)
+                const commitsData = await axios.get(`${backendUrl}/commits/activity-data/${projectID}`, { 
+                    params: { year, uid },
+                    headers: { Authorization: localStorage.getItem('x-token') } 
+                });
+                console.log('commitsData', commitsData)
                 handleHeatMapData(commitsData.data.commits, tasksData.data.tasks);
             } catch (error) {
                 console.error(error);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFormik, Formik, Form, Field, FieldArray, useFormikContext } from 'formik';
+import { Formik, Form, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { TextField, Button, List, ListItem, ListItemText, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Autocomplete, Typography, Tooltip } from '@mui/material';
 import { LiaHandsHelpingSolid } from "react-icons/lia";
@@ -11,12 +11,11 @@ import Partnership from '@ricons/carbon/Partnership';
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import axios from 'axios';
-import LoadingCircle from '../../../../auth/helpers/Loading';
-import { greenGlass, blueGlass } from '../../styles/glassStyles';
 import { useGlobalUsersSearcher } from './hooks/useGlobalUsersSearcher';
 import RemoveCircleOutlineOutlined from '@ricons/material/RemoveCircleOutlineOutlined'
 import Swal from 'sweetalert2';
-import formbg from '../../../assets/imgs/formbg.jpg'
+import formbg from './assets/formbg.jpg'
+import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
@@ -140,52 +139,53 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
             accessLevel: collaborator.project.accessLevel
           }
         });
-
-        console.log('Collaborators:', collaboratorsData)
         setCurrentCollaborators(collaboratorsData)
         setFetchingCollaborators(false)
-
     };
-    const handleSubmit = ( values, { setSubmitting, resetForm } ) => {
-      console.log(values)
-      setSubmitting(true);
-      setIsLoading(true);
 
-        axios.put(`${backendUrl}/projects/collaborators/${ID}`, values, {
-          params: {
-            uid
-          },
-            headers: {
-                'Authorization': localStorage.getItem('x-token')
-            }
-        })
-        .then( response => {
-            console.log(response)
+    const handleSubmit = async( values, { setSubmitting, resetForm } ) => {
+        setIsLoading(true);
+        setSubmitting(true);
+
+        try {
+            const response = await axios.put(`${backendUrl}/projects/collaborators/${ID}`, values, {
+              params: {
+                uid
+              },
+                headers: {
+                    'Authorization': localStorage.getItem('x-token')
+                }
+            });
+
+            resetForm();
+            setSubmitting(false);         
             setIsLoading(false);
+            handleClose();
+
             Swal.fire({
-                title: 'Successful Update',
-                text: `${response.data.message}`,
                 icon: 'success',
-            })
-
-            setTimeout(() => {
-              resetForm();
-              handleClose();
-            }, 2000);
-        })
-        .catch( error => {
+                title: 'Success',
+                text: response.data.message
+            });    
+        } catch (error) {
+            setSubmitting(false);
             setIsLoading(false);
-            Swal.fire({
-                title: 'Error',
-                text: `${error.response.data.message}`,
-                icon: 'error',
-            })
 
-            setTimeout(() => {
-              resetForm();
-              handleClose();
-            }, 2000);
-        })
+            if(  error.response.data?.type === 'collaborator-validation' ){
+                handleClose();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Access Validation',
+                    text: error.response.data.message,
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.response.data.message,
+                });
+            }
+        }
     };
 
 
@@ -228,15 +228,17 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
             <div id="projectCollaboratorModal" 
                   className={`flex flex-col space-y-5 w-[70%] md:w-[50%] md:h-[620px]  rounded-2xl border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isProjectCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
                   style={{
-                    backgroundImage: `url(${formbg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
+                    backgroundImage: `url(${formbg})`
                   }}
             >
 
               {
                 isLoading 
-                ? <LoadingCircle />
+                ? ( 
+                    <div className='flex flex-grow items-center justify-center'>
+                        <PuffLoader  color="#32174D" size={50} /> 
+                    </div>       
+                  )
                 :
                   <>          
                     <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
@@ -247,7 +249,11 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                     </div>
                       {
                           fetchingCollaborators 
-                          ? ( <LoadingCircle /> )
+                          ?  ( 
+                              <div className='flex flex-grow items-center justify-center'>
+                                  <PuffLoader  color="#32174D" size={50} /> 
+                              </div>       
+                            )
                           :
                             <Formik 
                               initialValues={{
@@ -264,7 +270,6 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                   
                                   
                                   <Form className='w-full h-full'>
-                                    {console.log(values)}
                                     <IsTheButtonDisabled values={values}/>  
                                       {
                                         ! currentOrNew 
@@ -331,7 +336,6 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                                                                     sx={{ width: '130px' }}
                                                                                         name={`collaborators[${index}].accessLevel`}
                                                                                         value={collaborator.accessLevel}
-
                                                                                         onChange={e => {
                                                                                           const newAccessLevel = e.target.value;
 
@@ -372,13 +376,17 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                                                                         <MenuItem value="administrator">Administrator</MenuItem>
                                                                                         {
                                                                                           currentProject.owner === uid &&
-                                                                                            <MenuItem value="Major">Major</MenuItem>
+                                                                                            <MenuItem 
+                                                                                              disabled 
+                                                                                              value="Major">
+                                                                                                Major
+                                                                                            </MenuItem>
                                                                                         }
                                                                                     </Select>
                                                                                 :
                                                                                   <div className='flex flex-col items-center mr-9'>
-                                                                                      <span className='text-[11px] text-green-500'>Added as</span>
-                                                                                      <span className='text-[11px] font-bold text-green-500'>{collaborator.accessLevel}</span>
+                                                                                      <span className='text-[11px] text-green-700'>Added as</span>
+                                                                                      <span className='text-[11px] font-bold text-green-800'>{collaborator.accessLevel}</span>
                                                                                   </div>
                                                                               }
 

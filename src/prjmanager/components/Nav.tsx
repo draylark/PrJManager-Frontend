@@ -29,10 +29,8 @@ export const Nav = () => {
 
             <div className='flex flex-col space-y-36'>
                 <div className='mt-24'>
-                    <NavButton icon={ Home } label='Home' link='home'/>
                     <NavButton icon={ Dashboard } label='Dashboard' link='dashboard'/>
-                    <NavButton icon={ Folder } label='Projects' link='projects'/>
-                    <NavButton icon={ Team } label='Teams' link='teams'/>      
+                    <NavButton icon={ Folder } label='Projects' link='projects'/> 
                     <NavButton icon={ GlobeSearch20Filled } label='Searcher' link='searcher'/>        
                 </div>
 

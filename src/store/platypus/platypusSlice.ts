@@ -2,11 +2,13 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Project } from '../types/stateInterfaces';
 import { ProjectType } from '../types/stateTypes';
 import { platypusSlice } from '../gitlab/gitlabSlice';
+import { set } from 'date-fns';
 
 const initialState = {    
     currentProject: null,   
     layers: [], 
     repositories: [],
+    fetchingResources: false,
 };
 
 
@@ -41,9 +43,13 @@ export const platypusSlice = createSlice({
         addNewLayerRepository : ( state, { payload: repository } : PayloadAction<ProjectType> ) => {
             state.repositories.push( repository )
         },
+
+        setFetchingResources: ( state, { payload } : PayloadAction<boolean> ) => {
+            state.fetchingResources = payload
+        }
   
     }
 });
 
 
-export const { setCurrentProject, setLayers, setRepositories, addNewLayer, addNewLayerRepository } = platypusSlice.actions;
+export const { setCurrentProject, setLayers, setRepositories, addNewLayer, addNewLayerRepository, setFetchingResources } = platypusSlice.actions;

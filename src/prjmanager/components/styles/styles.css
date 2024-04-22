@@ -36,6 +36,13 @@
   font-size: 12px !important;
 }
 
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
 
   .main-panel {
     backdrop-filter: blur(10px);

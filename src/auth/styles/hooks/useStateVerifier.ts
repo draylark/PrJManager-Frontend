@@ -69,12 +69,8 @@ export const useStateVerifier = () => {
 
     const urls = [
       `http://localhost:3000/api/notis/${userId}`,
-      `http://localhost:3000/api/projects/get-project/${userId}`,
-      `http://localhost:3000/api/tasks/get-all-tasks/${userId}`,
-      `http://localhost:3000/api/client/${userId}`,
-      `http://localhost:3000/api/event/${userId}`,
-      `http://localhost:3000/api/repos/getAllRepos/${userId}`,
-      `http://localhost:3000/api/gitlab/get-layers/${userId}`,
+      `http://localhost:3000/api/projects/get-projects/${userId}`,
+      `http://localhost:3000/api/friends/get-friends/${userId}`
     ];
 
     const promises = urls.map((url) => axios.get(url));
@@ -101,21 +97,17 @@ export const useStateVerifier = () => {
           return;
         }
 
-        const [notis, projects, tasks, clients, events, repos, layers] = await getData(userData.user.uid);
+        const [notis, projects, friends] = await getData(userData.user.uid);
 
-        console.log(projects)
+        console.log('PROYECTOS', projects)
 
 
         dispatch(
           startStatePersistence(
             userData,
             notis.notis,
-            projects.projects,
-            tasks.tasks,
-            clients.clients.clients,
-            events.events.events,
-            repos,
-            layers.layers
+            projects,
+            friends
           )
         );
 

@@ -93,7 +93,7 @@ const ExtAuth = () => {
     }
 
     useEffect(() => {
-        const newSocket = io('https://prj-socketserver-5b972d7517e7.herokuapp.com/');
+        const newSocket = io('http://localhost:8081');
         setSocket(newSocket);
 
         newSocket.on('connect', () => {

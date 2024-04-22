@@ -21,9 +21,6 @@ export const Commits = () => {
   
     const { isLoading, commitsData, RenderCommits } = useRepositoryCommitsData(repository, layer, project, commits);
 
-    console.log('commitstate:', commits)
-
-
     return (   
         <div className='flex flex-col w-full h-full items-center'>
 
@@ -50,29 +47,3 @@ export const Commits = () => {
         </div>
     )
 }
-
-// <Breadcrumbs sx={{marginLeft: 2}} aria-label="breadcrumb">               
-// <button
-//     className='text-[12px] hover:text-pink-300 transition-colors duration-500'                            
-//     onClick={() => navigate(`/user/projects/${cleanUrl(project.name)}/${cleanUrl(layer.layerName)}`, {
-//         state: {
-//             project: project,
-//             layer: layer
-//         }
-//     })}
-// >
-//     {layer.layerName}
-// </button>
-// <button
-//     className='text-[12px] hover:text-green-500 transition-colors duration-500'                            
-//     onClick={() => navigate(-2)}
-// >
-//     {repository.repoName}
-// </button>
-
-// <span 
-//     className='text-[12px]'
-// >
-//     {commitHash.slice(0, 7)} {/* Muestra solo los primeros 7 caracteres del hash */}
-// </span>
-// </Breadcrumbs>

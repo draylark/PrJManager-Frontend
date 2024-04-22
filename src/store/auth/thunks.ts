@@ -8,6 +8,7 @@ import { startClients } from "../clients/clientSlice";
 import { startEvents } from "../events/eventSlice";
 // import { startRepositories } from "../repos/reposSlice";
 import { startLayers, startRepositories } from "../gitlab/gitlabSlice";
+import { startFriends } from "../friends/friendSlice";
 
 
 interface DataM {
@@ -57,21 +58,17 @@ export const startGoogleLoginWEmailPassword = ( payload: DataM ) => {
 }
 
 
-export const startStatePersistence = ( userData: DataM, userNotes: [], userProjects: [], userTasks: [], userClients: [], userEvents: [], userRepos: [], userGroups: [] ) => {
+export const startStatePersistence = ( userData: DataM, userNotes: [], userProjects: [], userFriends: [] ) => {
 
     return async( dispatch: ThunkDispatch<unknown, unknown, AnyAction> ) => {     
         dispatch( checkingAuthentication() )
 
-        // console.log(userGroups)
+        console.log(userFriends)
         setTimeout(() => {
             dispatch( startProjects( userProjects ))
             dispatch( setNotis( userNotes ) )   
             dispatch( login( userData.user ) )   
-            dispatch( startTasks( userTasks ) )
-            dispatch( startClients( userClients ))
-            dispatch( startEvents( userEvents ))
-            dispatch( startRepositories( userRepos ))
-            dispatch( startLayers( userGroups ))
+            dispatch( startFriends( userFriends ))
         }, 3000);
  
     }

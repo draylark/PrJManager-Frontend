@@ -11,7 +11,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../../store/store';
 import { ImCancelCircle } from "react-icons/im";
 import axios from 'axios';
+import bgform from './assets/formbg.jpg'
 import { set } from 'date-fns';
+import { PuffLoader  } from 'react-spinners';
+
 
 
 
@@ -117,7 +120,8 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
         setIsLoading(true);
         setSubmitting(true);
 
-        axios.put(`http://localhost:3000/api/layer/update-layer/${ID}/${layerID}`, values, 
+        try {
+            const response = await axios.put(`http://localhost:3000/api/layer/update-layer/${ID}/${layerID}`, values, 
             { 
                 params: {
                     uid
@@ -126,34 +130,37 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
                     'Authorization': localStorage.getItem('x-token') 
                 } 
             } )
-            .then((response) => {
-                setIsLoading(false);
 
+            resetForm();
+            setSubmitting(false);         
+            setIsLoading(false);
+            handleClose();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: response.data.message
+            });
+
+        } catch (error) {
+            setSubmitting(false);
+            setIsLoading(false);
+
+            if(  error.response.data?.type === 'collaborator-validation' ){
+                handleClose();
                 Swal.fire({
-                    title: 'Layer updated succesfully!',
-                    text: response.data.message,
-                    icon: 'success',
+                    icon: 'warning',
+                    title: 'Access Validation',
+                    text: error.response.data.message,
                 });
-
-                setTimeout(() => {
-                    resetForm();
-                    handleClose();
-                }, 2000);
-            })
-            .catch((error) => {
-                console.log(error)
-                setIsLoading(false);
+            } else {
                 Swal.fire({
-                    title: 'Error',
-                    text: `${error.response.data.message}`,
                     icon: 'error',
+                    title: 'Oops...',
+                    text: error.response.data.message,
                 });
-
-                setTimeout(() => {
-                    resetForm();
-                    handleClose();
-                }, 2000);
-            })
+            }
+        }
     };
 
 
@@ -170,7 +177,14 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
   return (
 
     <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
-        <div id="layerConfigModal" className={`flex flex-col space-y-7 w-[70%] bg-white border-[1px] border-black md:w-[40%] md:h-[450px] max-h-[560px] rounded-2xl pb-4 overflow-y-auto  transition-opacity duration-500 ease-in-out opacity-0 ${isLayerConfigFormOpen ? '' : 'pointer-events-none'}`}>
+        <div 
+            id="layerConfigModal" 
+            style={{ 
+                backgroundImage: `url(${bgform})`,
+                backgroundPosition: 'bottom center'
+
+            }}
+            className={`flex flex-col space-y-7 w-[70%] bg-white border-[1px] border-black md:w-[40%] md:h-[450px] max-h-[560px] rounded-2xl pb-4 overflow-y-auto  transition-opacity duration-500 ease-in-out opacity-0 ${isLayerConfigFormOpen ? '' : 'pointer-events-none'}`}>
             
             <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                 <p className='text-xl text-black'>Layer Configuration</p>
@@ -181,7 +195,11 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
             
             { 
                 IsLoading 
-                ? ( <LoadingCircle/> )    
+                ? ( 
+                    <div className='flex flex-grow items-center justify-center'>
+                        <PuffLoader  color="#32174D" size={50} /> 
+                    </div>                         
+                  )   
                 : ( 
                         <Formik
                             initialValues={{

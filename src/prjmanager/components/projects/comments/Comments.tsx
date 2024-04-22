@@ -11,6 +11,8 @@ import axios from 'axios';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useFetchComments } from './hooks/useFetchComments';
 import { format } from 'date-fns';
+import { tierS, tierA } from '../../../helpers/accessLevels-validator';
+
 
 interface Comment {
     id: string;
@@ -36,6 +38,7 @@ export const Comments = () => {
     const [newAnswer, setNewAnswer] = useState<{ [key: number]: string }>({});
     const [replyField, setReplyField] = useState<{ [key: number]: boolean }>({});
     const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
+    const { currentProject} = useSelector((state: RootState) => state.platypus );
     const { uid, username, photoUrl } = useSelector((state: RootState) => state.auth);
     
     const { setComments, fetchComments, fetchMoreReplies, handleLikeDislike, setNoCommentsToFetch,
@@ -219,7 +222,7 @@ export const Comments = () => {
                                 }
                                 primaryTypographyProps={{ style: { fontSize: '13px' } }} // Cambia el tamaño de fuente del texto primario
                                 secondaryTypographyProps={{ style: { fontSize: '13px' } }} // Cambia el tamaño de fuente del texto secundario
-                            />
+                                />
                                 
                                 <IconButton onClick={() => toggleReplyField(comment.id, !replyField[comment.id])}>
                                     <ReplyIcon sx={{fontSize: '1.2rem'}} />
@@ -264,9 +267,18 @@ export const Comments = () => {
                                     </DialogActions>
                                 </Dialog>
                                 
-                                <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
-                                    <MoreVertIcon  sx={{ width: 18, height: 18 }}  />
-                                </IconButton>                                              
+                                {
+                                        tierS(uid, currentProject) 
+                                    ||
+                                        tierA(uid, currentProject)
+                                    ? (
+                                        <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
+                                            <MoreVertIcon  sx={{ width: 18, height: 18 }}  />
+                                        </IconButton>   
+                                        )
+                                    : null
+                                }
+                                           
                                 
                             </ListItem>
                             <Divider variant="inset" component="li" />
@@ -379,9 +391,17 @@ export const Comments = () => {
                                 </DialogActions>
                             </Dialog>
 
-                            <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
-                                <MoreVertIcon  sx={{ width: 20, height: 20 }}  />
-                            </IconButton>
+                            {
+                                    tierS(uid, currentProject) 
+                                ||
+                                    tierA(uid, currentProject)
+                                ? (
+                                    <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
+                                        <MoreVertIcon  sx={{ width: 20, height: 20 }}  />
+                                    </IconButton>   
+                                    )
+                                : null
+                            }
 
                         </ListItem>
 

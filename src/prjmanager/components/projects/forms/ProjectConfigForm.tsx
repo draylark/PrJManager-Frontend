@@ -13,6 +13,8 @@ import LoadingCircle from '../../../../auth/helpers/Loading';
 import { AdvancedSettings } from './sub-components/AdvancedSettings';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import formbg from './assets/formbg.jpg'
+import { PuffLoader  } from 'react-spinners';
 
 export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigFormOpen, showOptModal, setShowOptModal }) => {
 
@@ -23,10 +25,8 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
     const project = projects.find(project => project.pid === ID);
 
     const [isAdvancedSettingOpen, setisAdvancedSettingOpen] = useState(false)
-    const [checked, setChecked] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false)
-    const [IsLoading, setIsLoading] = useState(false);
-    const [fetchingCollaborators, setFetchingCollaborators] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     const allTags = project?.tags.map( tag => tag );
     const tags = project.tags.map((tag, index) => {
@@ -48,19 +48,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
         }
     }
 
-        
-    const projectAdvancedSettings = {
-        s2: { id: 's2', label: 'Community level Comments', checked: false, isDisabled: false },
-        s3: { id: 's3', label: 'Community level Commits', checked: true, isDisabled: false },
-        s4: { id: 's4', label: 'Community level Activy', checked: true, isDisabled: false },
-    }
 
-
-    const repositoryAdvancedSettings = {
-        s6: { id: 's6', label: 'Community level Pull Requests', checked: false, isDisabled: true },
-        s8: { id: 's8', label: 'Community level Deployments', checked: false, isDisabled: true },
-        s10: { id: 's10', label: 'Community level Packages', checked: false, isDisabled: true },
-    }
     const IsTheButtonDisabled = ({ values }) => {
         useEffect(() => {
             const isDisabled = 
@@ -80,27 +68,47 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
 
 
     const handleSubmit = async( values, { setSubmitting, resetForm } ) => {
-        console.log('Values desde el submit',values, uid)
-
+        setIsLoading(true);
         setSubmitting(true)
-        axios.put(`http://localhost:3000/api/projects/update-project/${ID}`, values,
-          {
-            params: {
-                uid
-            },
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': localStorage.getItem('x-token')
+        try {
+            const response = await axios.put(`http://localhost:3000/api/projects/update-project/${ID}`, values, {
+                params: {
+                    uid
+                },
+                headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('x-token')
+                }
+            })
+
+            resetForm();
+            setSubmitting(false);         
+            setIsLoading(false);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: response.data.message
+            });    
+        } catch (error) {
+            setSubmitting(false);
+            setIsLoading(false);
+
+            if(  error.response.data?.type === 'collaborator-validation' ){
+                handleClose();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Access Validation',
+                    text: error.response.data.message,
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.response.data.message,
+                });
             }
-          }
-        )
-        .then((response) => {
-          console.log('Project Updated:', response.data)
-          handleClose()
-        })
-        .catch((error) => {
-          console.error('Error updating the project:', error);
-        });
+        }
     }
   
     useEffect(() => {
@@ -122,14 +130,15 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
     }, [showOptModal])
     
 
-    
-    if (IsLoading) {
-        return <LoadingCircle />;
-    }
 
     return (
         <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center z-50'>
-            <div id="projectConfigModal" className={`flex flex-col w-[70%]  md:w-[50%] md:max-h-[635px] items-center  rounded-2xl bg-white border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isProjectConfigFormOpen ? '' : 'pointer-events-none'}`}>
+            <div id="projectConfigModal" 
+                style={{
+                    backgroundImage: `url(${formbg})`,
+                    backgroundPosition: 'top right', // Muestra la parte superior izquierda de la imagen
+                }}
+                className={`flex flex-col w-[70%] md:w-[50%] md:max-h-[635px] md:h-[635px] items-center rounded-2xl bg-white border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isProjectConfigFormOpen ? '' : 'pointer-events-none'}`}>
 
                 <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                     <p className='text-xl text-black'>Project Configuration</p>
@@ -138,8 +147,12 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                     </button>                   
                 </div>
                 {
-                    fetchingCollaborators 
-                    ? ( <LoadingCircle /> )
+                    isLoading 
+                    ? ( 
+                        <div className='flex flex-grow items-center justify-center'>
+                            <PuffLoader  color="#32174D" size={50} /> 
+                        </div>                         
+                      )
                     :
                       <Formik 
                         initialValues={{
@@ -159,14 +172,13 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                           {({ values, setFieldValue, handleChange, isSubmitting }) => (
                             
                               <Form className='w-[95%] h-full'>
-                                  {console.log('Values:', values)}
                                     <IsTheButtonDisabled values={values} />
 
                                     {
 
                                         !isAdvancedSettingOpen
                                         ? (
-                                            <div className='flex flex-col w-full h-full space-y-7 py-3'>
+                                            <div className='flex flex-col w-full h-full space-y-7 pt-3 pb-6'>
                                                     <div className='flex w-full hover:text-blue-400 transition-colors duration-300 justify-end h-[15px] transform active:translate-y-[2px]'>
                                                         <button onClick={() => setisAdvancedSettingOpen(!isAdvancedSettingOpen)}>
                                                             Advanced Settings
@@ -247,7 +259,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                                     />
 
 
-                                                    <div className='flex w-full justify-center'>                                     
+                                                    <div className='flex w-full justify-center '>                                     
                                                         <button 
                                                             type="submit"
                                                             disabled={ buttonDisabled || isSubmitting }

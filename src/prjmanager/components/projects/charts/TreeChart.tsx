@@ -8,6 +8,11 @@ import { NodeModal } from './modals/NodeModal';
 import { FaLayerGroup } from 'react-icons/fa';
 import AddSquareMultiple16Regular from '@ricons/fluent/AddSquareMultiple16Regular';
 import { LayerForm } from '../forms/LayerForm';
+import { tierS } from '../../../helpers/accessLevels-validator';
+import LoadingCircle from '../../../../auth/helpers/Loading';
+import { fetchProjectReposAndLayers } from '../../../../store/platypus/thunks';
+import { useDispatch } from 'react-redux';
+
 
 export const TreeChart = () => {
 
@@ -15,12 +20,20 @@ export const TreeChart = () => {
       handleMouseOver, currentNode, showModal, translate, modalPosition, setTranslate, setShowModal } = useOrgChart()
 
     const location = useLocation();
+    const dispatch = useDispatch();
     const treeContainerRef  = useRef();
     const projectData = location.state?.project;
-    const { projects } = useSelector((state: RootState) => state.projects );
-    const project = projects.find( project => project.pid === projectData.ID )
-    const [isLayerFormOpen, setIsLayerFormOpen] = useState(false)
+    const { uid } = useSelector((state: RootState) => state.auth );
+    const [isLayerFormOpen, setIsLayerFormOpen] = useState(false) 
+    const { currentProject: project, repositories, layers, fetchingResources } = useSelector((state: RootState) => state.platypus );
 
+    const handleWrapperClick = (event) => {
+      // Si se hace clic en el contenedor pero fuera del modal (y posiblemente fuera de los nodos específicos), cierra el modal.
+      // Asegúrate de que este manejador no interfiera con los clics en el modal o en los nodos.
+      if (showModal) {
+        setShowModal(false);
+      }
+    };
 
     useEffect(() => {
       // Calculate the center of the container and set the translate state
@@ -37,7 +50,7 @@ export const TreeChart = () => {
       if (project) {
         newTreeData(project)
       }
-    }, [ project ]);
+    }, [ project, repositories, layers ]);
     
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -56,23 +69,29 @@ export const TreeChart = () => {
       };
     }, [showModal]); // Dependencias: Re-ejecutar este efecto si 'showModal' cambia.
 
+    // console.log('treeData', treeData)
 
-    const handleWrapperClick = (event) => {
-      // Si se hace clic en el contenedor pero fuera del modal (y posiblemente fuera de los nodos específicos), cierra el modal.
-      // Asegúrate de que este manejador no interfiera con los clics en el modal o en los nodos.
-      if (showModal) {
-        setShowModal(false);
-      }
-    };
+    useEffect(() => {
+      dispatch( fetchProjectReposAndLayers(projectData.ID, projectData.accessLevel, uid) )
+    }, [])
+    
+
+
+
+    if( fetchingResources ) return <LoadingCircle />
 
     return (
       <div className='flex flex-grow relative'>
             { isLayerFormOpen && <LayerForm isLayerFormOpen={isLayerFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} /> }
 
-            <AddSquareMultiple16Regular  
-              onClick={ () => setIsLayerFormOpen(true) }
-              className='absolute w-10 h-10 z-10 right-5 top-5  text-pink-300 hover:text-pink-400 cursor-pointer transition-colors duration-200'
-            />
+            {
+                tierS(uid, project) && (
+                    <AddSquareMultiple16Regular  
+                      onClick={ () => setIsLayerFormOpen(true) }
+                      className='absolute w-10 h-10 z-10 right-5 top-5  text-pink-300 hover:text-pink-400 cursor-pointer transition-colors duration-200'
+                    />
+                  )
+            }
 
           <div ref={treeContainerRef} onClick={handleWrapperClick} className="glass2 w-full h-full rounded-b-3xl"  id="treeWrapper">
             

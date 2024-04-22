@@ -7,276 +7,223 @@ import { ReadmeCard } from './ReadmeCard';
 import { HeatMapComponent } from './HeatMap';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
+import './styles/idk.css'
 
 
 export const ProjectInfo = ({ project, firstTime, setFirstTime }) => {
+  const [animationStep, setAnimationStep] = useState(0);
+  const [readmeContent, setReadmeContent] = useState('');
+  const [showWelcome, setShowWelcome] = useState(true)
 
-    const [showWelcome, setShowWelcome] = useState(false);
-    const [showDescription, setShowDescription] = useState(false);
-
-    const [showLayers, setShowLayers] = useState(false);
-    const [showRepositories, setShowRepositories] = useState(false);
-    const [showCompletedTasks, setShowCompletedTasks] = useState(false);
-    const [showCommits, setShowCommits] = useState(false);
-    const [showHeatmap, setShowHeatmap] = useState(false);
-    const [showHashtags, setShowHashtags] = useState(false);
-    const [readmeIntro, setReadmeIntro] = useState(false)
-    const [readmeCard, setReadmeCard] = useState(false)
-    const [readmeContent, setReadmeContent] = useState('')
-
-
-
-    useEffect(() => {
-      if(project.readme){
+  useEffect(() => {
+    if (project.readme) {
       axios.get(`${backendUrl}/projects/readme/${project.readme}`, {
-          headers: {
-              'Authorization': localStorage.getItem('x-token')
-          }
+        headers: {
+          'Authorization': localStorage.getItem('x-token'),
+        },
       })
-      .then( response => {
-          const content = response.data.readmeContent;
-          setReadmeContent(content)
+      .then((response) => {
+        const content = response.data.readmeContent;
+        setReadmeContent(content);
       })
-      .catch( error => {
-          console.log(error)
-      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }
+  }, [project.readme]);
+
+  useEffect(() => {
+    if (firstTime) {
+      setFirstTime(false);
+      const maxSteps = 9; // Tienes 9 elementos animados aparte del welcome
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        setAnimationStep(step);
+        if (step > maxSteps) {
+          clearInterval(interval);
+        }
+      }, 1000); // Cada segundo se muestra un nuevo elemento
+
+      return () => clearInterval(interval);
+    } else {
+      setShowWelcome(false)
+      setAnimationStep(10); // Directamente muestra todos los elementos si no es la primera vez
+    }
+  }, []);
+
+  return (
+    <div className='flex flex-col space-y-4 px-10 h-full w-full pt-9 pb-6'>
+      {
+        // animationStep > 0 && (
+          <AnimatePresence>   
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className='absolute text-[50px] mb-2 font-bold top-6  animated-element'
+            >
+              {showWelcome ? `Welcome to ${project.name}` : project.name}
+            </motion.div>         
+        </AnimatePresence>
+        // )
       }
 
-    }, [project.readme])
 
-  
-    useEffect(() => {
-        if(firstTime){ 
-          setShowWelcome(true);
-      
-          // Secuencia para mostrar los elementos gradualmente
-          const timer0 = setTimeout(() => setShowDescription(true), 1000);
-          const timer1 = setTimeout(() => setShowLayers(true), 2000);
-          const timer2 = setTimeout(() => setShowRepositories(true), 3000);
-          const timer4 = setTimeout(() => setShowCommits(true), 4000);
-          const timer3 = setTimeout(() => setShowCompletedTasks(true), 5000);
-          const timer5 = setTimeout(() => setShowHashtags(true), 6000);
-          const timer6 = setTimeout(() => setReadmeIntro(true), 7000);
-          const timer7 = setTimeout(() => setReadmeCard(true), 8000);
-          const timer8 = setTimeout(() => setShowHeatmap(true), 9000);
-          const timer9 = setTimeout(() => setFirstTime(false), 9500);
+      {animationStep > 0 && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className='animated-element'
+          >
+            <p className='text-2xl line-clamp-2 w-[95%]'>{project.description}</p>
+          </motion.div>
+        </AnimatePresence>
+      )}
 
-      
-          return () => {
-            clearTimeout(timer0);
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-            clearTimeout(timer3);
-            clearTimeout(timer4);
-            clearTimeout(timer5);
-            clearTimeout(timer6);
-            clearTimeout(timer7);
-            clearTimeout(timer8);
-            clearTimeout(timer9);
-          } 
-        } else {
-          setShowWelcome(true);
-          setShowDescription(true);
-          setShowLayers(true);
-          setShowRepositories(true);
-          setShowCommits(true);
-          setShowCompletedTasks(true);
-          setShowHashtags(true);
-          setReadmeIntro(true);
-          setReadmeCard(true);
-          setShowHeatmap(true);
-        }
-      }, []);
-  
-    return (
-        <div className='flex flex-col space-y-4 px-10 h-full w-full pt-9 pb-6'>
-          {/* Resto del contenido */}
-    
-          {/* AnimatePresence para animaciones de entrada y salida */}
+      {animationStep > 1 && (
+        <div className='flex space-x-10'>
           <AnimatePresence>
-            {showWelcome && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className=''
-              >
-                <h2 className='absolute text-[50px] mb-2 font-bold top-6 '>Welcome to {project.name}</h2>
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className='animated-element'
+            >
+              <div className='flex space-x-2 items-center'>
+                <FaLayerGroup className='w-8 h-8 text-pink-400 mr-3'/>
+                <p className='flex text-[20px] mt-2 font-extralight'>
+                  <span className='font-semibold text-pink-400 mr-3'>{project.layers}</span>
+                  Layers
+                </p>
+              </div>
+            </motion.div>
           </AnimatePresence>
-    
-          <AnimatePresence>
-            {showDescription && (
+
+          {animationStep > 2 && (
+            <AnimatePresence>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, delay: 0.5 }} // Añade un retraso adicional para la descripción
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className='animated-element'
               >
-                <p className='text-2xl mt-2 font-semibold'>{project.description}</p>
+                <div className='flex space-x-2 items-center'>
+                  <FaGitAlt className='w-9 h-9 text-green-400 mr-3'/>
+                  <p className='flex text-[20px] mt-2 font-extralight'>
+                    <span className='font-semibold text-green-400 mr-3'>{project.repositories}</span>
+                    Repositories
+                  </p>
+                </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className='flex space-x-10'>
-
-                <AnimatePresence>
-                    {showLayers && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.5, delay: 0.5 }} // Añade un retraso adicional para la descripción
-                    >
-                        <div className='flex space-x-2 items-center'>
-                            <FaLayerGroup className='w-8 h-8 text-pink-400 mr-3'/>
-                                
-                            <p className='flex  text-[20px] mt-2 font-extralight'>
-                                <p className='font-semibold text-pink-400 mr-3'>
-                                    {project.layers} 
-                                </p>
-                                Layers
-                            </p>
-                        </div>
-
-                    </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                    {showRepositories && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.5, delay: 0.5 }} // Añade un retraso adicional para la descripción
-                    >
-                        <div className='flex space-x-2 items-center'>
-                            <FaGitAlt className='w-9 h-9 text-green-400 mr-3'/>
-                                
-                            <p className='flex  text-[20px] mt-2 font-extralight'>
-                                <p className='font-semibold text-green-400 mr-3'>
-                                    {project.repositories} 
-                                </p>
-                                Repositories
-                            </p>
-                        </div>
-                    </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {showCommits && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.5, delay: 0.5 }} // Añade un retraso adicional para la descripción
-                    >
-                      <div className='flex space-x-2 items-center'>
-                          <GitCompare className='w-9 h-9 text-yellow-400 mr-3'/>
-                              
-                          <p className='flex  text-[20px] mt-2 font-extralight'>
-                              <p className='font-semibold text-yellow-400 mr-3'>
-                                  {project.commits} 
-                              </p>
-                              Commits
-                          </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-
-                <AnimatePresence>
-                    {showCompletedTasks && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.5, delay: 0.5 }} // Añade un retraso adicional para la descripción
-                    >
-                        <div className='flex space-x-2 items-center'>
-                            <TaskComplete className='w-8 h-8 text-blue-400 mr-3'/>
-                                
-                            <p className='flex  text-[20px] mt-2 font-extralight'>
-                                <p className='font-semibold text-blue-400 mr-3'>
-                                    {project.completedTasks} 
-                                </p>
-                                Completed Tasks
-                            </p>
-                        </div>
-                    </motion.div>
-                    )}
-                </AnimatePresence>
-          </div>
-
-          <div className='flex space-x-6'>
-              <AnimatePresence>
-                {showHashtags && project.tags.map(( tag: string, index: number ) => (
-                    <motion.span
-                        key={tag}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{
-                            duration: 0.5,
-                            delay: index * 0.2, // Esto hará que cada etiqueta aparezca una después de la otra
-                        }}
-                        className="text-sm font-mono text-black glassi rounded-extra px-2 py-1 m-1"
-                    >
-                        {tag}
-                    </motion.span>
-                ))}
             </AnimatePresence>
-          </div>
+          )}
 
-          {
-              project.readme && readmeContent && (
-                <AnimatePresence>
-                {readmeIntro && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <h2 className='text-[30px] mb-2 font-extralight'>Here's a Quick Start:</h2>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              )
-          }
-
-
-          {
-              project.readme && readmeContent && (
-                <AnimatePresence>
-                {readmeCard && (
-                  <ReadmeCard readmeContent={readmeContent} />       
-                )}
-              </AnimatePresence>
-              )
-          }
-
-        <AnimatePresence>
-            {showHeatmap && (
+          {animationStep > 3 && (
+            <AnimatePresence>
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className='animated-element'
               >
-                <HeatMapComponent project={project} />
+                <div className='flex space-x-2 items-center'>
+                  <GitCompare className='w-9 h-9 text-yellow-400 mr-3'/>
+                  <p className='flex text-[20px] mt-2 font-extralight'>
+                    <span className='font-semibold text-yellow-400 mr-3'>{project.commits}</span>
+                    Commits
+                  </p>
+                </div>
               </motion.div>
-            )}
-        </AnimatePresence>
-        
+            </AnimatePresence>
+          )}
 
+          {animationStep > 4 && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+                className='animated-element'
+              >
+                <div className='flex space-x-2 items-center'>
+                  <TaskComplete className='w-8 h-8 text-blue-400 mr-3'/>
+                  <p className='flex text-[20px] mt-2 font-extralight'>
+                    <span className='font-semibold text-blue-400 mr-3'>{project.completedTasks}</span>
+                    Completed Tasks
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
-      );
+      )}
 
-}
+      {animationStep > 5 && (
+        <div className='flex space-x-6'>
+          <AnimatePresence>
+            {project.tags.map((tag, index) => (
+              <motion.span
+                key={tag}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 1 + index * 0.1, // Cada etiqueta aparece un poco después de la anterior
+                }}
+                className="text-sm font-mono text-black glassi rounded-extra px-2 py-1 m-1"
+              >
+                {tag}
+              </motion.span>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {project.readme && readmeContent && animationStep > 6 && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className='animated-element'
+          >
+            <h2 className='text-[30px] mb-2 font-extralight'>Here's a Quick Start:</h2>
+          </motion.div>
+        </AnimatePresence>
+      )}
+
+      {project.readme && readmeContent && animationStep > 7 && (
+        <AnimatePresence>
+          <ReadmeCard readmeContent={readmeContent} />
+        </AnimatePresence>
+      )}
+
+      {animationStep > 8 && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+
+          >
+            <HeatMapComponent project={project} />
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </div>
+  );
+};
+
 

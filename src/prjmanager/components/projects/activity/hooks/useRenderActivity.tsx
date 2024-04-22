@@ -329,7 +329,7 @@ export const useRenderActivity = () => {
                                         <div className="flex justify-between mt-2">
                                           <div className='flex space-x-2'>
                                               <span>Completed By:</span>
-                                              <TaskCollaborators collaborators={task.completedBy} />
+                                              <TaskCollaborators collaborators={task.contributors} />
                                           </div>
                                           <button 
                                             onClick={() => {
@@ -404,7 +404,7 @@ export const useRenderActivity = () => {
                                                   <div className='bg-gray-50 shadow-lg p-4 rounded-lg flex flex-col border-[1px] border-gray-400'>
                                                     <div className="text-sm font-semibold">Completed By:</div>
                                                     <div className="flex flex-wrap gap-1 max-w-[104px] max-h-[180px] overflow-y-auto mt-2">
-                                                      {task.completedBy.map((collaborator, index) => (
+                                                      {task.contributors.map((collaborator, index) => (
                                                         <Avatar key={index} alt={ collaborator.username } src={ collaborator.photoUrl || collaborator.username } sx={{ width: 20, height: 20 }} />
                                                       ))}
                                                     </div>

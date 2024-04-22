@@ -11,7 +11,6 @@ const ManagerRoutes = () => {
 
     <PrJManager>
             <Routes>
-              <Route path='home' element={ <Home/> }/>
               <Route path='dashboard' element={ <Dashboard/> }/>
 
               <Route path='projects' element={ <Projects/> }>                
@@ -28,9 +27,10 @@ const ManagerRoutes = () => {
                       <Route path='activity' element={ <Activity/> }/>
                       <Route path='tree' element={ <TreeChart/> }/>
                       <Route path='comments' element={ <Comments/> }/>
-                      {/* <Route path='configurations' element={ <ProjectConfig/> }/> */}
-                  </Route>
+                  </Route>             
               </Route>
+
+              
          
               <Route path='teams' element={ <Teams/> }/>
               <Route path='tasks' element={ <Tasks/> }/>

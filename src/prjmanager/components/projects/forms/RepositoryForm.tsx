@@ -16,6 +16,7 @@ import LoadingCircle from '../../../../auth/helpers/Loading';
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
 import { AddColaboratorsForm } from './sub-components/AddColaboratorsForm';
+import bgform from './assets/formbg.jpg'
 
 
 const RepositorySchema = Yup.object().shape({
@@ -177,34 +178,49 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
 
     const handleSubmit = async(values: RepositoryValues, { setSubmitting, resetForm }: FormikHelpers<RepositoryValues>) => {
         setIsLoading(true);
-        setSubmitting(true);  // Desactivar el botón de envío mientras se envía el formulario
+        setSubmitting(true); 
 
-        axios.post('http://localhost:3000/api/repos/', values, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('x-token')
-            }
-        })
-        .then( res => {
-          console.log(res)
-            // dispatch(loadNewRepo(res.data));
+        try {
+            const response = await axios.post(`http://localhost:3000/api/repos/create-repository/${ID}/${layerID}`, values, {
+                params: {
+                  uid
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('x-token')
+                }
+            })
+
+            resetForm();
+            setSubmitting(false);
             setIsLoading(false);
+            handleClose();
+
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: 'Repository created successfully'
+                text: response.data.message
             });
+
+        } catch (error) {
+          setSubmitting(false);
+          setIsLoading(false);   
+
+          if( error.response.data?.type === 'repos-limit' ){
             handleClose();
-        })
-        .catch( err => {
-            setIsLoading(false);
+            Swal.fire({
+              icon: 'info',
+              title: 'Layer repositories limit reached\n ( 3 repositories )',
+              text: error.response.data.message
+            });
+          } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'An error occurred while creating the repository'
+                text: error.response.data.message
             });
-        });
-
+          }
+        }
     };
 
 
@@ -225,7 +241,14 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
 
     return (
         <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center z-10'>
-            <div id="layerRepositoryModal" className={`flex flex-col  glass  md:h-[450px] md:w-[700px] border-1 border-gray-400 rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isRepositoryFormOpen ? '' : 'pointer-events-none'}`}>
+            <div 
+                id="layerRepositoryModal" 
+                style={{ 
+                    backgroundImage: `url(${bgform})`,
+                    backgroundPosition: 'right center' 
+                  
+                  }}
+                className={`flex flex-col  glass  md:h-[450px] md:w-[700px] border-1 border-gray-400 rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isRepositoryFormOpen ? '' : 'pointer-events-none'}`}>
                 <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                     <p className='text-xl text-black'>New Layer Repository</p>
                     <button onClick={handleClose}>
@@ -244,8 +267,6 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                   description: '',
                                   visibility: '',
                                   collaborators: [],
-                                  projectID: ID,                   
-                                  layerID,
                                   uid,                                 
                               } as RepositoryValues }
                               validationSchema={RepositorySchema}
@@ -283,7 +304,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                               >
                                                   <MenuItem value="open">Open</MenuItem>
                                                   <MenuItem value="internal">Internal</MenuItem>
-                                                  <MenuItem value="private">Private</MenuItem>
+                                                  <MenuItem value="restricted">Restricted</MenuItem>
                                               </Select>
                                           </FormControl>
                                       </div>

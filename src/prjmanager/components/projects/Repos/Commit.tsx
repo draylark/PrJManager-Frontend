@@ -6,7 +6,7 @@ import { Typography, Box, Paper } from '@mui/material';
 import { FileIcon } from 'react-file-icon';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { ArrowHookUpLeft16Regular } from '@ricons/fluent'
-import { Accordion, AccordionSummary, AccordionDetails, Breadcrumbs, TextField } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Breadcrumbs, TextField, Tooltip } from '@mui/material';
 import { cleanUrl } from '../helpers/cleanUrl';
 import { ArrowDropDownOutlined } from '@ricons/material'
 import FileCodeRegular from '@ricons/fa/FileCodeRegular'
@@ -21,8 +21,6 @@ export const Commit = () => {
     const navigate = useNavigate()
 
     const commitHash = location.state.commitHash
-    const branch = location.state.branch
-
 
     const layer = location.state.layer;
     const project = location.state.project;    
@@ -32,6 +30,7 @@ export const Commit = () => {
     const [selectedFileContent, setSelectedFileContent] = useState('')
     const [isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [commitBranches, setCommitBranches] = useState([])
     const [commitsDiff, setCommitsDiff] = useState(null)
     const [expanded, setExpanded] = useState(null);
 
@@ -46,14 +45,15 @@ export const Commit = () => {
 
     const fetchCommitDiff = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/commits/${repository.repoID}/diff/${commitHash}`, {
+            const { data: { diff, branches } } = await axios.get(`http://localhost:3000/api/commits/${repository.repoID}/diff/${commitHash}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': localStorage.getItem('x-token')
                 }
             })
-            const commitDiff = response.data
-            setCommitsDiff(commitDiff)
+
+            setCommitsDiff(diff)
+            setCommitBranches(branches)
             setIsLoading(false)
         } catch (error) {
             console.error("Error fetching commit diff:", error)
@@ -161,7 +161,13 @@ export const Commit = () => {
                     </button>
                     <button
                         className='text-[12px] hover:text-green-500 transition-colors duration-500'                            
-                        onClick={() => navigate(-2)}
+                        onClick={() => navigate(`/projects/${cleanUrl(project.name)}/${cleanUrl(layer.layerName)}/${cleanUrl(repository.repoName)}`, {
+                            state: {
+                                project: project,
+                                layer: layer,
+                                repository: repository
+                            }
+                        })}
                     >
                         {repository.repoName}
                     </button>
@@ -175,9 +181,31 @@ export const Commit = () => {
 
                 <ArrowRightCircle className='w-5 h-5 ml-3' />
 
-                <span className='text-[13px] ml-3 mb-1'>
-                    {branch}
+                <span className='text-[13px] ml-3 mb-[2px] font-semibold'>
+                    {commitBranches[0]}
                 </span>
+
+                {commitBranches.length > 1 && (
+                    <Tooltip
+                        title={
+                            <div className='flex flex-col'>
+                                <div>The commit is available on the following branches:</div>
+                                <ul className='flex flex-wrap'>
+                                    {commitBranches.map((branch, index) => (
+                                        <li className='font-semibold ml-2' key={index}>{branch} { index !== commitBranches.length -1 && "-" }</li> 
+                                    ))}
+                                </ul>
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <span
+                            className='text-[10px] ml-1 text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer'
+                        >
+                            +{commitBranches.length - 1} more
+                        </span>
+                    </Tooltip>
+                )}
             </div>
 
             <div>
@@ -192,7 +220,7 @@ export const Commit = () => {
                     Changed Files <ArrowDropDownOutlined className='w-5 h-5 ml-2' />
                 </button>
                 
-                    <div id='files-searcher' className={`absolute flex flex-col space-y-3 bg-white border-[1px] border-black z-10 ${ showFileSelector ? 'right-6' : '-right-[260px]'} transition-all duration-300 top-10 p-4 rounded-bl-2xl`}>    
+                    <div id='files-searcher' className={`absolute flex flex-col space-y-3 bg-white border-[1px] border-black z-10 ${ showFileSelector ? 'right-6' : '-right-[350px]'} transition-all duration-300 top-10 p-4 rounded-bl-2xl`}>    
                         <TextField
                             type="text"
                             placeholder="Search modified files.."

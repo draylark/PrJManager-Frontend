@@ -13,49 +13,48 @@ import { ProjectConfigForm } from './forms/ProjectConfigForm';
 import { LayerForm } from './forms/LayerForm';
 import { ProjectCollaboratorsForm } from './forms/ProjectCollaboratorsForm';
 import projectbg from '../../assets/imgs/projectbg.jpg'
-import { ArrowBackUp } from '@ricons/tabler';
-import { AnimatePresence, motion } from 'framer-motion';
+import LoadingCircle from '../../../auth/helpers/Loading';
+import axios from 'axios';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { tierS } from '../../helpers/accessLevels-validator';
+import { cleanUrl } from './helpers/cleanUrl';
 
 export const Project = () => {
 
-  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
-  const { projects } = useSelector((state: RootState) => state.projects );
+
   const { ID, name } = location.state.project;
-  const layer = location.state.layer;
-  const repo = location.state.repository;
-  const project = projects.find( project => project.pid === ID )
-  const navigate = useNavigate()
+  const { uid } = useSelector((state: RootState) => state.auth );
+  const { projects } = useSelector((state: RootState) => state.projects );  
+  const { project: projectRoute, layer, repository } = location.state || {}; // Asegurándonos de que state exista
 
-  const [firstTime, setFirstTime] = useState(true)
-  const [anotherRoute, setAnotherRoute] = useState(false)
-  const [IsProjectCollaboratorsFormOpen, setIsProjectCollaboratorsFormOpen] = useState(false)
-  const [IsLayerFormOpen, setIsLayerFormOpen] = useState(false)
-  const [isProjectConfigFormOpen, setIsProjectConfigFormOpen] = useState(false)
-  const [showOptModal, setShowOptModal] = useState(false)
-
-  // console.log(location)
-  const currentLocation = location.pathname.split('/').pop()
-  const [render, setRender] = useState('Info')
-  // const render = location.pathname.split('/').pop();
-
-    const getStatusIcon = (status) => {
-      switch (status) {
-        case 'In Progress':
-          return <span className="bg-green-500 rounded-full w-4 h-4 inline-block"></span>;
-        case 'Completed':
-          return <span className="bg-orange-500 rounded-full w-4 h-4 inline-block"></span>;
-        case 'Paused':
-          return <span className="bg-red-500 rounded-full w-4 h-4 inline-block"></span>;
-        default:
-          return <span className="bg-green-500 rounded-full w-4 h-4 inline-block"></span>;
-      }
-    }
+  const [render, setRender] = useState('');
+  const [project, setProject] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [firstTime, setFirstTime] = useState(true);
+  const [anotherRoute, setAnotherRoute] = useState(false);
+  const [showOptModal, setShowOptModal] = useState(false);
+  const [IsLayerFormOpen, setIsLayerFormOpen] = useState(false);  
+  const [isProjectConfigFormOpen, setIsProjectConfigFormOpen] = useState(false);
+  const [IsProjectCollaboratorsFormOpen, setIsProjectCollaboratorsFormOpen] = useState(false);
 
 
-    const renderComponent = () => {
-      console.log('Cambiando render nuevamente:', render)
+  const currentLocation = location.pathname.split('/').pop();
+
+    // console.log(location.state)
+
+    const renderComponent = (locationState) => {
       switch (render) {
+        case 'hash':
+          return <Outlet/>
+        case 'commits':
+          return <Outlet/>
+        case 'repository': 
+          return <Outlet/>
+        case 'layer': 
+          return <Outlet/>
         case 'Info':
           return <ProjectInfo project={project} firstTime={firstTime} setFirstTime={setFirstTime} />
         case 'Tree':
@@ -67,10 +66,16 @@ export const Project = () => {
         case 'Configurations':
           return <Outlet/>
         default:
-          return <ProjectInfo project={project} />
+           if( locationState?.commitHash ) return setRender('hash')
+            else if ( locationState?.commits ) return setRender('commits')
+            else if ( locationState?.repository ) return setRender('repository')
+            else if ( locationState?.layer ) return setRender('layer')
+            else if( currentLocation === 'comments' ) return setRender('Comments')
+            else if( currentLocation === 'activity' ) return setRender('Activity')
+            else if( currentLocation === 'tree' ) return setRender('Tree')
+            else return <ProjectInfo project={project} firstTime={firstTime} setFirstTime={setFirstTime} />
       }
     }
-
 
     useEffect(() => {
       if( currentLocation === 'activity' ) {
@@ -86,22 +91,44 @@ export const Project = () => {
        }
     }, [location, currentLocation, layer?.layerID])
     
-
-
     useEffect(() => {     
       if( ID ) {
-        dispatch(setCurrentProject(project))
-        dispatch(fetchProjectLayers(ID))
-        dispatch(fetchProjectRepositories(ID))
+        const project = projects.find( project => project.pid === ID )
+        if( project && project !== undefined ){
+          setProject(project)
+          dispatch(setCurrentProject(project))
+          // dispatch(fetchProjectLayers(ID, accessLevel, uid))
+          // dispatch(fetchProjectRepositories(ID, accessLevel, uid))
+          setIsLoading(false)     
+        } else {
+          axios.get(`${backendUrl}/projects/get-project-by-id/${ID}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': localStorage.getItem('x-token')
+            }
+          })
+          .then( ( response ) => {
+            setProject(response.data.project)
+            dispatch(setCurrentProject(response.data.project))
+            // dispatch(fetchProjectLayers(ID, accessLevel, uid))
+            // dispatch(fetchProjectRepositories(ID, accessLevel, uid))
+            setIsLoading(false)
+          })
+          .catch( ( error ) => {
+            console.log( error )
+          })
+        }
       }
-    }, [ID])
+    }, [])
 
+
+    if( isLoading ) return <LoadingCircle />
 
     return (
       <div className='w-full h-full p-4'>
             <div 
                 id='projectPanel' 
-                className="relative flex flex-col w-full h-full max-h-[840px] overflow-hidden bg-white shadow-lg rounded-extra"
+                className="relative flex flex-col w-full h-full max-h-[840px] overflow-hidden shadow-lg rounded-extra"
                 style={{ 
                   backgroundImage: `url(${projectbg})`,
                   backgroundSize: 'cover',
@@ -118,7 +145,7 @@ export const Project = () => {
                   {
                     anotherRoute && (
                       <h1 className={`${anotherRoute ? 'text-lg font-bold' : 'text-3xl font-bold'}`}>
-                        {`${project?.name} ${repo ? ` - ${repo.repoName}` : ''}`}
+                        {`${project?.name} ${repository ? ` - ${repository.repoName}` : ''}`}
                       </h1>
                     )
                   }
@@ -128,13 +155,13 @@ export const Project = () => {
                       <button onClick={ () => {
                           setRender('Info')
                           navigate('.', { state: { project: { ID: project.pid, name } } } )
-                        } }  className='glass2 text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
+                        } }  className='glassi text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
                         Info
                       </button>
                       <button onClick={ () => {
                         setRender('Tree')
                         navigate('tree', { state: { project: { ID: project.pid, name } } } )
-                        } } className='glass2 text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
+                        } } className='glassi text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
                         Tree
                       </button>
 
@@ -143,7 +170,7 @@ export const Project = () => {
                               setRender('Activity')
                               navigate('activity', { state: { project: { ID: project.pid, name } } } )
                             }}
-                        className='glass2 text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
+                        className='glassi text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
                         Activity
                       </button>
 
@@ -152,20 +179,26 @@ export const Project = () => {
                               setRender('Comments')
                               navigate('comments', { state: { project: { ID: project.pid, name } } } )
                             }}
-                        className='glass2 text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
+                        className='glassi text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
                         Comments
                       </button>
-                      <button 
-                        onClick={ () => setShowOptModal(!showOptModal) }              
-                        className='glass2 text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>    
-                        <Icon>
-                            <DonutLargeTwotone/>
-                        </Icon>
-                      </button>
+                      {
+                        tierS(uid, project) 
+                        && (
+                          <button 
+                            onClick={ () => setShowOptModal(!showOptModal) }              
+                            className='glassi text-black border-1 border-gray-400 py-1 px-4 rounded transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>    
+                            <Icon>
+                                <DonutLargeTwotone/>
+                            </Icon>
+                          </button>
+                        )
+                      }
+
                     </div>
                 </div>
       
-              { renderComponent() }
+              { renderComponent(location.state) }
 
             </div>
       </div>

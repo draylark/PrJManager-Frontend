@@ -17,7 +17,9 @@ export const useHeatMapDatesData = () => {
 
     const [startDate, setStartDate] = useState(sixMonthsAgo);
     const [endDate, setEndDate] = useState(currentDate);
-    const { tasks } = useSelector( ( state: RootState ) => state.task )
+    // const { tasks } = useSelector( ( state: RootState ) => state.task )
+
+    const tasks = []
 
 
     const doneTasks = tasks.reduce<HeatMapData[]>((acc, task) => {

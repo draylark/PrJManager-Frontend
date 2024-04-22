@@ -18,10 +18,7 @@ export const projectSlice = createSlice({
     reducers: {
 
         startProjects: ( state, { payload: projects } : PayloadAction<ProjectType[]>  ) => {
-            state.projects = []
-            projects.forEach( ( project ) => {
-                state.projects.push( project )
-            });
+            state.projects = projects
             state.loading = false
         },
 

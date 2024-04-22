@@ -16,33 +16,20 @@ export const Profile = () => {
 
   const { photoURL } = useSelector( (selector: RootState) => selector.auth)
   const [isPopoverPrVisible, setIsPopoverPrVisible] = useState(false);
-  const [isPopoverNotiVisible, setIsPopoverNotiVisible] = useState(false);
+  const [showNotis, setShowNotis] = useState(false)
 
   const handleMouseEnter = () => {
     setIsPopoverPrVisible(true);
-    };
-
-  const handleMouseClick = () => {
-    setIsPopoverNotiVisible(true);
-    };
-  
+  };
 
     return (
         <div className='absolute z-10 h-16 right-0 mt-5 flex justify-end mr-10'>
-      
-            <button 
-                className='flex items-center justify-center glass mr-5 w-8 h-8 rounded-full transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'
-                onClick={ handleMouseClick }>
-                <Icon size={18}>
-                <Chat/>
-                </Icon>
-            </button>
 
-            { isPopoverNotiVisible && (<ModalNotis setIsOpen={ setIsPopoverNotiVisible }/>) }
+            { showNotis && (<ModalNotis setIsOpen={ setShowNotis }/>) }
 
             <button 
                 className='flex items-center justify-center glass mr-5 w-8 h-8 rounded-full transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'
-                onClick={ handleMouseClick }
+                onClick={() => setShowNotis(prevShowNotis => !prevShowNotis)} // Modificado aquí
             >   
                 <Icon size={18}>
                 <Noti/>

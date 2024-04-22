@@ -41,7 +41,7 @@ export const TreeNodeToolTip: FC<TooltipProps> = ({ id, position, visible, type 
     
     const [toolTipData, setToolTipData] = useState<ToolTipData>();
     const { projects } = useSelector((selector: RootState) => selector.projects, shallowEqual);
-    const { tasks } = useSelector((selector: RootState) => selector.task, shallowEqual);
+    // const { tasks } = useSelector((selector: RootState) => selector.task, shallowEqual);
 
 
     const formatDate = (isoString) => {
@@ -58,17 +58,17 @@ export const TreeNodeToolTip: FC<TooltipProps> = ({ id, position, visible, type 
         // if (type === 'user') {
         // setToolTipData('User')
         // }
-        if (type === 'task') {
-            const task = tasks.filter(task => task.tid === id)
-            // console.log(task)
-            setToolTipData(task[0])
-        }
+        // if (type === 'task') {
+        //     const task = tasks.filter(task => task.tid === id)
+        //     // console.log(task)
+        //     setToolTipData(task[0])
+        // }
         // if (type === 'commit') {
         // setToolTipData('Commit')
         // }
 
         // console.log(toolTipData)
-    }, [type, id, projects, tasks, toolTipData])
+    }, [type, id, projects, toolTipData])
 
 
   if (!visible) return null;

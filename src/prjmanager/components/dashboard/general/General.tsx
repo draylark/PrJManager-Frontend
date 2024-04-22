@@ -32,10 +32,10 @@ export const General = () => {
             <div className="flex flex-col h-full w-[35%] rounded-extra">
               <HeatMapCalendar/>
             </div>
-
+{/* 
             <div id="chart-container" className="info-box-shadow-treechart h-full w-[65%]  rounded-extra  overflow-hidden">
               <TreeChart/>
-            </div>
+            </div> */}
         </div>
 
 

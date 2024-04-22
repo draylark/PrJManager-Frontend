@@ -7,18 +7,20 @@ import { RootState } from '../../../../store/store';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { FaGitAlt, FaExternalLinkAlt  } from 'react-icons/fa';
 import { TextField, Select, MenuItem} from '@mui/material'
+import { useDispatch } from 'react-redux';
+import { fetchLayerRepositories } from '../../../../store/platypus/thunks';
+import { TbDatabasePlus } from "react-icons/tb";
 
 
-
-export const Repositories = ({ layer }) => {
+export const Repositories = ({ layer, project, uid }) => {
 
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const { ID, name } = location.state.project;
-  const { repositories } = useSelector((state: RootState) => state.platypus);
+  const { repositories, fetchingResources } = useSelector((state: RootState) => state.platypus);
 
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [layerRepositories, setLayerRepositories] = useState([])
@@ -27,7 +29,7 @@ export const Repositories = ({ layer }) => {
   useEffect(() => {
     const filteredRepos = repositories.filter( repo => repo.layerID === layer._id )
     setLayerRepositories(filteredRepos)
-  }, [repositories, loading, layer])
+  }, [repositories, layer])
 
 
   const filteredRepos = layerRepositories.filter((repo) => {
@@ -42,8 +44,14 @@ export const Repositories = ({ layer }) => {
   };
 
 
-  if(loading) return <LoadingCircle/>
+  useEffect(() => {
+    if( !repositories.some(repo => repo.layerID === layer._id) ){
+      dispatch(fetchLayerRepositories( project?.pid, layer._id, uid))
+    }  
+  }, [])
+  
 
+  if(fetchingResources) return <LoadingCircle/>
   return (
       
         <div className="flex w-full h-full overflow-hidden">        

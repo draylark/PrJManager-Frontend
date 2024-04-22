@@ -21,6 +21,7 @@ import { RepositoryConfigForm } from './modals/forms/RepositoryConfigForm';
 import 'github-markdown-css/github-markdown.css';
 import './styles/markdown.css'
 import ReactMarkdown from 'react-markdown';
+import { tierS } from '../../../helpers/accessLevels-validator';
 
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL
@@ -30,9 +31,13 @@ export const Repository = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { repositories } = useSelector( (state: RootState) => state.platypus );
+  const { uid } = useSelector((state: RootState) => state.auth );
+  const { currentProject: project, layers } = useSelector((state: RootState) => state.platypus );
 
+  const [layer, setlayer] = useState({})
   const [repo, setRepo] = useState({})
   const [files, setFiles] = useState<[]>([]);
+  const [isLoading, setIsLoading] = useState(true)
   const [currentBranch, setCurrentBranch] = useState('')
   const [loadingFiles, setLoadingFiles] = useState(true)
   const [openBranches, setOpenBranches] = useState(false)
@@ -42,13 +47,13 @@ export const Repository = () => {
   const [selectedFileContent, setSelectedFileContent ] = useState('')
   const [isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen] = useState(false)
 
-  const { ID, name } = location.state?.project;
-  const { layerID, layerName } = location.state?.layer;
-  const { repoID, repoName } = location.state?.repository;
-  const commits = location.state?.commits;
+  const { ID, name } = location.state.project;
+  const { layerID, layerName } = location.state.layer;
+  const { repoID, repoName } = location.state.repository;
+  const commits = location.state.commits;
 
 
-  const handleLoadNewBranch = (branch) => {
+  const handleLoadNewBranch = (branch: string) => {
     setLoadingFiles(true)
     setOpenBranches(false)
     setSelectedFileContent('')
@@ -58,7 +63,7 @@ export const Repository = () => {
     loadRepoFiles(branch)
   };
 
-  const loadRepoFiles = async(branch) => {
+  const loadRepoFiles = async(branch: string ) => {
       await axios.get(`${backendUrl}/gitlab/loadRepoFiles/${repoID}/${ branch ? branch : currentBranch }`, {
         headers: {
           'Content-Type': 'application/json',
@@ -75,22 +80,50 @@ export const Repository = () => {
       });        
   };
 
-   const getExtension = (fileName) => {
+  const getExtension = (fileName: string) => {
     const nameToSplit = fileName !== undefined ? fileName : selectedFileName;
     const extension = nameToSplit.split('.').pop()?.toLowerCase() || '';
     return extension === 'md' ? true : false
   };
 
+  const handleRepoData = (repository: object ) => {
+    setRepo(repository);
+    const defaultBranch = repository.branches.length !== 0 ? repository.branches.find( branch => branch.default === true ).name : 'main'
+    setCurrentBranch(defaultBranch)
+    loadRepoFiles(defaultBranch)
+          
+    const layerFromRState = layers.find((layer) => layer._id === layerID)
+    setlayer(layerFromRState)
+    setIsLoading(false)
+  }
+
 
   useEffect(() => {  
-    const repository = repositories.find((repo) => repo._id === repoID)
-    const defaultBranch = repository.branches.find( branch => branch.default === true ).name
-    setRepo(repository);  
-
-    if(repository) {
-      setCurrentBranch(defaultBranch)
-      loadRepoFiles(defaultBranch)
+    if( repoID ) {
+        const repository = repositories.find((repo) => repo._id === repoID)
+          if( repository && repository !== undefined  ){
+            handleRepoData(repository)
+          } else {
+            axios.get(`${backendUrl}/repos/${repoID}`, {
+              params: {
+                projectID: ID
+              },
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('x-token')
+              }
+            })
+            .then( res => {
+              console.log(res)
+              handleRepoData(res.data.repo)
+            })
+            .catch( error => {
+              console.log(error)
+            });
+          }
     }
+
+
   }, [repoID]);
 
 
@@ -153,14 +186,14 @@ export const Repository = () => {
     `
   ;
 
-    if (!repo) return <div>Repository not found</div>;
+    if( isLoading ) return <LoadingCircle/>
     if( loadingFiles ) return <LoadingCircle/>
 
     return (
       <div className="flex h-full w-full">
           
         { isRepoFormOpen && <RepositoryConfigForm isRepoFormOpen={isRepoFormOpen} setIsRepoFormOpen={setIsRepoFormOpen} repo={repo} /> }  
-        { isTasksModalOpen && <RepositoryTasksModal isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
+        { isTasksModalOpen && <RepositoryTasksModal project={project} layer={layer} repo={repo} isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
         { isCodeOnBigScreenOpen && <CodeOnBigScreen  getExtension={getExtension}  isCodeOnBigScreenOpen={isCodeOnBigScreenOpen} setIsCodeOnBigScreenOpen={setIsCodeOnBigScreenOpen} fileName={selectedFileName} fileContent={selectedFileContent} /> } 
 
         {
@@ -170,7 +203,7 @@ export const Repository = () => {
           : files.length === 0 
           ?               
               (
-                <div className="flex flex-col w-full h-full max-h-[670px] space-y-3">
+                <div className="flex flex-col w-full h-full max-h-[770px] space-y-3 ">
 
                     <div className="flex items-center justify-between px-1">
                       <button className="flex items-center space-x-2" onClick={() => navigate(-1)}>
@@ -221,14 +254,19 @@ export const Repository = () => {
                                 />
 
                                 <TaskSettings 
-                                  className='w-[17px] h-[17px] cursor-pointer'
-                                  onClick={() => setIsTasksModalOpen(true)}
+                                      className='w-[17px] h-[17px] cursor-pointer'
+                                      onClick={() => setIsTasksModalOpen(true)}
                                 />
 
-                                <CloudSatelliteConfig
-                                    className='w-[17px] h-[17px] cursor-pointer'
-                                    onClick={() => setIsRepoFormOpen(true)}
-                                />
+                                {
+                                  tierS(uid, project, layer, repo) && 
+                                    (
+                                        <CloudSatelliteConfig
+                                            className='w-[17px] h-[17px] cursor-pointer'
+                                            onClick={() => setIsRepoFormOpen(true)}
+                                        />                              
+                                    )                           
+                                }
 
                                 <button 
                                   className='flex items-center justify-center w-[60px] h-[25px] text-[13px] hover:bg-blue-200 rounded-lg transition-colors duration-100 glassi border-[1px] border-gray-400'

@@ -22,7 +22,7 @@ type TooltipState = {
 
 export const TreeChart = () => {
 
-  const data = useTreeChartData();
+  const data = []
   const ref = useRef<HTMLDivElement>(null);
   const [pinnedNode, setPinnedNode] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState>({

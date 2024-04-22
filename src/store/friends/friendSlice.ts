@@ -18,11 +18,7 @@ export const friendSlice = createSlice({
     reducers: {
 
         startFriends: ( state, { payload: friends } : PayloadAction<FriendType[]>  ) => {
-            state.friends = []
-            friends.forEach( ( friend ) => {
-                state.friends.push( friend )
-            });
-            state.loading = false
+            state.friends = friends
         },
 
 

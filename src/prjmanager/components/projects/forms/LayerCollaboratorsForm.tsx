@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFormik, Formik, Form, Field, FieldArray, useFormikContext } from 'formik';
+import { useFormik, Formik, Form, Field, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { TextField, Button, List, ListItem, ListItemText, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Autocomplete, Typography, Tooltip } from '@mui/material';
 import { LiaHandsHelpingSolid } from "react-icons/lia";
@@ -11,12 +11,11 @@ import ListItemAvatar from '@mui/material/ListItemAvatar'
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import axios from 'axios';
 import LoadingCircle from '../../../../auth/helpers/Loading';
-import { greenGlass, blueGlass } from '../../styles/glassStyles';
 import { useGlobalUsersSearcher } from './hooks/useGlobalUsersSearcher';
 import Partnership from '@ricons/carbon/Partnership';
-import IosRemoveCircleOutline from '@ricons/ionicons4/IosRemoveCircleOutline'
 import RemoveCircleOutlineOutlined from '@ricons/material/RemoveCircleOutlineOutlined'
 import Swal from 'sweetalert2';
+import modalbg from './assets/formbg.jpg'
 
 export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLayerCollaboratorsFormOpen }) => {
     
@@ -63,8 +62,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
 
       setFieldValue('newCollaborators', updatedNewCollaborators);
       setFieldValue('collaborators', updateLayerCollaborators);
-    }
-
+    };
     const addUserAsCollaborator = (values, setFieldValue) => {
       const newCollaborator = { ...selectedUser, accessLevel };
     
@@ -79,7 +77,6 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       setOpenDialog(false);
       setAccessLevel('');
     };
-
     const handleAddNewCollaborators = (values, setFieldValue) => {
       // Obtener los IDs de los nuevos colaboradores.
       const newCollaboratorIds = new Set(values.newCollaborators.map(collab => collab.id));
@@ -100,18 +97,13 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       setCurrentOrNew(false); // Cambia la vista si es necesario.
     };
 
-
-
-
     const handleMouseEnter = (text, type) => {
       setTooltipContent(text);
       setTooltipOpen(type);
     };
-
     const handleMouseLeave = () => {
       setTooltipOpen('');
     };
-
     const handleClose = () => {
       const modal = document.getElementById('layerCollaboratorModal');
       if (modal) {
@@ -124,7 +116,6 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
           }, 500); // Asume que la duración de tu transición es de 500ms
       }
     };
-
     const IsTheButtonDisabled = ({ values }) => {
       useEffect(() => {
           const isDisabled = 
@@ -138,8 +129,6 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
-
-
     const handleCollaboratorsData = (collaborators) => {
 
         const collaboratorsData = collaborators.map( collaborator => {
@@ -150,55 +139,59 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
             accessLevel: collaborator.layer.accessLevel
           }
         });
-
-        console.log('Collaborators:', collaboratorsData)
         setCurrentCollaborators(collaboratorsData)
         setFetchingCollaborators(false)
 
     };
-
-
-    const handleSubmit = ( values,  { setSubmitting, resetForm } ) => {
+    const handleSubmit = async( values,  { setSubmitting, resetForm } ) => {
       setIsLoading(true)
       setSubmitting(true)
-      axios.put(`http://localhost:3000/api/layer/collaborators/${ID}/${layerID}`, 
-        values,
-        {
-          params: {
-            uid
-          },
-          headers: {
-            'Authorization': localStorage.getItem('x-token')
-          }
-        }
-      )
-      .then((response) => {
-        setIsLoading(false)
-        Swal.fire({
-          title: 'Successful Update',
-          text: `${response.data.message}`,
-          icon: 'success',
-        })
-        setTimeout(() => {
-          setSubmitting(false)
-          resetForm()
-          handleClose()
-        }, 2000);
-      })
-      .catch((error) => {
-        setIsLoading(false)
-        Swal.fire({
-          title: 'Error',
-          text: `${error.response.data.message}`,
-          icon: 'error',
-        })
-        setTimeout(() => {
-          resetForm();
-          handleClose();
-        }, 2000);
-      });
 
-    }
+      try {
+        const response = await axios.put(`http://localhost:3000/api/layer/collaborators/${ID}/${layerID}`, 
+          values,
+          {
+            params: {
+              uid
+            },
+            headers: {
+              'Authorization': localStorage.getItem('x-token')
+            }
+          }
+        )
+
+        resetForm();
+        setSubmitting(false);         
+        setIsLoading(false);
+        handleClose();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: response.data.message
+        });    
+      } catch (error) {
+        setSubmitting(false);
+        setIsLoading(false);
+
+        if(  error.response.data?.type === 'collaborator-validation' ){
+            handleClose();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Access Validation',
+                text: error.response.data.message,
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.response.data.message,
+            });
+        }
+      }
+    };
+
+
 
     useEffect(() => {
         if (isLayerCollaboratorsFormOpen) {
@@ -210,8 +203,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
           }, 20); // Un retraso de 20ms suele ser suficiente
           return () => clearTimeout(timer);
         }
-      }, [isLayerCollaboratorsFormOpen]);
-
+    }, [isLayerCollaboratorsFormOpen]);
 
     useEffect(() => {
       setFetchingCollaborators(true)
@@ -230,10 +222,15 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       });
     }, [layerID])
 
-      
     return (
         <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
-            <div id="layerCollaboratorModal" className={`flex flex-col space-y-5 w-[70%] bg-white border-[1px] border-black md:w-[50%] md:h-[620px]  rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isLayerCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}>
+            <div id="layerCollaboratorModal" 
+              className={`flex flex-col space-y-5 w-[70%] bg-white border-[1px] border-black md:w-[50%] md:h-[620px]  rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isLayerCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
+              style={{
+                backgroundImage: `url(${modalbg})`,
+                backgroundPosition: 'bottom right',   
+              }}
+              >
               {
                   isLoading
                   ? ( <LoadingCircle /> )
@@ -251,7 +248,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
                           :
                             <Formik 
                               initialValues={{
-                                collaborators: [],
+                                collaborators: currentCollaborators,
                                 newCollaborators: [],
                                 modifiedCollaborators: [],
                                 deletedCollaborators: []

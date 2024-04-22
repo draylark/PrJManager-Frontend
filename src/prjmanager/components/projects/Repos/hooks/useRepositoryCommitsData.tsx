@@ -122,9 +122,10 @@ export const useRepositoryCommitsData = ( repository: string, layer, project, co
                             <p className="text-sm max-w-[300px] max-h-[40px] overflow-y-auto break-words text-gray-800">"{commit.message}"</p>
                         </div>
                        
-                        <div className="flex flex-col space-y-2">
+                        <div className="flex flex-col">
                           <h5 className="text-md font-semibold">Associated Task</h5>
-                          <p className="text-sm">{commit?.task_id || 'No associated Task'}</p>
+                          <p className="text-sm truncate w-[170px] text-blue-500">{commit?.associated_task?.task_name || 'No associated Task'}</p>
+                          <p className="text-sm">{commit?.associated_task?._id || null}</p>
                           {/* Aquí puedes añadir más detalles sobre la tarea si están disponibles */}
                         </div>  
 

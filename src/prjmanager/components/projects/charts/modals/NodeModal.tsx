@@ -119,7 +119,7 @@ export const NodeModal = ({ project, nodeData } ) => {
                       { 
                         state: { 
                         project: { ID: project.ID, name: project.name }, 
-                        layer: { layerID: nodeInfo._id, name: nodeInfo.name }, 
+                        layer: { layerID: nodeInfo._id, layerName: nodeInfo.name }, 
                         }
                       })
                     }} 

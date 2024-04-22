@@ -8,6 +8,7 @@ import { RootState } from '../../../../store/store';
 import { addNewLayer } from '../../../../store/gitlab/gitlabSlice';
 import { loadNewLayer } from '../../../../store/gitlab/thunks';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
+import bgform from './assets/formbg.jpg'
 import axios from 'axios';
 
 import Swal from 'sweetalert2';
@@ -28,7 +29,6 @@ interface LayerValues {
     name: string,
     description: string,
     visibility: string,
-    projectID: string,
     creator: string
 
 }
@@ -54,38 +54,51 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
 
     const handleSubmit = async(values: LayerValues, { setSubmitting, resetForm }: FormikHelpers<LayerValues>) => {
         setIsLoading(true);
-        setSubmitting(true);  // Desactivar el botón de envío mientras se envía el formulario
+        setSubmitting(true);  
 
         try {
-            const response = await axios.post('http://localhost:3000/api/gitlab/create-group', values, {
-                withCredentials: true
+            const response = await axios.post(`http://localhost:3000/api/layer/create-layer/${ID}`, values, {
+                withCredentials: true,
+                params: {
+                    uid
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('x-token')
+                }
             });
 
-            if(response.status === 200) {
-                // console.log(response);
-                setTimeout(() => {
-                    // console.log("Formulario enviado", values);
-                    setSubmitting(false);  // Reactivar el botón de envío y detener el indicador de carga
-                    setIsLoading(false);
-                    resetForm();
-                    Swal.fire(
-                        'Done!',
-                        'Group created succesfully',
-                        'success'
-                    );
-                    dispatch( loadNewLayer( response.data.newLayer ) );
-                    setIsLayerModalOpen(false);  // Cierra el modal después de crear el grupo
-                }, 2000);
-            }
+
+            resetForm();
+            setSubmitting(false);         
+            setIsLoading(false);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: response.data.message
+            });
+            
+            dispatch( loadNewLayer( response.data.newLayer ) )
+
         } catch (error) {
-            console.log(error);
             setSubmitting(false);
             setIsLoading(false);
-            Swal.fire(
-                'Error',
-                'Failed to create group',
-                'error'
-            );
+
+            if(  error.response.data?.type === 'layers-limit' ){
+                handleClose();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Project layers limit reached\n ( 3 layers )',
+                    text: error.response.data.message,
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.response.data.message,
+                });
+            }
         }
     };
 
@@ -143,7 +156,13 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
 
     return (
         <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
-            <div id='layerFormModal' className={`flex flex-col w-[70%]  md:w-[580px] md:h-[455px] pb-5 rounded-2xl bg-white border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isLayerFormOpen ? '' : 'pointer-events-none'}`}>
+            <div 
+                id='layerFormModal' 
+                style={{ 
+                    backgroundImage: `url(${bgform})`,
+                    backgroundPosition: 'top center'
+                }}
+                className={`flex flex-col w-[70%]  md:w-[580px] md:h-[455px] pb-5 rounded-2xl bg-white border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isLayerFormOpen ? '' : 'pointer-events-none'}`}>
 
                 <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                     <p className='text-xl text-black'>Create a new Layer</p>
@@ -161,7 +180,7 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                                 name: '',
                                 description: '',
                                 visibility: '',
-                                projectID: ID,
+                                parent_id: '80502948',
                                 creator: uid                                   
                             } as LayerValues }
                             validationSchema={LayerSchema}

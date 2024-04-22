@@ -29,18 +29,11 @@ export interface RootState {
 
 export const store = configureStore({
   reducer: {
-    
     auth: authSlice.reducer,
     notis: notisSlice.reducer,
     projects: projectSlice.reducer,
-    platypus2: platypusSlice2.reducer,
-    task: taskSlice.reducer,
-    clients: clientSlice.reducer,
     events: eventSlice.reducer,
     friends: friendSlice.reducer,
-    repos: repositorySlice.reducer,
-    commits: commitSlice.reducer,
-    platypus: platypusSlice.reducer,
-
+    platypus: platypusSlice.reducer
   },
 })

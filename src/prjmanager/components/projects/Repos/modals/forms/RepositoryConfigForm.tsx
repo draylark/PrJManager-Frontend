@@ -1,8 +1,8 @@
 import { useState, useEffect, Fragment } from 'react'
 import { useLocation } from 'react-router-dom';
 import { ImCancelCircle } from "react-icons/im";
-import { Formik, Form, FormikHelpers, useFormikContext } from 'formik';
-import { TextField, Autocomplete, List, ListItem, ListItemText, Avatar, Typography, Chip,  Dialog, DialogContentText, DialogTitle, DialogContent, DialogActions, InputLabel, Tooltip, MenuItem, Select, Button, FormControl, Accordion, AccordionSummary, AccordionDetails,  } from '@mui/material'
+import { Formik, Form } from 'formik';
+import { TextField, Autocomplete,  ListItem, ListItemText,  Typography, Chip,  Dialog, DialogContentText, DialogTitle, DialogContent, DialogActions, InputLabel, Tooltip, MenuItem, Select, Button, FormControl, Accordion, AccordionSummary, AccordionDetails,  } from '@mui/material'
 import { Branch } from '@ricons/carbon'
 import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
 import { useSelector } from 'react-redux';
@@ -12,6 +12,7 @@ import { LiaQuestionCircleSolid } from "react-icons/lia";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { RepoNewCollaborators } from './sub-forms/RepoNewCollaborators';
 import Swal from 'sweetalert2';
+import bgform from '../assets/formbg.jpg'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }) => {
@@ -231,6 +232,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     };
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+      console.log('values', values)
       setSubmitting(true);
       setIsLoading(true);
 
@@ -239,6 +241,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
             uid
           },
             headers: {
+                'Content-Type': 'application/json',
                 'Authorization': localStorage.getItem('x-token')
             }
         })
@@ -307,7 +310,12 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
         <div
           id="repositoryTaskModal"
-          style={{ opacity: modalOpacity, transition: 'opacity 300ms ease-in-out, height 300ms ease-in-out, background 300ms ease-in-out' }}
+          style={{ 
+            opacity: modalOpacity, 
+            transition: 'opacity 300ms ease-in-out, height 300ms ease-in-out, background 300ms ease-in-out',
+            backgroundImage: `url(${bgform})`,
+            backgroundPosition: 'left center'
+          }}
           className={`flex flex-col space-y-3 w-[90%]  overflow-hidden md:w-[50%] pb-2 md:max-h-[700px] overflow-y-auto transition-colors duration-300  bg-white border-[1px] border-black rounded-2xl ${isRepoFormOpen ? '' : 'pointer-events-none'}`}
         >
 

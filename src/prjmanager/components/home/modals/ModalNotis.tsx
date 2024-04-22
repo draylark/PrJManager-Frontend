@@ -1,7 +1,10 @@
 import { useSelector } from "react-redux"
-import { useState, useEffect, useRef, FC } from "react";
+import { useState, useEffect, useRef, FC, Fragment } from "react";
 import { RootState } from "../../../../store/store";
+import { ListItem, Avatar, ListItemSecondaryAction, ListItemAvatar, List, Divider } from "@mui/material";
 import axios from "axios";
+import projectbg from '../../../assets/imgs/projectbg.jpg'
+
 
 type MyComponentProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -11,8 +14,9 @@ type MyComponentProps = {
 export const ModalNotis: FC<MyComponentProps> = ({ setIsOpen }) => {
 
 
-   const { friendsRequests, uid } = useSelector( (selector: RootState) => selector.auth);
+   const { friendsRequests, uid, photoURL, username } = useSelector( (selector: RootState) => selector.auth);
 
+   console.log(photoURL)
 
     const { notis } = useSelector( (selector: RootState) => selector.notis);
     const [isActive, setIsActive] = useState(false);
@@ -20,16 +24,34 @@ export const ModalNotis: FC<MyComponentProps> = ({ setIsOpen }) => {
     const modalRef = useRef(null);
 
 
-    const handleClick = () => {
-        setIsOpen( false )
+    const handleRequest = async (notiID, uid, requester, requestStatus, type, additional ) => {
+      try {
+        switch (type) {
+          case 'friend-request': {
+            const response = await axios.post(`http://localhost:3000/api/friends/handle-request/${requester}`, { requestStatus, uid, notiID });
+            console.log(response);
+            break;
+          }
+    
+          case 'project-invitation': {
+            const response = await axios.put(`http://localhost:3000/api/projects/handle-invitation/${additional.projectID}`, { requestStatus, uid, name: username, photoUrl: photoURL, accessLevel: additional.accessLevel, notiID }, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('x-token')
+              }
+            
+            });
+            console.log(response);
+            break;
+          }
+    
+          default:
+            break;
+        }
+      } catch (error) {
+        console.log(error);
+      }
     };
-
-
-    const handleRequest = async ( userId, requestStatus ) => {
-        const response = await axios.post(`http://localhost:3000/api/friends/manage-request/${userId}`, { requestStatus, uid } )
-        console.log(response)
-    }
-
 
     useEffect(() => {
       const fetchFriendsRequests = async () => {
@@ -57,92 +79,95 @@ export const ModalNotis: FC<MyComponentProps> = ({ setIsOpen }) => {
     }, []);
 
 
-    useEffect(() => {
-      function handleClickOutside(event: MouseEvent) {
-        if (modalRef.current && !modalRef.current.contains(event.target)) {
-          setIsOpen(false);
-        }
-      }
-  
-      // Agregar el escuchador de eventos al montar el componente y removerlo al desmontarlo
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, [setIsOpen]);
-  
-
-    const animationClasses = isActive ? 'opacity-100' : 'opacity-0';
+  const animationClasses = isActive ? 'opacity-100' : 'opacity-0';
 
   return (
 
-    <>
-    
-        <div  ref={modalRef} data-popover id="popover-notications" role="tooltip" className={`transition-opacity duration-700 ease-in-out ${animationClasses} modal-glass w-80 mt-16 mr-46 absolute z-10 text-sm text-white rounded-lg shadow-sm`}>
-          <div className="p-3">
-            
-            <p className="text-sky-950 font-bold mb-2">Notifications</p>
+        <div  
+          ref={modalRef} 
+          data-popover id="popover-notications" 
+          role="tooltip" 
+          className={`flex flex-col space-y-2 px-2 pt-2 w-[470px] h-[500px] border-[1px] border-black transition-opacity duration-700 ease-in-out ${animationClasses} bg-blue-50  mt-16 mr-46 absolute z-10 text-sm text-white rounded-lg shadow-sm`}
+        >
+         <p className="text-sky-950 font-bold mb-1 mt-2 ml-3">Notifications</p>
 
-            {/* Contenedor con scroll vertical */}
-            <div className="h-48 overflow-y-auto">
-              {/* Iteramos sobre el arreglo de notificaciones */}
-              <ul>
-
-
-            
-
-              
-              {
-
-              allFriendsRequest && allFriendsRequest.length > 0 ?
-                  (
-                    allFriendsRequest.map((user) => (
-                      <li key={user.uid} className="glass2 border-1 border-gray-400 rounded-lg mb-2 p-3 shadow">
-                        {/* Adding a title to indicate it's a friend request */}
-                        <p className="text-black text-xl font-semibold">New Friend Request!</p>
-                      
-                        {/* Displaying the username of the person who sent the request */}
-                        <p className="text-gray-800 text-lg">You have a new friend request from <span className="font-bold">{user.username}</span>.</p>
-                      
-                        {/* Optionally, you can add a small description or ID, but it might not be necessary */}
-                        {/* <p className="text-gray-600">User ID: {user.uid}</p> */}
-                      
-                        {/* You can also add buttons for accepting or declining the request */}
-                        <div className="flex space-x-2 mt-2">
-                          <button onClick={() => handleRequest( user.uid, 'accepted' )} className="glass4 border-1 border-gray-400 text-white px-4 py-1 rounded-lg hover:bg-green-300">Accept</button>
-                          <button onClick={() => handleRequest( user.uid, 'declined' )} className="glass3 border-1 border-gray-400 text-white px-4 py-1 rounded-lg hover:bg-red-300">Decline</button>
+          <div className="flex flex-col flex-grow max-h-[450px] overflow-y-auto p-3">
+            <List dense>
+              {notis.map((request) => (
+                request.type === 'friend-request' ?
+                  <Fragment>
+                      <ListItem key={request._id} className="flex items-center">
+                        <ListItemAvatar>
+                          <Avatar src={request.from.photoUrl} />
+                        </ListItemAvatar>
+                        <div className="flex flex-col">
+                          <p className="text-black">{request.from.name}</p>
+                          <p className="text-black text-xs">Sent you a friend request</p>
                         </div>
-                    </li>
-                    ))
-                  )
-                : <p className="text-sky-950">There are currently no notifications.</p>
-              
-
-                  // notis && notis.length > 0 ?
-                  //   (
-                  //     notis.map((noti, index) => (
-                  //       <li key={index} className="grapth-glass border-2 border-gray-500 rounded-lg mb-2 p-3 shadow">
-                  //         {/* Aquí puedes renderizar los detalles de cada notificación como quieras */}
-                  //         <p className="text-black text-xl font-semibold">{noti.title}:</p>
-                  //         <p className="text-gray-600">{noti.description}</p>
-                  //       </li>
-                  //     ))
-                  //   )
-                  // : <p className="text-sky-950">There are currently no notifications.</p>
-              }
-
-              </ul>
-            </div>
+                        <ListItemSecondaryAction>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleRequest(request._id, request.recipient, request.from.ID, 'accept', 'friend-request')}
+                              className="text-black w-16 h-8 rounded-xl glassi border-1 border-black hover:bg-blue-500/40 transition-colors duration-150"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleRequest(request._id, request.recipient, request.from.ID, 'reject', 'friend-request')}
+                              className="text-black w-16 h-8 rounded-xl glassi border-1 border-black hover:bg-blue-500/40 transition-colors duration-150"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                      <Divider style={{marginTop: 5}} />
+                  </Fragment>  
+                  : 
+                  request.type === 'project-invitation' ?
+                      <Fragment>
+                          <ListItem key={request._id} className="flex items-center">
+                            <div
+                              className='border-[1px] border-gray-400'
+                              style={{
+                                width: '50px',
+                                height: '50px',
+                                marginRight: '20px',
+                                backgroundImage: `url(${projectbg})`,
+                                backgroundSize: 'cover',
+                                borderRadius: '8px'
+                              }}
+                            />
+                            <div className="flex flex-col ">
+                              <p className="text-[9px] text-black">{request.type}</p>
+                              <p className="text-black">{request.additionalData.project_name}</p>
+                              <p className="w-[200px] text-black text-xs"> <span className="font-semibold cursor-pointer">@{request.from.name}</span>  invited you to join this project as <span className="font-bold text-green-600"> {request.additionalData.accessLevel} </span> </p>
+                            </div>
+                            <ListItemSecondaryAction>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleRequest(request._id, request.recipient, request.from.ID, 'accept', 'project-invitation', request.additionalData)}
+                                  className="text-[10px] text-black w-14 h-8 rounded-xl glassi border-1 border-black hover:bg-blue-500/40 transition-colors duration-150"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  onClick={() => handleRequest(request._id, request.recipient, request.from.ID, 'reject', 'project-invitation', request.additionalData)}
+                                  className="text-[10px] text-black w-14 h-8 rounded-xl glassi border-1 border-black hover:bg-blue-500/40 transition-colors duration-150"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                          <Divider style={{marginTop: 10,  backgroundColor: 'rgba(0, 0, 0, 0.5)' }} />
+                      </Fragment>
+                  : null
+              ))}
+            </List>
           </div>
 
-          <button
-            onClick={handleClick}
-            type="button"
-            className="inline-flex items-center justify-center w-full px-5 py-2 mt-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-            Close
-          </button>
       </div>
-  
-  </>
+
   )
 }
