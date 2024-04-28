@@ -4,6 +4,7 @@ import { TextField, Autocomplete, ListItemAvatar, Avatar, Typography, Chip,  Dia
 import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/store';
+import { PuffLoader  } from 'react-spinners';
 import { loadNewRepo } from '../../../../store/gitlab/thunks';
 import axios from 'axios';
 
@@ -11,7 +12,6 @@ import { ImCancelCircle } from "react-icons/im";
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 
 import Swal from 'sweetalert2';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
@@ -21,7 +21,7 @@ import bgform from './assets/formbg.jpg'
 
 const RepositorySchema = Yup.object().shape({
     name: Yup.string().required('Repository name is required'),
-    description: Yup.string(),
+    description: Yup.string().required('Description is required'),
     visibility: Yup.string().required('Visibility is required'),
   });
   
@@ -53,12 +53,10 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     const location = useLocation();
     const dispatch = useDispatch();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
-    const { layers } = useSelector( (selector: RootState) => selector.platypus);
     const [IsLoading, setIsLoading] = useState(false);
 
     const { layerID } = location.state.layer;
     const { ID } = location.state.project;
-    const layer = layers.find( repo => repo._id === layerID );
 
     const [tooltipOpen, setTooltipOpen] = useState('');
     const [tooltipContent, setTooltipContent] = useState('');
@@ -164,7 +162,6 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     };
 
     const IsTheButtonDisabled = ({ values }) => {
-      console.log(values)
       useEffect(() => {
           const isDisabled =  values.collaborators.length === 0
                               && values.name === ""
@@ -224,6 +221,17 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     };
 
 
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+
+    useEffect(() => {
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = bgform;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+      }, []);
+
     useEffect(() => {
       if (isRepositoryFormOpen) {
         // Asegúrate de que el modal existe antes de intentar acceder a él
@@ -240,15 +248,15 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
 
 
     return (
-        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center z-10'>
+        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-10'>
             <div 
                 id="layerRepositoryModal" 
                 style={{ 
-                    backgroundImage: `url(${bgform})`,
+                    backgroundImage: isBackgroundReady ? `url(${bgform})` : 'none',
                     backgroundPosition: 'right center' 
                   
                   }}
-                className={`flex flex-col  glass  md:h-[450px] md:w-[700px] border-1 border-gray-400 rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isRepositoryFormOpen ? '' : 'pointer-events-none'}`}>
+                className={`flex flex-col md:h-[450px] md:w-[700px] glass2 border-[1px] border-gray-400 rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isRepositoryFormOpen ? '' : 'pointer-events-none'}`}>
                 <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                     <p className='text-xl text-black'>New Layer Repository</p>
                     <button onClick={handleClose}>
@@ -258,8 +266,12 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
 
                 {
 
-                  IsLoading 
-                  ? <LoadingCircle />
+                  IsLoading || !isBackgroundReady
+                  ?  (
+                        <div className='flex flex-grow items-center justify-center'>
+                        <PuffLoader  color={ !isBackgroundReady ? "#ffffff" : "#32174D" } size={50} /> 
+                        </div>  
+                     )
                   : (
                         <Formik
                               initialValues={{
@@ -273,26 +285,28 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                               onSubmit={handleSubmit}
                           >
                         
-                              {({ isSubmitting, values, setFieldValue, handleChange, handleBlur }) => (                                 
+                              {({ isSubmitting, values, setFieldValue, handleChange, handleBlur, errors, touched }) => (                                 
                                   
                                   <Form className='flex flex-col h-full ml-auto mr-auto w-[95%] mt-5'>
                                       
                                       <IsTheButtonDisabled values={values} />
 
-                                      {console.log(values)}
-
                                       <div className='flex space-x-4 w-full'>
-                                          <TextField                                      
+                                          <TextField                
+                                              InputLabelProps={{ shrink: errors.name && touched.name }}                        
                                               name="name"
-                                              label="Repository Name"                        
+                                              label={ errors.name && touched.name ? errors.name : 'Repository Name' }                        
                                               fullWidth
                                               value={values.name}
                                               onChange={handleChange}
                                               onBlur={handleBlur}
+                                              error={!!errors.name && touched.name}
                                           />
 
-                                          <FormControl fullWidth>
-                                              <InputLabel id="visibility-label">Visibility</InputLabel>
+                                          <FormControl fullWidth error={!!errors.visibility && touched.visibility}>
+                                              <InputLabel 
+                                                id="visibility-label" 
+                                              >{errors.visibility && touched.visibility ? errors.visibility : 'Visibility'}</InputLabel>
                                               <Select
                                                   labelId="visibility-label"
                                                   id="visibility"
@@ -300,7 +314,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                                   value={values.visibility}
                                                   onChange={(e) => setFieldValue('visibility', e.target.value)}
                                                   onBlur={handleBlur}
-                                                  label="Visibility" // Esto establece la etiqueta para el Select
+                                                  label={ errors.visibility && touched.visibility ? errors.visibility : 'Visibility'} // Esto establece la etiqueta para el Select
                                               >
                                                   <MenuItem value="open">Open</MenuItem>
                                                   <MenuItem value="internal">Internal</MenuItem>
@@ -487,15 +501,17 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                               </DialogActions>
                                           </Dialog>
 
-                                          <TextField                                      
+                                          <TextField         
+                                              InputLabelProps={{ shrink: errors.description && touched.description }}                             
                                               name="description"
-                                              label="Description"
+                                              label={ errors.description && touched.description ? errors.description : 'Description' }
                                               multiline
                                               rows={4}
                                               fullWidth
                                               value={values.description}
                                               onChange={handleChange}
                                               onBlur={handleBlur}
+                                              error={!!errors.description && touched.description}
                                           />
                                       </div>
 
@@ -504,7 +520,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                       <div className='flex w-full h-full justify-center items-center'>
                                           <button 
                                               className={`w-[95%] h-[55px] rounded-extra p-2 ${buttonDisabled ? 'backdrop-blur-sm' : 'backdrop-blur-sm bg-green-400/20 shadow-sm'} border-[1px] border-gray-400 transition-colors duration-300 ease-in-out transform active:translate-y-[2px]`}
-                                              type='submit' disabled={isSubmitting}>Create Repository
+                                              type='submit' disabled={isSubmitting || buttonDisabled }>Create Repository
                                           </button>
                                       </div>
 

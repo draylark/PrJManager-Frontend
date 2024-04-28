@@ -58,17 +58,15 @@ export const startGoogleLoginWEmailPassword = ( payload: DataM ) => {
 }
 
 
-export const startStatePersistence = ( userData: DataM, userNotes: [], userProjects: [], userFriends: [] ) => {
+export const startStatePersistence = ( userData: DataM, userNotes: [] ) => {
 
     return async( dispatch: ThunkDispatch<unknown, unknown, AnyAction> ) => {     
         dispatch( checkingAuthentication() )
 
-        console.log(userFriends)
         setTimeout(() => {
-            dispatch( startProjects( userProjects ))
             dispatch( setNotis( userNotes ) )   
             dispatch( login( userData.user ) )   
-            dispatch( startFriends( userFriends ))
+
         }, 3000);
  
     }

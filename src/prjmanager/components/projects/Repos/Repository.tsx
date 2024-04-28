@@ -10,7 +10,6 @@ import { loadFolderContents, loadFileContent, getLanguageFromFileName } from './
 import { FileTree } from './FileTree';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { CodeOnBigScreen } from './modals/CodeOnBigScreen';
 import { ExpandSharp } from '@ricons/ionicons5'
 import { TaskSettings, CloudSatelliteConfig } from '@ricons/carbon'
@@ -21,8 +20,10 @@ import { RepositoryConfigForm } from './modals/forms/RepositoryConfigForm';
 import 'github-markdown-css/github-markdown.css';
 import './styles/markdown.css'
 import ReactMarkdown from 'react-markdown';
+import { InformationOutline } from '@ricons/ionicons5'
 import { tierS } from '../../../helpers/accessLevels-validator';
-
+import { RepositoryInfo } from './modals/RepositoryInfo';
+import { PuffLoader  } from 'react-spinners';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 
@@ -34,23 +35,29 @@ export const Repository = () => {
   const { uid } = useSelector((state: RootState) => state.auth );
   const { currentProject: project, layers } = useSelector((state: RootState) => state.platypus );
 
-  const [layer, setlayer] = useState({})
-  const [repo, setRepo] = useState({})
+  const [repo, setRepo] = useState({});
+  const [layer, setlayer] = useState({});
   const [files, setFiles] = useState<[]>([]);
-  const [isLoading, setIsLoading] = useState(true)
-  const [currentBranch, setCurrentBranch] = useState('')
-  const [loadingFiles, setLoadingFiles] = useState(true)
-  const [openBranches, setOpenBranches] = useState(false)
-  const [isRepoFormOpen, setIsRepoFormOpen] = useState(false)
-  const [selectedFileName, setSelectedFileName] = useState('')
-  const [isTasksModalOpen, setIsTasksModalOpen] = useState(false)
-  const [selectedFileContent, setSelectedFileContent ] = useState('')
-  const [isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentBranch, setCurrentBranch] = useState('');
+  const [loadingFiles, setLoadingFiles] = useState(true);
+  const [openBranches, setOpenBranches] = useState(false);
+  const [isRepoFormOpen, setIsRepoFormOpen] = useState(false);
+  const [isRepoInfoOpen, setIsRepoInfoOpen] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const [isTasksModalOpen, setIsTasksModalOpen] = useState(false);
+  const [selectedFileContent, setSelectedFileContent ] = useState('');
+  const [isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen] = useState(false);
 
+  const [errorType, setErrorType] = useState(null);    
+  const [errorMessage, seterrorMessage] = useState(null);
+  const [errorWhileFetching, setErrorWhileFetching] = useState(false);
+
+  const commits = location.state.commits;
   const { ID, name } = location.state.project;
   const { layerID, layerName } = location.state.layer;
   const { repoID, repoName } = location.state.repository;
-  const commits = location.state.commits;
+
 
 
   const handleLoadNewBranch = (branch: string) => {
@@ -77,6 +84,9 @@ export const Repository = () => {
       })
       .catch( error => {
         setLoadingFiles(false)
+        setErrorWhileFetching(true)
+        setErrorType(error.response.data.type || 'Error')
+        seterrorMessage(error.response.data.message || 'An error occurred while fetching data')
       });        
   };
 
@@ -95,32 +105,40 @@ export const Repository = () => {
     const layerFromRState = layers.find((layer) => layer._id === layerID)
     setlayer(layerFromRState)
     setIsLoading(false)
-  }
+  };
+
+  const fetchRepositoryData = async() => {
+    axios.get(`${backendUrl}/repos/${repoID}`, {
+      params: {
+        projectID: ID
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': localStorage.getItem('x-token')
+      }
+    })
+    .then( res => {
+      // console.log(res)
+      handleRepoData(res.data.repo)
+    })
+    .catch( error => {
+      // console.log(error)
+      setIsLoading(false)
+      setErrorWhileFetching(true)
+      setErrorType(error.response.data.type || 'Error')
+      seterrorMessage(error.response.data.message || 'An error occurred while fetching data')
+    });
+  };
 
 
   useEffect(() => {  
     if( repoID ) {
-        const repository = repositories.find((repo) => repo._id === repoID)
-          if( repository && repository !== undefined  ){
-            handleRepoData(repository)
-          } else {
-            axios.get(`${backendUrl}/repos/${repoID}`, {
-              params: {
-                projectID: ID
-              },
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('x-token')
-              }
-            })
-            .then( res => {
-              console.log(res)
-              handleRepoData(res.data.repo)
-            })
-            .catch( error => {
-              console.log(error)
-            });
-          }
+      const repository = repositories.find((repo) => repo._id === repoID)
+        if( repository && repository !== undefined  ){
+          handleRepoData(repository)
+        } else {
+          fetchRepositoryData() 
+        }
     }
 
 
@@ -183,15 +201,45 @@ export const Repository = () => {
       If you need more information about the commands, run the command: "help" to see the list of available commands and their descriptions.
       You can also read the documentation in the PrJManager website: https://prjmanager.com/docs/getting-started/prjconsole-commands
 
-    `
-  ;
+  `;
+ 
 
-    if( isLoading ) return <LoadingCircle/>
-    if( loadingFiles ) return <LoadingCircle/>
+  if( isLoading ) return ( 
+    <div className='flex flex-grow items-center justify-center'>
+        <PuffLoader  color="#32174D" size={50} /> 
+    </div>                         
+  );
+  if( loadingFiles ) return ( 
+    <div className='flex flex-grow items-center justify-center'>
+        <PuffLoader  color="#32174D" size={50} /> 
+    </div>                         
+  );
+  if( errorWhileFetching ) return (
+    <div className='flex flex-col flex-grow items-center justify-center'>
+      <h1 className='text-xl text-red-500'>{errorMessage}</h1>
+      {
+          errorType !== 'collaborator-validation' && errorType !== 'token-validation' ? (
+            <button
+              onClick={() => {
+                setErrorWhileFetching(false)
+                setIsLoading(true)
+                fetchRepositoryData()
+              }}
+              className='hover:text-blue-500 transition-colors duration-100'
+            >
+              Try Again
+            </button>
+          ) : null
+        }
+    </div>
+  );
+
+  console.log(selectedFileContent)
 
     return (
       <div className="flex h-full w-full">
           
+        { isRepoInfoOpen && <RepositoryInfo uid={uid} repo={repo} instructions={gitInstructions} isRepoInfoOpen={isRepoInfoOpen} setRepoInfoOpen={setIsRepoInfoOpen} /> }
         { isRepoFormOpen && <RepositoryConfigForm isRepoFormOpen={isRepoFormOpen} setIsRepoFormOpen={setIsRepoFormOpen} repo={repo} /> }  
         { isTasksModalOpen && <RepositoryTasksModal project={project} layer={layer} repo={repo} isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
         { isCodeOnBigScreenOpen && <CodeOnBigScreen  getExtension={getExtension}  isCodeOnBigScreenOpen={isCodeOnBigScreenOpen} setIsCodeOnBigScreenOpen={setIsCodeOnBigScreenOpen} fileName={selectedFileName} fileContent={selectedFileContent} /> } 
@@ -229,18 +277,18 @@ export const Repository = () => {
               :
               (     
                 <div className='flex h-full w-full'>                   
-                    <div className="z-10 w-[25%] h-full glass2 rounded-bl-3xl ">
+                    <div className="z-10 w-[25%] h-full glassi rounded-bl-3xl ">
 
                       <div className="flex items-center justify-between h-[39px] mt-2 pr-3 pl-4">
-                          <button className="flex items-center space-x-2" onClick={() => navigate(-1)}>
+                          <button className="flex items-center" onClick={() => navigate(-1)}>
                             <Icon size={20}>
                               <ArrowBackUp />
                             </Icon>             
                           </button>
 
-                          <div className='relative flex space-x-3 items-center'>
+                          <div className='relative flex  items-center'>
                                 <CommitSharp 
-                                  className='w-5 h-5 cursor-pointer'
+                                  className='w-5 h-5 cursor-pointer hover:text-yellow-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
                                   onClick={() => navigate(
                                     `commits`, 
                                     { 
@@ -254,7 +302,7 @@ export const Repository = () => {
                                 />
 
                                 <TaskSettings 
-                                      className='w-[17px] h-[17px] cursor-pointer'
+                                      className='w-[17px] h-[17px] cursor-pointer hover:text-blue-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
                                       onClick={() => setIsTasksModalOpen(true)}
                                 />
 
@@ -262,14 +310,19 @@ export const Repository = () => {
                                   tierS(uid, project, layer, repo) && 
                                     (
                                         <CloudSatelliteConfig
-                                            className='w-[17px] h-[17px] cursor-pointer'
+                                            className='w-[17px] h-[17px] cursor-pointer hover:text-slate-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
                                             onClick={() => setIsRepoFormOpen(true)}
                                         />                              
                                     )                           
                                 }
 
+                                <InformationOutline 
+                                  className='w-[19px] h-[19px] cursor-pointer hover:text-green-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
+                                  onClick={() => setIsRepoInfoOpen(true)}
+                                />
+
                                 <button 
-                                  className='flex items-center justify-center w-[60px] h-[25px] text-[13px] hover:bg-blue-200 rounded-lg transition-colors duration-100 glassi border-[1px] border-gray-400'
+                                  className='flex items-center justify-center w-[60px] h-[25px] text-[13px] hover:bg-blue-200 rounded-lg transition-all glassi border-[1px] border-gray-400  duration-150 ease-in-out transform active:translate-y-[2px]'
                                   onClick={() => setOpenBranches(!openBranches)}>
                                   
                                   {currentBranch} <ArrowDropDownOutlined className='w-[17px] h-[17px]' />

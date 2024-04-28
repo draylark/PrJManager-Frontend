@@ -376,7 +376,7 @@ import { set } from 'date-fns';
                   </div>
             </div>
 
-            <div  id='container-scroll' className='flex flex-col space-y-4 pb-6 flex-grow  max-h-[625px] overflow-y-auto '>
+            <div  id='container-scroll' className='flex flex-col space-y-4 pb-6 flex-grow  max-h-[655px] overflow-y-auto '>
                 {             
                   filteredTasks.length === 0 
                   ?

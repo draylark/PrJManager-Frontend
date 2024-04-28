@@ -12,7 +12,7 @@ import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useFetchComments } from './hooks/useFetchComments';
 import { format } from 'date-fns';
 import { tierS, tierA } from '../../../helpers/accessLevels-validator';
-
+import { PuffLoader  } from 'react-spinners';
 
 interface Comment {
     id: string;
@@ -42,7 +42,8 @@ export const Comments = () => {
     const { uid, username, photoUrl } = useSelector((state: RootState) => state.auth);
     
     const { setComments, fetchComments, fetchMoreReplies, handleLikeDislike, setNoCommentsToFetch,
-            comments, likes, noCommentsToFetch, hasMoreComments, currentPage,  isLoading, totalPages } = useFetchComments()
+            comments, likes, noCommentsToFetch, hasMoreComments, currentPage,  isLoading, errorMessage,
+            errorWhileFetching, setErrorWhileFetching, errorType } = useFetchComments()
 
 
 
@@ -128,7 +129,7 @@ export const Comments = () => {
             console.error('Error al eliminar el comentario:', error);
             setCommentToDelete('')   
         }  
-    }
+    };
 
     const handleLoadMore = async () => {
         if (hasMoreComments) {
@@ -145,7 +146,7 @@ export const Comments = () => {
             </Typography>
         )
 
-    }
+    };
 
     const findOriginalCommentUsername = (commentId) => {
         const comment = comments.find(comment => comment.id === commentId);
@@ -171,7 +172,7 @@ export const Comments = () => {
                         {showReplies[commentId] ? 'Hide' : 'Show'} Replies
                     </Button>
                 );
-            }
+            }           
             return null;
         };
         
@@ -303,6 +304,15 @@ export const Comments = () => {
                             )}
                         </Fragment>
                     ))}
+
+
+                    {
+                        errorWhileFetching && ( 
+                            <p className='text-red-500 text-[12px] mt-2 ml-[5%]'>
+                                {errorMessage}
+                            </p>
+                        )
+                    }
 
                     {
                         current_page !== null && total_pages > 1 && current_page !== total_pages && (
@@ -441,67 +451,85 @@ export const Comments = () => {
         fetchComments(currentPage, true);
     }, [])
 
+
+    if( errorWhileFetching ) return (
+        <div className='flex flex-col flex-grow items-center justify-center'>
+            <h1 className='text-xl text-red-500'>{errorMessage}</h1>
+            {
+                errorType !== 'collaborator-validation' && errorType !== 'token-validation' ? (
+                    <button
+                    onClick={() => {
+                        setErrorWhileFetching(false)
+                        fetchComments(0, true)}
+                    }
+                    className='hover:text-blue-500 transition-colors duration-100'
+                    >
+                    Try Again
+                    </button>
+                ) : null
+            }
+        </div>
+    )
+
     return (
         <div className='h-full w-full'>
-                    <div className='flex flex-col h-full rounded-extra '>
-                        <h1 className='font-bold text-3xl pl-5'>
-                            Comments
-                        </h1>
-
-                        {/* Comment input */}
-                        <div className='flex flex-col space-x-2 pt-5 px-5 pb-1'>
-                            <TextField
-                                fullWidth
-                                multiline
-                                placeholder="Write a comment..."
-                                value={newComment}
-                                onChange={e => {
-                                    setShowButtons(e.target.value.length > 0 ? true : false)
-                                    setNewComment(e.target.value)}
-                                }
-                                sx={{ mr: 2 }}
-                            />
-                     
-                            <div className={`flex opacity-0 ${ showButtons ? 'opacity-100' : 'opacity-0' } transition-opacity duraation-300 justify-end  pr-2 py-2 space-x-4`}>
-                                <button 
-                                    onClick={ () => setNewComment('') }
-                                    className='w-[120px] hover:bg-red-200 transition-colors duration-300 rounded-extra border-[1px] border-gray-400 text-sm p-2'>
-                                    cancel
-                                </button>
-                                <button
-                                    onClick={handleCommentSubmit} 
-                                    className='w-[120px] backdrop-blur-sm bg-blue-300/20  shadow-sm hover:bg-blue-600/20 transition-colors duration-300 rounded-extra border-[1px] border-gray-400 text-sm p-2'>
-                                    post
-                                </button>
-                            </div>
-                        
-
+            {
+                isLoading 
+                ? ( 
+                    <div className='flex h-full w-full items-center justify-center'>
+                        <PuffLoader  color="#32174D" size={50} /> 
+                    </div>                         
+                )
+                :
+                <div className='flex flex-col h-full rounded-extra'>
+                    {/* Comment input */}
+                    <div className='flex flex-col space-x-2 pt-5 px-5 pb-1'>
+                        <TextField
+                            fullWidth
+                            multiline
+                            placeholder="Write a comment..."
+                            value={newComment}
+                            onChange={e => {
+                                setShowButtons(e.target.value.length > 0 ? true : false)
+                                setNewComment(e.target.value)}
+                            }
+                            sx={{ mr: 2 }}
+                        />
+                    
+                        <div className={`flex opacity-0 ${ showButtons ? 'opacity-100' : 'opacity-0' } transition-opacity duraation-300 justify-end  pr-2 py-2 space-x-4`}>
+                            <button 
+                                onClick={ () => setNewComment('') }
+                                className='w-[120px] hover:bg-red-200 transition-colors duration-300 rounded-extra border-[1px] border-gray-400 text-sm p-2'>
+                                cancel
+                            </button>
+                            <button
+                                onClick={handleCommentSubmit} 
+                                className='w-[120px] backdrop-blur-sm bg-blue-300/20  shadow-sm hover:bg-blue-600/20 transition-colors duration-300 rounded-extra border-[1px] border-gray-400 text-sm p-2'>
+                                post
+                            </button>
                         </div>
+                        </div>     
 
+                    <div id='comments' ref={listRef} className='flex flex-col flex-grow max-h-[475px] overflow-y-auto px-2'>
                         {
-                          isLoading 
-                          ? <LoadingCircle />                    
-                          :                         
-                            <div id='comments' ref={listRef} className='flex flex-col flex-grow max-h-[475px] overflow-y-auto px-2'>
-                                {
-                                    noCommentsToFetch 
-                                    ? <div className='flex w-full h-full justify-center'>
-                                        <h1 className="text-xl mt-[15%] text-gray-400 mb-10">There are no comments yet, start the conversation!</h1> 
-                                      </div>                             
-                                    : <>
-                                        {renderComments(comments)}  
+                            noCommentsToFetch 
+                            ? <div className='flex w-full h-full justify-center'>
+                                <h1 className="text-xl mt-[20%] text-gray-400 mb-10">There are no comments yet, start the conversation!</h1> 
+                                </div>                             
+                            : 
+                            <>
+                                {renderComments(comments)}  
 
-                                        {hasMoreComments && (
-                                            <button className="w-[150px] my-2 ml-5 rounded-extra hover:text-blue-400 transition-colors duration-300 p-2 text-sm"  onClick={handleLoadMore}>
-                                                Load more
-                                            </button>
-                                        )}
-                                      </>
-                                }
-                            </div> 
-                        }                                  
-                    </div>
- 
+                                {hasMoreComments && (
+                                    <button className="w-[150px] my-2 ml-5 rounded-extra hover:text-blue-400 transition-colors duration-300 p-2 text-sm"  onClick={handleLoadMore}>
+                                        Load more
+                                    </button>
+                                )}
+                            </>
+                        }
+                    </div>                                                     
+                </div>
+            }
         </div>
     );
 };

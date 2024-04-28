@@ -7,10 +7,13 @@ import axios from 'axios'
 export const useActivityData = ( project, uid ) => {
 
     const [isLoading, setIsLoading] = useState(false);
+    const [errorType, setErrorType] = useState(null);    
+    const [errorMessage, seterrorMessage] = useState(null);
+    const [errorWhileFetching, setErrorWhileFetching] = useState(false);
 
-    const [tasksCompleted, setTasksCompleted] = useState([])
-    const [wFApprovalTasks, setWFApprovalTasks] = useState([])
-    const [commits, setCommits] = useState([])
+    const [commits, setCommits] = useState([]);
+    const [tasksCompleted, setTasksCompleted] = useState([]);
+    const [wFApprovalTasks, setWFApprovalTasks] = useState([]);
 
 
     const fetchCollaborators = async ( collaborators ) => {
@@ -39,7 +42,10 @@ export const useActivityData = ( project, uid ) => {
             setWFApprovalTasks(wFTasksWithCollaborators);
             setIsLoading(false)
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("Error fetching collaborators:", error);
+            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
+            setErrorType(error.response.data.type || 'Error');
+            setErrorWhileFetching(true)
         }
         setIsLoading(false);
     };
@@ -56,11 +62,12 @@ export const useActivityData = ( project, uid ) => {
                     'Authorization': localStorage.getItem('x-token')
                 }
             });
-            console.log('completedTasks', completedTasks)
-            console.log('approvalTasks', approvalTasks)
             fetchAndSetData(completedTasks, approvalTasks)
         } catch (error) {
-            console.log(error)
+            // console.error("Error fetching Tasks:", error);
+            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
+            setErrorType(error.response.data.type || 'Error')
+            setErrorWhileFetching(true)
         }
     }
 
@@ -76,11 +83,20 @@ export const useActivityData = ( project, uid ) => {
                 }
             });
 
-            console.log('commits', commits)
             setCommits(commits)
         } catch (error) {
-            console.log(error)
+            // console.error("Error fetching Commits:", error);
+            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
+            setErrorType(error.response.data.type || 'Error')
+            setErrorWhileFetching(true)
         }
+    }
+
+
+    const fetchData = () => {
+        setIsLoading(true)
+        fetchTasks()
+        fetchCommits()
     }
 
     useEffect(() => {
@@ -97,6 +113,10 @@ export const useActivityData = ( project, uid ) => {
     wFApprovalTasks,
     setWFApprovalTasks,
     setTasksCompleted,
-    commits
+    commits,
+    errorMessage,
+    errorWhileFetching,
+    errorType,
+    fetchData
   }
 }

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { RootState } from '../../../../store/store';
 import { Formik, Form, Field } from 'formik';
-import { TextField, Button, MenuItem, FormControl, Select, InputLabel, Autocomplete, Switch, FormControlLabel } from '@mui/material';
+import { TextField, MenuItem, FormControl, Select, InputLabel, Autocomplete, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -24,6 +24,9 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
     const { ID } = location.state.project;
     const project = projects.find(project => project.pid === ID);
 
+
+    const [openDialog, setOpenDialog] = useState(false);
+    const [tempVisibility, setTempVisibility] = useState(''); 
     const [isAdvancedSettingOpen, setisAdvancedSettingOpen] = useState(false)
     const [buttonDisabled, setButtonDisabled] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -33,6 +36,46 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
         return { id: index + 1, label: tag };
     });
 
+
+    const renderDialogContentText = () => {
+        switch (tempVisibility) {
+          case 'public':
+            return (
+              <DialogContentText>
+                Are you sure you want to change the visibility type? The "Public" type will allow access to everyone.
+              </DialogContentText>
+            );
+          case 'private':
+            return (
+              <DialogContentText>
+                Are you sure you want to change the visibility type? The "Private" type will allow access only to the collaborators invited to the project.
+              </DialogContentText>
+            );
+          default:
+            return null; // o algún otro componente JSX por defecto
+        }
+    };
+
+    const handleVisibilityChange = (event, setFieldValue) => {
+        const selectedVisibility = event.target.value;
+        if (selectedVisibility !== project?.visibility) {
+            setTempVisibility(selectedVisibility); // Almacenar temporalmente la nueva visibilidad seleccionada
+            setOpenDialog(true); // Abrir el diálogo para confirmar el cambio
+        } else {
+            // Si la nueva visibilidad es la misma que la actual, no necesitas hacer nada
+            setFieldValue('visibility', selectedVisibility); // Actualizar el valor del campo de formulario
+        }
+    };
+
+    const handleConfirmChange = (setFieldValue) => {
+        // Confirmar el cambio de visibilidad
+        setFieldValue('visibility', tempVisibility); // Actualizar el valor del campo de formulario
+        setOpenDialog(false); // Cerrar el diálogo
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false); 
+    };
 
 
     const handleClose = () => {
@@ -53,6 +96,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
         useEffect(() => {
             const isDisabled = 
                                 values.name === project.name 
+                                && values.visibility === project.visibility
                                 && values.description === project.description 
                                 && JSON.stringify(values.tags.sort()) === JSON.stringify(allTags.sort())
                                 && values.endDate.getTime() === new Date(project.endDate).getTime() 
@@ -109,7 +153,18 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                 });
             }
         }
-    }
+    };
+
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+
+    useEffect(() => {
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = formbg;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+      }, []);
   
     useEffect(() => {
         if (isProjectConfigFormOpen) {
@@ -132,13 +187,13 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
 
 
     return (
-        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center z-50'>
+        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="projectConfigModal" 
                 style={{
-                    backgroundImage: `url(${formbg})`,
+                    backgroundImage: isBackgroundReady ? `url(${formbg})` : 'none',
                     backgroundPosition: 'top right', // Muestra la parte superior izquierda de la imagen
                 }}
-                className={`flex flex-col w-[70%] md:w-[50%] md:max-h-[635px] md:h-[635px] items-center rounded-2xl bg-white border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isProjectConfigFormOpen ? '' : 'pointer-events-none'}`}>
+                className={`flex flex-col w-[70%] md:w-[50%] md:max-h-[635px] md:h-[635px] items-center rounded-2xl glass2 border-[1px] border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isProjectConfigFormOpen ? '' : 'pointer-events-none'}`}>
 
                 <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                     <p className='text-xl text-black'>Project Configuration</p>
@@ -147,10 +202,10 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                     </button>                   
                 </div>
                 {
-                    isLoading 
+                    isLoading || !isBackgroundReady 
                     ? ( 
                         <div className='flex flex-grow items-center justify-center'>
-                            <PuffLoader  color="#32174D" size={50} /> 
+                            <PuffLoader  color={ !isBackgroundReady ? "#ffffff" : "#32174D" } size={50} /> 
                         </div>                         
                       )
                     :
@@ -160,10 +215,9 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                             description: project.description,
                             endDate: new Date(project.endDate),
                             status: project.status,
+                            visibility: project.visibility,
                             priority: project.priority,
                             tags: allTags,
-                            // projectAdvancedSettings: projectAdvancedSettings,
-                            // repositoryAdvancedSettings: repositoryAdvancedSettings
                         }}
 
                         onSubmit={handleSubmit}
@@ -173,7 +227,6 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                             
                               <Form className='w-[95%] h-full'>
                                     <IsTheButtonDisabled values={values} />
-
                                     {
 
                                         !isAdvancedSettingOpen
@@ -194,16 +247,33 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                                             value={values.name}
                                                         />
                     
-                                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                                            <DatePicker  
-                                                                sx={{width: '50%'}}                                     
-                                                                label="End Date"
-                                                                value={values.endDate}
-                                                                onChange={(date) => setFieldValue('endDate', date)}
-                                                                renderInput={(params) => <TextField {...params} />}
-                                                                minDate={values.startDate}
-                                                            />
-                                                        </LocalizationProvider>
+                                                        <FormControl style={{width: '50%'}}>
+                                                            <InputLabel>Visibility</InputLabel>
+                                                            <Select
+                                                                name="visibility"
+                                                                value={values.visibility}
+                                                                label="Visibility"
+                                                                onChange={ (e) => handleVisibilityChange( e, setFieldValue ) }
+                                                            >
+                                                                <MenuItem value="public">Public</MenuItem>
+                                                                <MenuItem value="private">Private</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+
+                                                        
+                                                        <Dialog open={openDialog} onClose={handleCloseDialog}>
+                                                            <DialogTitle>Confirm Visibility Change</DialogTitle>
+                                                            <DialogContent>
+                                                                { renderDialogContentText()}                                          
+                                                            </DialogContent>
+                                                            <DialogActions>
+                                                                <Button onClick={handleCloseDialog}>Cancel</Button>
+                                                                <Button onClick={ () => handleConfirmChange(setFieldValue) } autoFocus>
+                                                                    Confirm
+                                                                </Button>
+                                                            </DialogActions>
+                                                        </Dialog>
+
                                                     </div>
                     
                                                     <div className="flex w-full space-x-4">
@@ -221,19 +291,17 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                                             </Select>
                                                         </FormControl>
                     
-                                                        <FormControl style={{width: '50%'}}>
-                                                            <InputLabel>Priority</InputLabel>
-                                                            <Select
-                                                                name="priority"
-                                                                value={values.priority}
-                                                                label="Priority"
-                                                                onChange={handleChange}
-                                                            >
-                                                                <MenuItem value="High">High</MenuItem>
-                                                                <MenuItem value="Medium">Medium</MenuItem>
-                                                                <MenuItem value="Low">Low</MenuItem>
-                                                            </Select>
-                                                        </FormControl>
+        
+                                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                            <DatePicker  
+                                                                sx={{width: '50%'}}                                     
+                                                                label="End Date"
+                                                                value={values.endDate}
+                                                                onChange={(date) => setFieldValue('endDate', date)}
+                                                                renderInput={(params) => <TextField {...params} />}
+                                                                minDate={values.startDate}
+                                                            />
+                                                        </LocalizationProvider>
                                                     </div>
                                                     <Autocomplete
                                                         multiple
@@ -287,20 +355,23 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
 
                                                 </div>
 
-                                               <div className='flex flex-col pl-4 pt-4 pb-8 overflow-y-auto'>
+                                               <div className='flex flex-grow flex-col  pt-4 pb-5 overflow-y-auto'>
                                 
 
-                                                    <div className='flex flex-col items-center justify-center space-y-4 p-10'>
+                                                    <div className='flex flex-col h-[90%] items-center justify-center space-y-4 p-10'>
                                                             <p className='text-xl text-semibold text-center'>Deleting the project means that all repositories and layers will be permanently deleted.</p>
                                                             <p>Are you sure you want to delete this project?</p>
                                                     </div>
 
-                                                    <div className='flex flex-grow justify-center items-center'>
-                                                            <button 
-                                                                type='button'
-                                                                className={`w-[95%] h-[55px] rounded-extra backdrop-blur-sm bg-red-500/20 shadow-sm border-[1px] border-gray-400 transition-colors duration-300 ease-in-out transform active:translate-y-[2px]`}>
-                                                                Delete Project
-                                                            </button>
+
+                                                    <div className='flex w-full justify-center'>                                     
+                                                        <button 
+                                                            type="submit"
+                                                            disabled={ buttonDisabled || isSubmitting }
+                                                            className={`w-[95%] h-[55px] rounded-extra backdrop-blur-sm bg-red-500/20 shadow-sm border-[1px] border-gray-400 transition-colors duration-300 ease-in-out transform active:translate-y-[2px]`}
+                                                        >
+                                                            Delete Project
+                                                        </button>                                   
                                                     </div>
 
 

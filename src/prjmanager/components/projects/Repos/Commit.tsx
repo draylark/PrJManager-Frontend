@@ -1,18 +1,18 @@
 import { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { useLocation, useNavigate } from 'react-router-dom'
-import LoadingCircle from '../../../../auth/helpers/Loading'
-import { Typography, Box, Paper } from '@mui/material';
+import { Typography } from '@mui/material';
 import { FileIcon } from 'react-file-icon';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { ArrowHookUpLeft16Regular } from '@ricons/fluent'
-import { Accordion, AccordionSummary, AccordionDetails, Breadcrumbs, TextField, Tooltip } from '@mui/material';
+import { Accordion, AccordionDetails, Breadcrumbs, TextField, Tooltip } from '@mui/material';
 import { cleanUrl } from '../helpers/cleanUrl';
 import { ArrowDropDownOutlined } from '@ricons/material'
 import FileCodeRegular from '@ricons/fa/FileCodeRegular'
 import { CodeOnBigScreen } from './modals/CodeOnBigScreen';
 import ArrowRightCircle from '@ricons/tabler/ArrowRightCircle'
 import FileSearchOutlined from '@ricons/antd/FileSearchOutlined'
+import { PuffLoader  } from 'react-spinners';
 import { set } from 'date-fns';
 
 export const Commit = () => {
@@ -138,8 +138,6 @@ export const Commit = () => {
     }, [commitsDiff])
 
 
-    console.log(commitsDiff)
-
   return (
     
     <div className='relative flex flex-col space-y-1 items-center  w-full  h-full overflow-y-auto overflow-x-hidden '>
@@ -161,13 +159,7 @@ export const Commit = () => {
                     </button>
                     <button
                         className='text-[12px] hover:text-green-500 transition-colors duration-500'                            
-                        onClick={() => navigate(`/projects/${cleanUrl(project.name)}/${cleanUrl(layer.layerName)}/${cleanUrl(repository.repoName)}`, {
-                            state: {
-                                project: project,
-                                layer: layer,
-                                repository: repository
-                            }
-                        })}
+                        onClick={() => navigate(-2)}
                     >
                         {repository.repoName}
                     </button>
@@ -268,7 +260,11 @@ export const Commit = () => {
         <div className='flex flex-col flex-grow max-h-[690px] w-[96%] overflow-y-auto py-4 space-y-4 border-t-[1px] border-black'>
             {
                 isLoading
-                ? <LoadingCircle />
+                ? ( 
+                    <div className='flex flex-grow items-center justify-center'>
+                        <PuffLoader  color="#32174D" size={50} /> 
+                    </div>                         
+                  )
                 :  filteredDiffs.map((diff, index) => {             
                     const { additions, deletions } = countChanges(diff.diff);
                     
@@ -327,7 +323,11 @@ export const Commit = () => {
                             <AccordionDetails >
                             {                                                      
                                 isLoading 
-                                ? <LoadingCircle />
+                                ? ( 
+                                    <div className='flex flex-grow items-center justify-center'>
+                                        <PuffLoader  color="#32174D" size={50} /> 
+                                    </div>                         
+                                  )
                                 :                                     
                                 <div className='p-3 max-h-[500px] overflow-y-auto'>
                                     {parseAndStyleDiff(diff.diff)}

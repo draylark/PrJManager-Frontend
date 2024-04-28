@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useRepositoryCommitsData } from './hooks/useRepositoryCommitsData';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { ArrowHookUpLeft16Regular } from '@ricons/fluent'
-
+import { PuffLoader  } from 'react-spinners';
 
 
 export const Commits = () => {
@@ -39,7 +39,11 @@ export const Commits = () => {
                 ? <Outlet />
                 :
                     isLoading 
-                    ? <LoadingCircle /> 
+                    ? ( 
+                        <div className='flex flex-grow items-center justify-center'>
+                            <PuffLoader  color="#32174D" size={50} /> 
+                        </div>                         
+                      )
                     : <RenderCommits commits={commitsData} />
 
             }

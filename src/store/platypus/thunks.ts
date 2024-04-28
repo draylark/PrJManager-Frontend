@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { setLayers, setRepositories, setFetchingResources } from './platypusSlice';
+import { setLayers, setRepositories, setFetchingResources, setError, setErrorMessage } from './platypusSlice';
 import axios from 'axios';
 
 
@@ -23,7 +23,14 @@ export const fetchProjectLayers = ( projectID, accessLevel, uid ) => {
             dispatch( setLayers( response.data.layers ) )
         })
         .catch( ( error ) => {
-            console.log( error )
+            dispatch(
+                setError({
+                  fetchingResources: false,
+                  errorWhileFetching: true,
+                  errorMessage: error.response.data.message || 'An error occurred while fetching data',
+                  errorType: error.response.data.type || 'Error',
+                })
+              );
         })   
     };
 };
@@ -47,7 +54,14 @@ export const fetchProjectRepositories = ( payload, accessLevel, uid ) => {
             dispatch( setRepositories( response.data.repos ) )
         })
         .catch( ( error ) => {
-            console.log( error )
+            dispatch(
+                setError({
+                  fetchingResources: false,
+                  errorWhileFetching: true,
+                  errorMessage: error.response.data.message || 'An error occurred while fetching data',
+                  errorType: error.response.data.type || 'Error',
+                })
+              );
         })   
     };
 };
@@ -84,14 +98,19 @@ export const fetchProjectReposAndLayers = ( projectID, accessLevel, uid ) => {
             })
         ])
         .then( axios.spread( ( repos, layers ) => {
-            console.log('Respuesta desde el thunk R:', repos)
-            console.log('Respuesta desde el thunk L:', layers)
             dispatch( setRepositories( repos.data.repos ) )
             dispatch( setLayers( layers.data.layers ) )
             dispatch( setFetchingResources( false ) )
         }))
         .catch( ( error ) => {
-            console.log( error )
+            dispatch(
+                setError({
+                  fetchingResources: false,
+                  errorWhileFetching: true,
+                  errorMessage: error.response.data.message || 'An error occurred while fetching data',
+                  errorType: error.response.data.type || 'Error',
+                })
+            );
         })   
     };  
 }

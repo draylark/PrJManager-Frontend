@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 import { Navigate } from "react-router-dom"
-import useCheckAuth from "../auth/styles/hooks/useCheckAuth"
+import useCheckAuth from "../auth/hooks/useCheckAuth"
 
 
 interface PublicRoutesProps {

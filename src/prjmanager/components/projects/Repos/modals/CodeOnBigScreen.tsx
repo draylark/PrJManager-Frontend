@@ -40,7 +40,7 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
 
     return (
         <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
-            <div id="bigScreenModal" className={`relative flex flex-col space-y-5 w-[90%] overflow-hidden bg-[#282a36] md:w-[98%] md:h-[96%]  rounded-2xl border-1 border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isCodeOnBigScreenOpen ? '' : 'pointer-events-none'}`}>
+            <div id="bigScreenModal" className={`relative flex flex-col space-y-5 w-full h-full overflow-hidden bg-[#282a36] transition-opacity duration-300 ease-in-out opacity-0 ${isCodeOnBigScreenOpen ? '' : 'pointer-events-none'}`}>
             {
                     getExtension(fileName) 
                     ?  <div className="markdown-body  border-2 w-full p-10 h-full overflow-y-auto">
@@ -51,7 +51,7 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
                             style={dracula}
                             customStyle={{
                                 marginTop: '0px',
-                                padding: '35px',
+                                padding: '50px',
                                 height: '100%',
                                 fontSize: '12px'
                             }}>

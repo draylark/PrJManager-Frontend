@@ -10,10 +10,12 @@ import axios from 'axios';
 import './styles/idk.css'
 
 
-export const ProjectInfo = ({ project, firstTime, setFirstTime }) => {
+export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => {
   const [animationStep, setAnimationStep] = useState(0);
   const [readmeContent, setReadmeContent] = useState('');
   const [showWelcome, setShowWelcome] = useState(true)
+
+
 
   useEffect(() => {
     if (project.readme) {
@@ -62,7 +64,7 @@ export const ProjectInfo = ({ project, firstTime, setFirstTime }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              className='absolute text-[50px] mb-2 font-bold top-6  animated-element'
+              className='absolute text-[45px] mb-2 font-bold top-6 animated-element truncate w-[57%]'
             >
               {showWelcome ? `Welcome to ${project.name}` : project.name}
             </motion.div>         
@@ -180,7 +182,7 @@ export const ProjectInfo = ({ project, firstTime, setFirstTime }) => {
                   duration: 0.5,
                   delay: 1 + index * 0.1, // Cada etiqueta aparece un poco después de la anterior
                 }}
-                className="text-sm font-mono text-black glassi rounded-extra px-2 py-1 m-1"
+                className={`text-sm font-mono text-black rounded-extra px-2 py-1 m-1 glassi`}
               >
                 {tag}
               </motion.span>
@@ -218,7 +220,7 @@ export const ProjectInfo = ({ project, firstTime, setFirstTime }) => {
             transition={{ duration: 0.5 }}
 
           >
-            <HeatMapComponent project={project} />
+            <HeatMapComponent project={project} projectID={projectID} />
           </motion.div>
         </AnimatePresence>
       )}

@@ -16,6 +16,7 @@ import Partnership from '@ricons/carbon/Partnership';
 import RemoveCircleOutlineOutlined from '@ricons/material/RemoveCircleOutlineOutlined'
 import Swal from 'sweetalert2';
 import modalbg from './assets/formbg.jpg'
+import { PuffLoader  } from 'react-spinners';
 
 export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLayerCollaboratorsFormOpen }) => {
     
@@ -192,6 +193,16 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
     };
 
 
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+
+    useEffect(() => {
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = modalbg;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+    }, []);
 
     useEffect(() => {
         if (isLayerCollaboratorsFormOpen) {
@@ -223,17 +234,21 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
     }, [layerID])
 
     return (
-        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
+        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="layerCollaboratorModal" 
-              className={`flex flex-col space-y-5 w-[70%] bg-white border-[1px] border-black md:w-[50%] md:h-[620px]  rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isLayerCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
+              className={`flex flex-col space-y-5 w-[70%] glass2 border-[1px] border-gray-400 md:w-[50%] md:h-[620px]  rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isLayerCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
               style={{
-                backgroundImage: `url(${modalbg})`,
+                backgroundImage: isBackgroundReady ? `url(${modalbg})` : 'none',
                 backgroundPosition: 'bottom right',   
               }}
               >
               {
-                  isLoading
-                  ? ( <LoadingCircle /> )
+                  isLoading || !isBackgroundReady
+                  ? ( 
+                      <div className='flex flex-grow items-center justify-center'>
+                          <PuffLoader  color={ !isBackgroundReady ? "#ffffff" : "#32174D" } size={50} /> 
+                      </div>                         
+                    )
                   :
                   <>              
                       <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
@@ -244,7 +259,11 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
                       </div>
                       {
                           fetchingCollaborators 
-                          ? ( <LoadingCircle /> )
+                          ?  ( 
+                                <div className='flex flex-grow items-center justify-center'>
+                                    <PuffLoader  color="#32174D" size={50} /> 
+                                </div>                         
+                             )
                           :
                             <Formik 
                               initialValues={{
@@ -535,7 +554,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
                                                                     enterDelay={100}
                                                                   >   
                                                                     <div 
-                                                                      onMouseEnter={() => handleMouseEnter('The Contributor can view open repositories on the layer and contribute new content or comments.', 'contributor')} 
+                                                                      onMouseEnter={() => handleMouseEnter('The Contributor at the layer level has access to Open / Internal repositories within the layer, participates in the text and voice chats within the layer, in addition to being able to clone the repositories by having a "Reader" access level in the repositories.', 'contributor')} 
                                                                       onMouseLeave={handleMouseLeave}
                                                                     >
                                                                       <LiaQuestionCircleSolid />
@@ -558,7 +577,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
                                                                     enterDelay={100}
                                                                   >   
                                                                     <div 
-                                                                      onMouseEnter={() => handleMouseEnter('The Coordinator can manage contributions, approve changes and coordinate activities within the layer. This role allows adding new collaborators with the role of contributors and access to open and internal repositories with editor access level in the layer.', 'coordinator')} 
+                                                                      onMouseEnter={() => handleMouseEnter('The Coordinator at the layer level has all the capabilities of the contributor, he can also manage contributions, approve changes and tasks and coordinate activities within the layer, the level provide a "Editor" access level in all repositories where he has access within the layer. Finally, the Coordinator can add new collaborators with an access level of "Contributor" or "Reader" in the case of repositories within the layer.', 'coordinator')} 
                                                                       onMouseLeave={handleMouseLeave}
                                                                     >
                                                                       <LiaQuestionCircleSolid />
@@ -581,7 +600,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
                                                                     enterDelay={100}
                                                                   >   
                                                                     <div 
-                                                                      onMouseEnter={() => handleMouseEnter('The Administrator has full control over the layer and its repositories with administrator level access to them, including the ability to modify settings, manage all aspects and collaborators.', 'administrator')} 
+                                                                      onMouseEnter={() => handleMouseEnter('The Administrator at the layer level has all the capabilities of the coordinator, the level provides access to restricted repositories within the layer, with an "Administrator" access level on all repositories, finally, he can manage the access level of other collaborators below of "Administrator" access level.', 'administrator')} 
                                                                       onMouseLeave={handleMouseLeave}
                                                                     >
                                                                       <LiaQuestionCircleSolid />

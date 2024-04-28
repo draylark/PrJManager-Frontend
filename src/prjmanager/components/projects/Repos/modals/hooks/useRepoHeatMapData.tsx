@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-import axios from 'axios'
 
-export const useHeatMapData = ( projectID: string, uid ) => {
+export const useRepoHeatMapData = (repoID: string, uid: string ) => {
 
     const [data, setData] = useState([]);
     const [detailsByDay, setDetailsByDay] = useState(new Map());
     const [year, setYear] = useState(new Date().getFullYear().toString());
-
-    const [errorMessage, seterrorMessage] = useState(null)
-    const [errorWhileFetching, setErrorWhileFetching] = useState(false)
-
 
 
     const formatDate = (date: Date) => {
@@ -76,35 +72,29 @@ export const useHeatMapData = ( projectID: string, uid ) => {
 
         const fetchData = async () => {
             try {
-                const tasksData = await axios.get(`${backendUrl}/tasks/activity/${projectID}`, { 
+                const tasksData = await axios.get(`${backendUrl}/tasks/repo-activity/${repoID}`, { 
                     params: { year, uid },
                     headers: { Authorization: localStorage.getItem('x-token') } 
                 });
-
-                const commitsData = await axios.get(`${backendUrl}/commits/activity-data/${projectID}`, { 
+                // console.log('tasksData',tasksData)
+                const commitsData = await axios.get(`${backendUrl}/commits/repo-activity/${repoID}`, { 
                     params: { year, uid },
                     headers: { Authorization: localStorage.getItem('x-token') } 
                 });
-
+                // console.log('commitsData', commitsData)
                 handleHeatMapData(commitsData.data.commits, tasksData.data.tasks);
             } catch (error) {
-                console.error('Error fetching heatmap data:', error);
-                seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-                setErrorWhileFetching(true)
+                console.error(error);
             }
         };
         fetchData();
-    }, [projectID, year]);
+    }, [repoID, year]);
 
     return {
         data,
         detailsMap: detailsByDay, // Ahora devuelve el mapa de detalles por día
         formatDateFromHeatMap,
         year, 
-        setYear,
-        errorMessage,
-        errorWhileFetching
+        setYear
     };
-};
-
-
+}

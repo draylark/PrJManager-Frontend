@@ -43,6 +43,19 @@
   overflow: hidden;
 }
 
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
 
   .main-panel {
     backdrop-filter: blur(10px);
@@ -58,12 +71,13 @@
     box-shadow: 0 8px 10px rgba(0, 0, 0, 0.10); /* Sombra ligera */
   }
 
-  .glassi {
+  .glassi0 {
     backdrop-filter: blur(20px);
-    background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
+    background-color: rgba(40, 150, 247, 0.292); /* Color azul claro con transparencia */
     border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
   }
+
   .glass {
     backdrop-filter: blur(10px);
     background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
@@ -72,7 +86,7 @@
   }
 
   .glass2 {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(5px);
     background-color: rgba(41, 155, 255, 0.1); /* Color azul claro con transparencia */
     border: 1px solid rgba(255, 255, 255, 0.2); /* Borde blanco con transparencia */
     box-shadow: 0 8px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */

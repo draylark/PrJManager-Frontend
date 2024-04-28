@@ -1,11 +1,11 @@
 import { Routes, Route, useLocation } from "react-router-dom"
 import AuthRoutes from '../auth/routes/AuthRoutes';
-import useCheckAuth from "../auth/styles/hooks/useCheckAuth";
+import useCheckAuth from "../auth/hooks/useCheckAuth";
 import PrivateRoutes from "./PrivateRoutes";
 import PublicRoutes from "./PublicRoutes";
 import ManagerRoutes from "../prjmanager/routes/ManagerRoutes";
 import LoadingCircle from "../auth/helpers/Loading";
-import { useStateVerifier } from "../auth/styles/hooks/useStateVerifier";
+import { useStateVerifier } from "../auth/hooks/useStateVerifier";
 import { isOauthCallback } from "../helpers/isOauthCallback";
 import ExtAuth from "../auth/components/ExtAuth";
 

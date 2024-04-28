@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Formik, Form, FieldArray } from 'formik';
-import * as Yup from 'yup';
 import { TextField, Button, List, ListItem, ListItemText, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Autocomplete, Typography, Tooltip } from '@mui/material';
 import { LiaHandsHelpingSolid } from "react-icons/lia";
 import { useDispatch, useSelector } from 'react-redux';
@@ -46,8 +45,9 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
     const [currentOrNew, setCurrentOrNew] = useState(false)
     const [tooltipContent, setTooltipContent] = useState('')
     const [buttonDisabled, setButtonDisabled] = useState(false)
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);    
     const [fetchingCollaborators, setFetchingCollaborators] = useState(false)
-
+ 
     
     const handleAddNewCollaborators = (values, setFieldValue) => {
       // Obtener los IDs de los nuevos colaboradores.
@@ -189,6 +189,17 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
     };
 
 
+ 
+
+    useEffect(() => {
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = formbg;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+      }, []);
+
     useEffect(() => {
         setFetchingCollaborators(true)
         axios.get(`${backendUrl}/projects/collaborators/${ID}`, {
@@ -224,19 +235,19 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
     }, [showOptModal])
     
     return (
-        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center z-50'>
+        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="projectCollaboratorModal" 
-                  className={`flex flex-col space-y-5 w-[70%] md:w-[50%] md:h-[620px]  rounded-2xl border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isProjectCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
+                  className={`flex flex-col space-y-5 w-[70%] md:w-[50%] md:h-[620px] rounded-2xl glass2 border-[1px] border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isProjectCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
                   style={{
-                    backgroundImage: `url(${formbg})`
+                    backgroundImage: isBackgroundReady ? `url(${formbg})` : 'none',
                   }}
             >
 
               {
-                isLoading 
+                isLoading || !isBackgroundReady
                 ? ( 
                     <div className='flex flex-grow items-center justify-center'>
-                        <PuffLoader  color="#32174D" size={50} /> 
+                        <PuffLoader  color={ !isBackgroundReady ? "#ffffff" : "#32174D" } size={50} /> 
                     </div>       
                   )
                 :
@@ -332,8 +343,8 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                                                                 :
                                                                                 !collaborator.new ?
                                                                                     <Select
-                                                                                    size="small"
-                                                                                    sx={{ width: '130px' }}
+                                                                                        size="small"
+                                                                                        sx={{ width: '130px' }}
                                                                                         name={`collaborators[${index}].accessLevel`}
                                                                                         value={collaborator.accessLevel}
                                                                                         onChange={e => {
@@ -557,7 +568,7 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                                                 enterDelay={100}
                                                               >   
                                                                 <div 
-                                                                  onMouseEnter={() => handleMouseEnter('The Contributor can view open repositories on the layer and contribute new content or comments.', 'contributor')} 
+                                                                  onMouseEnter={() => handleMouseEnter('The Contributor at the project level has access to the Open / Internal layers and repositories of the project, participates in the text and voice chats of the layers where they are a collaborator, in addition to being able to clone the repositories by having a "Reader" access level in the repositories.', 'contributor')} 
                                                                   onMouseLeave={handleMouseLeave}
                                                                 >
                                                                   <LiaQuestionCircleSolid />
@@ -580,7 +591,7 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                                                 enterDelay={100}
                                                               >   
                                                                 <div 
-                                                                  onMouseEnter={() => handleMouseEnter('The Coordinator can manage contributions, approve changes and coordinate activities within the layer. This role allows adding new collaborators with the role of contributors and access to open and internal repositories with editor access level in the layer.', 'coordinator')} 
+                                                                  onMouseEnter={() => handleMouseEnter('The Coordinator at the project level has all the capabilities of the contributor, he can also manage contributions, approve changes and tasks and coordinate activities within the layers, the level provides a "Coordinator" access level in all the layers where he has access, as well as a "Editor" access level in all repositories where he has access. Finally, the Coordinator can add new collaborators with an access level of "Contributor" or "Reader" in the case of repositories.', 'coordinator')} 
                                                                   onMouseLeave={handleMouseLeave}
                                                                 >
                                                                   <LiaQuestionCircleSolid />
@@ -603,7 +614,7 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                                                 enterDelay={100}
                                                               >   
                                                                 <div 
-                                                                  onMouseEnter={() => handleMouseEnter('The Administrator has full control over the layer and its repositories with administrator level access to them, including the ability to modify settings, manage all aspects and collaborators.', 'administrator')} 
+                                                                  onMouseEnter={() => handleMouseEnter('The Administrator at the project level has all the capabilities of the coordinator, the level provides access to restricted layers and repositories, with an "Administrator" access level on all repositories and layers, finally, he can manage the access level of other collaborators below the "Administrator" access level.', 'administrator')} 
                                                                   onMouseLeave={handleMouseLeave}
                                                                 >
                                                                   <LiaQuestionCircleSolid />

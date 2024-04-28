@@ -14,14 +14,15 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { ImCancelCircle } from "react-icons/im";
+import { PuffLoader  } from 'react-spinners';
 
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
 
 // Validation schema
 const LayerSchema = Yup.object().shape({
-  name: Yup.string().required('Group name is required'),
-  description: Yup.string(),
+  name: Yup.string().required('Layer name is required'),
+  description: Yup.string().required('Description is required'),
   visibility: Yup.string().required('Visibility is required'),
 });
 
@@ -39,13 +40,12 @@ interface LayerProps {
 
 export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen, showOptModal, setShowOptModal }) => {
 
-
-    const location = useLocation();
     const dispatch = useDispatch();
+    const location = useLocation();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
     const [IsLoading, setIsLoading] = useState(false);
 
-    const { ID, name } = location.state?.project;
+    const { ID } = location.state?.project;
 
 
     const [buttonDisabled, setButtonDisabled] = useState(false)
@@ -128,11 +128,22 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
     const handleMouseEnter = (text, type) => {
         setTooltipContent(text);
         setTooltipOpen(type);
-      };
-  
-      const handleMouseLeave = () => {
+    };
+     const handleMouseLeave = () => {
         setTooltipOpen('');
-      };
+    };
+
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+
+    useEffect(() => {
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = bgform;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+      }, []);
+  
 
     useEffect(() => {
         if (isLayerFormOpen) {
@@ -146,23 +157,22 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
         }
       }, [isLayerFormOpen]);
 
-
-      useEffect(() => {
-        if(showOptModal){
-            setShowOptModal(false);
-        }
-      }, [showOptModal])
+    useEffect(() => {
+    if(showOptModal){
+        setShowOptModal(false);
+    }
+    }, [showOptModal])
 
 
     return (
-        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
+        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div 
                 id='layerFormModal' 
                 style={{ 
-                    backgroundImage: `url(${bgform})`,
+                    backgroundImage: isBackgroundReady ? `url(${bgform})` : 'none',
                     backgroundPosition: 'top center'
                 }}
-                className={`flex flex-col w-[70%]  md:w-[580px] md:h-[455px] pb-5 rounded-2xl bg-white border-[1px] border-black transition-opacity duration-300 ease-in-out opacity-0 ${isLayerFormOpen ? '' : 'pointer-events-none'}`}>
+                className={`flex flex-col w-[70%]  md:w-[580px] md:h-[455px] pb-5 rounded-2xl glass2 border-[1px] border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isLayerFormOpen ? '' : 'pointer-events-none'}`}>
 
                 <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                     <p className='text-xl text-black'>Create a new Layer</p>
@@ -171,8 +181,12 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                     </button>                   
                 </div>
                 { 
-                    IsLoading 
-                    ? ( <LoadingCircle/> )    
+                    IsLoading || !isBackgroundReady
+                    ? (  
+                        <div className='flex flex-grow items-center justify-center'>
+                          <PuffLoader  color="#32174D" size={50} /> 
+                        </div>   
+                      )    
                     : ( 
 
                         <Formik
@@ -187,111 +201,116 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                             onSubmit={handleSubmit}
                         >
                         
-                            {({ isSubmitting, values, handleChange, handleBlur }) => (                              
+                            {({ isSubmitting, values, handleChange, handleBlur, errors, touched }) => (                              
                                 
                                 <Form className='flex flex-col ml-auto mr-auto w-[95%] h-full mt-5 '>
-                                    
-                                    {console.log(values)}
                                     <IsTheButtonDisabled values={values} />
 
                                     <div className='flex flex-col pt-2 space-y-4 w-full h-[300px] '>
-                                        <TextField                                      
+                                        <TextField        
+                                            InputLabelProps={{ shrink: errors.name && touched.name }}                              
                                             name="name"
-                                            label="Layer Name"
+                                            label={ errors.name && touched.name ? errors.name : 'Layer Name' }
                                             fullWidth
                                             value={values.name}
                                             onChange={handleChange}
                                             onBlur={handleBlur}
+                                            error={!!errors.name && touched.name}
                                         />
 
-                                        <TextField                                      
+                                        <TextField                          
+                                            InputLabelProps={{ shrink: errors.description && touched.description }}            
                                             name="description"
-                                            label="Description"
+                                            label={ errors.description && touched.description ? errors.description : 'Description' }
                                             multiline
                                             rows={4}
                                             fullWidth
                                             value={values.description}
                                             onChange={handleChange}
                                             onBlur={handleBlur}
+                                            error={!!errors.description && touched.description}
                                         />
 
-                                        <FormControl fullWidth>                      
-                                            <InputLabel id="visibility">Visibility</InputLabel>
+                                        <FormControl 
+                                            fullWidth
+                                            error={!!errors.visibility && touched.visibility}
+                                            >                      
+                                            <InputLabel id="visibility">{errors.visibility && touched.visibility ? errors.visibility : 'Visibility'}</InputLabel>                                          
                                             <Select
                                                 labelId="visibility-label"
-                                                label="Visibility"
+                                                label={ errors.visibility && touched.visibility ? errors.visibility : 'Visibility'}
                                                 id="visibility"
                                                 name="visibility"
                                                 value={values.visibility}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                             >
-                                            <MenuItem value="open">
-                                                <div className='flex flex-grow justify-between'>
-                                                    <Typography>Open</Typography>
-                                                    <Tooltip 
-                                                        title={tooltipContent} 
-                                                        open={tooltipOpen === 'open'} 
-                                                        arrow={true} 
-                                                        placement="right" 
-                                                        enterTouchDelay={50} 
-                                                        leaveTouchDelay={400} 
-                                                        leaveDelay={200} 
-                                                        enterDelay={100}
-                                                    >   
-                                                        <div 
-                                                        onMouseEnter={() => handleMouseEnter('The open layer allows access to all users in PrJManager.', 'open')} 
-                                                        onMouseLeave={handleMouseLeave}
-                                                        >
-                                                        <LiaQuestionCircleSolid />
-                                                        </div>
-                                                    </Tooltip> 
-                                                </div>
-                                            </MenuItem>   
-                                            <MenuItem value="internal">
-                                                <div className='flex flex-grow justify-between'>
-                                                    <Typography>Internal</Typography>
-                                                    <Tooltip 
-                                                        title={tooltipContent} 
-                                                        open={tooltipOpen === 'internal'} 
-                                                        arrow={true} 
-                                                        placement="right" 
-                                                        enterTouchDelay={50} 
-                                                        leaveTouchDelay={400} 
-                                                        leaveDelay={200} 
-                                                        enterDelay={100}
-                                                    >   
-                                                        <div 
-                                                        onMouseEnter={() => handleMouseEnter('The internal layer only allows access to all collaborators in the project.', 'internal')} 
-                                                        onMouseLeave={handleMouseLeave}
-                                                        >
-                                                        <LiaQuestionCircleSolid />
-                                                        </div>
-                                                    </Tooltip> 
-                                                </div>
-                                            </MenuItem>   
-                                            <MenuItem value="restricted">
-                                                <div className='flex flex-grow justify-between'>
-                                                    <Typography>Restricted</Typography>
-                                                    <Tooltip 
-                                                        title={tooltipContent} 
-                                                        open={tooltipOpen === 'restricted'} 
-                                                        arrow={true} 
-                                                        placement="right" 
-                                                        enterTouchDelay={50} 
-                                                        leaveTouchDelay={400} 
-                                                        leaveDelay={200} 
-                                                        enterDelay={100}
-                                                    >   
-                                                        <div 
-                                                        onMouseEnter={() => handleMouseEnter('The restricted layer only allows access to users who are supported as collaborators on the layer.', 'restricted')} 
-                                                        onMouseLeave={handleMouseLeave}
-                                                        >
-                                                        <LiaQuestionCircleSolid />
-                                                        </div>
-                                                    </Tooltip> 
-                                                </div>
-                                            </MenuItem>   
+                                                <MenuItem value="open">
+                                                    <div className='flex flex-grow justify-between'>
+                                                        <Typography>Open</Typography>
+                                                        <Tooltip 
+                                                            title={tooltipContent} 
+                                                            open={tooltipOpen === 'open'} 
+                                                            arrow={true} 
+                                                            placement="right" 
+                                                            enterTouchDelay={50} 
+                                                            leaveTouchDelay={400} 
+                                                            leaveDelay={200} 
+                                                            enterDelay={100}
+                                                        >   
+                                                            <div 
+                                                            onMouseEnter={() => handleMouseEnter('The open layer allows access to all users in PrJManager.', 'open')} 
+                                                            onMouseLeave={handleMouseLeave}
+                                                            >
+                                                            <LiaQuestionCircleSolid />
+                                                            </div>
+                                                        </Tooltip> 
+                                                    </div>
+                                                </MenuItem>   
+                                                <MenuItem value="internal">
+                                                    <div className='flex flex-grow justify-between'>
+                                                        <Typography>Internal</Typography>
+                                                        <Tooltip 
+                                                            title={tooltipContent} 
+                                                            open={tooltipOpen === 'internal'} 
+                                                            arrow={true} 
+                                                            placement="right" 
+                                                            enterTouchDelay={50} 
+                                                            leaveTouchDelay={400} 
+                                                            leaveDelay={200} 
+                                                            enterDelay={100}
+                                                        >   
+                                                            <div 
+                                                            onMouseEnter={() => handleMouseEnter('The internal layer only allows access to all collaborators in the project.', 'internal')} 
+                                                            onMouseLeave={handleMouseLeave}
+                                                            >
+                                                            <LiaQuestionCircleSolid />
+                                                            </div>
+                                                        </Tooltip> 
+                                                    </div>
+                                                </MenuItem>   
+                                                <MenuItem value="restricted">
+                                                    <div className='flex flex-grow justify-between'>
+                                                        <Typography>Restricted</Typography>
+                                                        <Tooltip 
+                                                            title={tooltipContent} 
+                                                            open={tooltipOpen === 'restricted'} 
+                                                            arrow={true} 
+                                                            placement="right" 
+                                                            enterTouchDelay={50} 
+                                                            leaveTouchDelay={400} 
+                                                            leaveDelay={200} 
+                                                            enterDelay={100}
+                                                        >   
+                                                            <div 
+                                                            onMouseEnter={() => handleMouseEnter('The restricted layer only allows access to users who are supported as collaborators on the layer.', 'restricted')} 
+                                                            onMouseLeave={handleMouseLeave}
+                                                            >
+                                                            <LiaQuestionCircleSolid />
+                                                            </div>
+                                                        </Tooltip> 
+                                                    </div>
+                                                </MenuItem>   
 
                                             </Select>
                                         </FormControl>

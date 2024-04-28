@@ -22,16 +22,14 @@ import { PuffLoader  } from 'react-spinners';
 
 
 
-export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpen }) => {
+export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfigFormOpen }) => {
 
     const location = useLocation();
     const dispatch = useDispatch();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
-    const { layers } = useSelector((state: RootState) => state.platypus);
 
     const { ID } = location.state.project;
     const { layerID } = location.state.layer;
-    const layer = layers.find((layer) => layer._id === layerID);
 
     const LayerSchema = Yup.object().shape({
         name: Yup.string().required('Group name is required'),
@@ -39,30 +37,30 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
         visibility: Yup.string().required('Visibility is required'),
     });
 
+    const [IsLoading, setIsLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
     const [tempVisibility, setTempVisibility] = useState(''); 
-    const [IsLoading, setIsLoading] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false)
-
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
 
     const renderDialogContentText = () => {
         switch (tempVisibility) {
           case 'open':
             return (
               <DialogContentText>
-                Are you sure you want to change the visibility type? The "Open" will alow all users in PrjManager to access the layer information.
+                Are you sure you want to change the visibility type? The "Open" type will allow all project collaborators to access the layer, if the project is open, it will allow all users in prjmanager to access it as well.
               </DialogContentText>
             );
           case 'internal':
             return (
               <DialogContentText>
-                Are you sure you want to change the visibility type? The "Internal" type will allow all project collaborators to access the layer information.
+                Are you sure you want to change the visibility type? The "Internal" type will allow access to the layer only to the collaborators of the project.
               </DialogContentText>
             );
           case 'restricted':
             return (
               <DialogContentText>
-                Are you sure you want to change the visibility type? The "Restricted" type will allow only collaborators of the layer to access the information contained.
+                Are you sure you want to change the visibility type? The "Restricted" type will allow access to the layer only to the collaborators invited exclusively.
               </DialogContentText>
             );
           default:
@@ -114,8 +112,6 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
-
-
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         setIsLoading(true);
         setSubmitting(true);
@@ -163,6 +159,17 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
         }
     };
 
+    
+
+
+    useEffect(() => {
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = bgform;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+    }, []);
 
     useEffect(() => {
         if (isLayerConfigFormOpen) {
@@ -172,19 +179,19 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
           }, 20); // Un retraso de 20ms suele ser suficiente
           return () => clearTimeout(timer);
         }
-      }, [isLayerConfigFormOpen]);
+    }, [isLayerConfigFormOpen]);
 
   return (
 
-    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
+    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div 
             id="layerConfigModal" 
             style={{ 
-                backgroundImage: `url(${bgform})`,
+                backgroundImage: isBackgroundReady ? `url(${bgform})` : 'none',
                 backgroundPosition: 'bottom center'
 
             }}
-            className={`flex flex-col space-y-7 w-[70%] bg-white border-[1px] border-black md:w-[40%] md:h-[450px] max-h-[560px] rounded-2xl pb-4 overflow-y-auto  transition-opacity duration-500 ease-in-out opacity-0 ${isLayerConfigFormOpen ? '' : 'pointer-events-none'}`}>
+            className={`flex flex-col space-y-7 w-[70%] glass2 border-[1px] border-gray-400 md:w-[40%] md:h-[450px] max-h-[560px] rounded-2xl pb-4 overflow-y-auto  transition-opacity duration-500 ease-in-out opacity-0 ${isLayerConfigFormOpen ? '' : 'pointer-events-none'}`}>
             
             <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
                 <p className='text-xl text-black'>Layer Configuration</p>
@@ -194,10 +201,10 @@ export const LayerConfigForm = ({ setIsLayerConfigFormOpen, isLayerConfigFormOpe
             </div>
             
             { 
-                IsLoading 
+                IsLoading || !isBackgroundReady
                 ? ( 
                     <div className='flex flex-grow items-center justify-center'>
-                        <PuffLoader  color="#32174D" size={50} /> 
+                        <PuffLoader  color={ !isBackgroundReady ? "#ffffff" : "#32174D" } size={50} /> 
                     </div>                         
                   )   
                 : ( 

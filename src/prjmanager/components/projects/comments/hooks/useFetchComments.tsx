@@ -1,26 +1,31 @@
-import { useState, useEffect, useRef } from 'react'
 import axios from 'axios';
+import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { RootState } from '../../../../../store/store';
 
 export const useFetchComments = () => {
 
-    const [isLoading, setisLoading] = useState(false)
+    const location = useLocation();
+    const project = location.state?.project;
+
+    const [isLoading, setisLoading] = useState(false);
     const { uid } = useSelector((state: RootState) => state.auth);
 
-    const [totalPages, setTotalPages] = useState(0)
-    const [currentPage, setCurrentPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(0);
 
     const [noCommentsToFetch, setNoCommentsToFetch] = useState(false)
     const [comments, setComments] = useState<Comment[]>([]);
-    const [likes, setLikes] = useState([])
+    const [likes, setLikes] = useState([]);
 
     const [hasMoreComments, setHasMoreComments] = useState(false);
-    const [moreCommentsLoaded, setMoreCommentsLoaded] = useState(false)
+    const [moreCommentsLoaded, setMoreCommentsLoaded] = useState(false);
 
-    const location = useLocation();
-    const project = location.state?.project;
+    
+    const [errorType, setErrorType] = useState(null)   
+    const [errorMessage, seterrorMessage] = useState(null);
+    const [errorWhileFetching, setErrorWhileFetching] = useState(false);
 
 
         
@@ -42,7 +47,7 @@ export const useFetchComments = () => {
                 console.log('Nuevo like',resp.data)
             }
         } catch (error) {
-            console.error('Error al manejar like/dislike:', error);
+            console.error('There was an error', error);
         }
     };
 
@@ -103,7 +108,10 @@ export const useFetchComments = () => {
                 return [...updatedComments, ...newReplies];
             });
         } catch (error) {
-            console.error('Error fetching replies:', error);
+            console.error('Error fetching comments:', error);
+            setErrorType(error.response.data.type || 'Error')
+            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
+            setErrorWhileFetching(true)
         }
     };
 
@@ -125,7 +133,10 @@ export const useFetchComments = () => {
                     return [...prev, ...newLikes];           
                 })
             } catch (error) {
-                console.error('Error fetching replies:', error);          
+                console.error('Error fetching replies:', error);
+                setErrorType(error.response.data.type || 'Error')
+                seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
+                setErrorWhileFetching(true)         
             }
         }));
     };
@@ -134,7 +145,12 @@ export const useFetchComments = () => {
         try {
             fetchOne ? setisLoading(true) : null
 
-            const { data: { comments: commentsFromServer, current_page, total_pages }} = await axios.get(`http://localhost:3000/api/comments/get-comments/${project.ID}?page=${currentPage}`);
+            const { data: { comments: commentsFromServer, current_page, total_pages }} = await axios.get(`http://localhost:3000/api/comments/get-comments/${project.ID}?page=${currentPage}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('x-token')
+                }
+            });
 
             if (commentsFromServer.length === 0) {
                 setisLoading(false);
@@ -161,8 +177,11 @@ export const useFetchComments = () => {
             setCurrentPage(current_page)           
             setTotalPages(total_pages)
             
-        } catch (error) {
-            console.error('Error fetching comments:', error);       
+        } catch (error) {       
+            console.error('Error fetching comments:', error);
+            setErrorType(error.response.data.type || 'Error');
+            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
+            setErrorWhileFetching(true)
         } finally {
             setisLoading(false) 
         }           
@@ -172,10 +191,8 @@ export const useFetchComments = () => {
         if( totalPages === 0 ) {
             setHasMoreComments(false);
         } else if (currentPage === totalPages) {
-            console.log('entrando aqui setHasMoreComments1')
             setHasMoreComments(false);
         } else {
-            console.log('entrando aqui setHasMoreComments2')
             setHasMoreComments(true);
         }
     }, [ currentPage, totalPages ])
@@ -202,7 +219,12 @@ export const useFetchComments = () => {
     moreCommentsLoaded,
     comments,
     likes,
-    noCommentsToFetch
+    noCommentsToFetch,
+
+    errorMessage,
+    errorWhileFetching,
+    setErrorWhileFetching,
+    errorType
   
   }
 }

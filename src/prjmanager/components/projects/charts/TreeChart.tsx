@@ -12,7 +12,8 @@ import { tierS } from '../../../helpers/accessLevels-validator';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { fetchProjectReposAndLayers } from '../../../../store/platypus/thunks';
 import { useDispatch } from 'react-redux';
-
+import { PuffLoader  } from 'react-spinners';
+import { setError, setErrorMessage } from '../../../../store/platypus/platypusSlice';
 
 export const TreeChart = () => {
 
@@ -25,7 +26,7 @@ export const TreeChart = () => {
     const projectData = location.state?.project;
     const { uid } = useSelector((state: RootState) => state.auth );
     const [isLayerFormOpen, setIsLayerFormOpen] = useState(false) 
-    const { currentProject: project, repositories, layers, fetchingResources } = useSelector((state: RootState) => state.platypus );
+    const { currentProject: project, repositories, layers, fetchingResources, errorWhileFetching, errorMessage, errorType } = useSelector((state: RootState) => state.platypus );
 
     const handleWrapperClick = (event) => {
       // Si se hace clic en el contenedor pero fuera del modal (y posiblemente fuera de los nodos específicos), cierra el modal.
@@ -36,7 +37,8 @@ export const TreeChart = () => {
     };
 
     useEffect(() => {
-      // Calculate the center of the container and set the translate state
+      if( treeContainerRef.current ){
+              // Calculate the center of the container and set the translate state
       const containerWidth = treeContainerRef.current.getBoundingClientRect().width;
       const containerHeight = treeContainerRef.current.getBoundingClientRect().height;
   
@@ -44,6 +46,7 @@ export const TreeChart = () => {
         x: containerWidth / 2 - 20, // Disminuye este valor para mover hacia la izquierda
         y: containerHeight / 8 // Ajusta este valor según sea necesario para centrar verticalmente
       });
+      }
     }, []); // Empty dependency array means this effect runs once on mount
 
     useEffect(() => {
@@ -69,16 +72,43 @@ export const TreeChart = () => {
       };
     }, [showModal]); // Dependencias: Re-ejecutar este efecto si 'showModal' cambia.
 
-    // console.log('treeData', treeData)
-
     useEffect(() => {
       dispatch( fetchProjectReposAndLayers(projectData.ID, projectData.accessLevel, uid) )
-    }, [])
-    
+    }, []);
 
+    if( errorWhileFetching ) return (
+        <div className='flex flex-col flex-grow glass2 items-center justify-center'>
+          <h1 className='text-xl text-red-500'>{errorMessage}</h1>
+          {
+            errorType !== 'collaborator-validation' && errorType !== 'token-validation' ? (
+              <button
+                onClick={() => {
+                  dispatch(
+                    setError({
+                      fetchingResources: true,
+                      errorWhileFetching: false,
+                      errorMessage: null,
+                      errorType: null,
+                    })
+                  );
+                  dispatch(fetchProjectReposAndLayers(projectData.ID, projectData.accessLevel, uid));
+                }}
+                className='hover:text-blue-500 transition-colors duration-100'
+              >
+                Try Again
+              </button>
+            ) : null
+          }
+        </div>
+    )
 
+    if( fetchingResources ) return  ( 
+        <div className='flex flex-grow items-center justify-center'>
+            <PuffLoader  color="#32174D" size={50} /> 
+        </div> 
+    ) 
 
-    if( fetchingResources ) return <LoadingCircle />
+   
 
     return (
       <div className='flex flex-grow relative'>
@@ -93,7 +123,7 @@ export const TreeChart = () => {
                   )
             }
 
-          <div ref={treeContainerRef} onClick={handleWrapperClick} className="glass2 w-full h-full rounded-b-3xl"  id="treeWrapper">
+          <div ref={treeContainerRef} onClick={handleWrapperClick} className="glassi w-full h-full rounded-b-3xl"  id="treeWrapper">
             
             { showModal && currentNode && (
               <div style={{ position: 'absolute', left: modalPosition.x, top: modalPosition.y, zIndex: 100 }}>

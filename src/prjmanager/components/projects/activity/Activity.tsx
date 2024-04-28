@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom';
-import { useRenderActivity } from './hooks/useRenderActivity';
 import { useActivityData } from './hooks/useActivityData';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useSelector } from 'react-redux';
 import { RenderTasks } from './RenderTasks';
 import { RenderCommits } from './RenderCommits';
-
+import { PuffLoader  } from 'react-spinners';
 
 
 export const Activity = () => {
@@ -20,7 +18,8 @@ export const Activity = () => {
   const [projectLayers, setProjectLayers] = useState([])
   const [projectRepositories, setProjectRepositories] = useState([])
 
-  const { isLoading, tasksCompleted, setTasksCompleted, wFApprovalTasks, setWFApprovalTasks, commits } = useActivityData(currentProject, uid);
+  const { fetchData, isLoading, tasksCompleted, setTasksCompleted, wFApprovalTasks, setWFApprovalTasks, commits,  errorMessage,
+    errorWhileFetching, errorType } = useActivityData(currentProject, uid);
 
 
   useEffect(() => {
@@ -51,15 +50,32 @@ export const Activity = () => {
   };
 
 
+  if( errorWhileFetching ) return (
+    <div className='flex flex-col flex-grow items-center justify-center'>
+      <h1 className='text-xl text-red-500'>{errorMessage}</h1>
+      {
+          errorType !== 'collaborator-validation' && errorType !== 'token-validation' ? (
+            <button
+              onClick={fetchData}
+              className='hover:text-blue-500 transition-colors duration-100'
+            >
+              Try Again
+            </button>
+          ) : null
+      }
+    </div>
+  )
+
+
   return (
     <div className='flex flex-col  w-full h-full'> 
-        <div className='flex pl-7 pr-5 justify-between space-x-3'>
-              <h3 className='text-3xl  font-bold'>Activity</h3>              
-        </div>       
-
         { 
           isLoading 
-          ? <LoadingCircle /> 
+          ? ( 
+              <div className='flex flex-grow items-center justify-center'>
+                  <PuffLoader  color="#32174D" size={50} /> 
+              </div>                         
+            )
           : renderActivityType()         
         }
     </div>

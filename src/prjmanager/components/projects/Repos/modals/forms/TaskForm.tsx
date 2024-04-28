@@ -9,18 +9,25 @@ import { useLocation } from 'react-router-dom';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LoadingCircle from '../../../../../../auth/helpers/Loading';
 import { Formik, Form, FormikHelpers, useFormikContext } from 'formik';
-import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Chip, Box, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete } from '@mui/material';
+import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
+import { styled } from '@mui/system';
+import { TextField, Select, MenuItem, FormControl, InputLabel, InputAdornment , Chip, Box, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete, ListItemAvatar, Avatar, Popover, Popper } from '@mui/material';
 
+
+const CustomPopper = styled(Popper)({
+    maxHeight: '200px', // Limita la altura del menú desplegable
+    overflowY: 'auto', // Habilita el desplazamiento vertical
+});
+  
 
 export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded, isAssigned, setIsAssigned }) => {
     // Asumiendo que tienes las siguientes constantes de estado para controlar el diálogo
     const location = useLocation()
 
-    console.log(location.state)
-
     const [isLoading, setIsLoading] = useState(false)
     const [buttonDisabled, setButtonDisabled] = useState(true)
     const [goalDescription, setGoalDescription] = useState('')
+    const { users, setSearch } = useGlobalUsersSearcher()
 
     const { ID } = location.state.project;
     const { layerID } = location.state.layer;
@@ -29,11 +36,22 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
     const TaskSchema = Yup.object().shape({
       task_name: Yup.string().required('Task name is required'),
       task_description: Yup.string().required('Task description is required'),
-      status: Yup.string().oneOf(['pending', 'approval', 'completed']).required('Status is required'),
-      goals: Yup.array().of(Yup.string()).required('At least one goal is required'),
+      goals: Yup.array().min(1, 'Provide at least 1 goal for the task'),
       priority: Yup.string().oneOf(['Low', 'Medium', 'High', 'Critical']).required('Priority is required'),
       type: Yup.string().oneOf(['open', 'assigned']).required('Type is required'),
-      deadline: Yup.date().nullable(),
+      deadline: Yup.date().required('Deadline is required'),
+      additional_info: Yup.object({
+        estimated_hours: Yup.number()
+          .min(1, 'Estimated hours must be at least 1')
+          .required('Estimated hours are required'),
+      }),
+      assigned_to: Yup.string().when('type', (type, schema) => {
+        console.log('type:', type)
+        if (type.includes('assigned')) {
+          return schema.required('Assigned to is required');
+        }
+        return schema.nullable();
+      }),
     });
 
     // Límite de caracteres para la visualización en el Chip
@@ -90,11 +108,27 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
+
+    const handleNameChange = (value, setFieldValue) => {
+        const inputValue = value
+        const formattedValue = inputValue.replace(/\s+/g, '-'); // Reemplaza espacios por guiones
+        setFieldValue('task_name', formattedValue);
+    };
+
+    const handleEstimatedHoursChange = (value, setFieldValue) => {
+        const inputValue = value;
+
+        // Permitir solo números, puntos decimales y signo negativo (para valores negativos)
+        const validValue = inputValue.replace(/[^0-9.-]/g, ''); // Elimina cualquier carácter no numérico
+        setFieldValue('additional_info.estimated_hours', validValue ? parseFloat(validValue) : 0);
+    };
+    
   
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         setIsLoading(true);
         setSubmitting(true);
+        console.log('valores del formulario',values)
 
         try {
             const response = await axios.post(`http://localhost:3000/api/tasks/${ID}/${layerID}/${repoID}`, values, 
@@ -107,7 +141,7 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                 } 
             } )
 
-            resetForm();
+            // resetForm();
             setSubmitting(false);         
             setIsLoading(false);
 
@@ -118,7 +152,8 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
             });
 
         } catch (error) {
-            resetForm();
+            console.log(error)
+            // resetForm();
             setSubmitting(false);
             setIsLoading(false);
             
@@ -150,40 +185,86 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
           (
             <Formik
                 initialValues={{
-                project_related_id: ID,
+                project: ID,
                 layer_related_id: layerID,
                 repository_related_id: repoID,
                 task_name: '',
                 task_description: '',
                 status: 'completed', // Por defecto, según el esquema
                 goals: [],
+                additional_info: {
+                    estimated_hours: 0,
+                    actual_hours: 0,
+                    notes: []
+                },
                 priority: '', // Valor por defecto
                 type: '', // Valor por defecto
                 deadline: null,
-                assigned_to: ''
+                assigned_to: null
                 }}
                 validationSchema={TaskSchema}
                 onSubmit={handleSubmit}
             >
-                {({ values, setFieldValue, handleChange, handleBlur, isSubmitting }) => (
+                {({ values, setFieldValue, handleChange, handleBlur, isSubmitting, errors, touched }) => (
                 <Form 
-                    className="flex flex-col h-full space-y-6 mx-auto w-[95%] pt-5 pb-4 overflow-y-auto">
+                    className="flex flex-col h-full space-y-7 mx-auto w-[95%] pt-5 pb-4 overflow-y-auto">
                     <IsTheButtonDisabled values={values} />
                     
                     <div className='flex space-x-2'>
                         <TextField       
-                            InputLabelProps={{
-                                style: { color: 'black' } // Hace el texto de la etiqueta más oscuro
-                            }}
+                            InputLabelProps={{ shrink: errors.task_name && touched.task_name }}
                             name="task_name"
-                            label="Task Name"
+                            label={ errors.task_name && touched.task_name ? 'Task name is required' : 'Task Name' }
                             fullWidth
                             value={values.task_name}
+                            onChange={(e) => handleNameChange(e.target.value, setFieldValue)}
+                            onBlur={handleBlur}
+                            
+                            error={!!errors.task_name && touched.task_name} // Muestra error si hay error y el campo fue tocado
+                        />            
+
+
+                        <TextField
+                            name="deadline"
+                            label={ errors.deadline && touched.deadline ? 'Deadline is required' : 'Deadline'}
+                            type="date"
+                            InputLabelProps={{ shrink: true }}
+                            fullWidth
+                            value={values.deadline ? values.deadline : ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                        />            
-                        <FormControl fullWidth>
-                            <InputLabel id="type-label" style={{ color: 'black' }}>Type</InputLabel>
+                            error={!!errors.deadline && touched.deadline} // Muestra error si hay error y el campo fue tocado
+                        />
+                    </div>
+
+                    <div className='flex space-x-2'>
+                        <FormControl  fullWidth error={!!errors.priority && touched.priority} >          
+                            <InputLabel 
+                                id="priority-label" 
+                                style={{ color: 'black' }}
+                                >{ errors.priority && touched.priority ? 'Priority is required' : 'Priority' }</InputLabel>
+                            <Select
+                                labelId="priority-label"
+                                id="priority"
+                                name="priority"
+                                value={values.priority}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                label={errors.priority && touched.priority ? 'Priority is required' : 'Priority'}
+                            >
+                                <MenuItem value="Low">Low</MenuItem>
+                                <MenuItem value="Medium">Medium</MenuItem>
+                                <MenuItem value="High">High</MenuItem>
+                                <MenuItem value="Critical">Critical</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth error={!!errors.type && touched.type}>
+                            <InputLabel 
+                                id="type-label" 
+                                style={{ color: 'black' }}>{ errors.type && touched.type ? 'Type is required' : 'Type' }</InputLabel>
+                                
+                                
                             <Select                     
                                 labelId="type-label"
                                 id="type"
@@ -191,63 +272,50 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                                 value={values.type}
                                 onChange={(e) => handleTypeChange(e, handleChange)}
                                 onBlur={handleBlur}
-                                label="Type"
+                                label={errors.type && touched.type ? 'Type is required' : 'Type'}
                             >
                                 <MenuItem value="open">Open</MenuItem>
                                 <MenuItem value="assigned">Assigned</MenuItem>
                             </Select>
                         </FormControl>
+
                     </div>
 
-                    <div className='flex space-x-2'>
-                        <FormControl fullWidth>
-                        <InputLabel id="priority-label" style={{ color: 'black' }}>Priority</InputLabel>
-                        <Select
-                            
-                            // sx={{ backgroundColor: '#cae9ff' }}
-                            labelId="priority-label"
-                            id="priority"
-                            name="priority"
-                            value={values.priority}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            label="Priority"
-                        >
-                            <MenuItem value="Low">Low</MenuItem>
-                            <MenuItem value="Medium">Medium</MenuItem>
-                            <MenuItem value="High">High</MenuItem>
-                            <MenuItem value="Critical">Critical</MenuItem>
-                        </Select>
-                        </FormControl>
-
-                        <TextField
-                            // sx={{ backgroundColor: '#cae9ff' }}
-                            name="deadline"
-                            label="Deadline"
-                            type="date"
-                            InputLabelProps={{ shrink: true }}
-                            fullWidth
-                            value={values.deadline ? values.deadline : ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                        />
-                    </div>
 
                     {
                         values.type === 'assigned'  && (
                             <Autocomplete
-                                // sx={{ backgroundColor: '#cae9ff' }}
-                                value={values.assigned_to ? repoCollaborators.find((collaborator) => collaborator.id === values.assigned_to) : null}
-                                onChange={(event, newValue) => {
-                                    setFieldValue('assigned_to', newValue.id);
-                                }}
-                                id="collaborator-select"
-                                options={repoCollaborators}
+                                options={users}
+                                value={values.assigned_to ? users.find((collaborator) => collaborator.id === values.assigned_to) : null}
+                                onChange={(e, newValue) => setFieldValue('assigned_to', newValue.id)}                
+                                id="collaborator-select"   
+                                PopperComponent={CustomPopper}                   
                                 getOptionLabel={(option) => option.name}
-                                renderInput={(params) => <TextField {...params} label="Assign to" placeholder="Search by name" />}
+                                renderInput={(params) => (
+                                    <TextField 
+                                        {...params} 
+                                        InputLabelProps={{ shrink: errors.assigned_to && touched.assigned_to }}
+                                        label={ errors.assigned_to && touched.assigned_to ? 'Assigned to is required' : 'Assigned to' } 
+                                        name="assigned_to"
+                                        placeholder="Search by name" 
+                                        error={!!errors.assigned_to && touched.assigned_to} // Muestra error si hay error y el campo fue tocado
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                )}
                                 renderOption={(props, option) => (
-                                    <li {...props} key={option.id}>
-                                    {option.name}
+                                    <li {...props} key={option.id} className='flex py-3 px-5 cursor-pointer hover:bg-gray-200 transition-colors duration-100'>                                       
+                                        <ListItemAvatar>
+                                            <Avatar
+                                            alt={option.name}
+                                            src={option.photoUrl || option.name} // Aquí deberías poner el enlace a la imagen del usuario
+                                            />
+                                        </ListItemAvatar>
+                                        <div className='flex flex-col ml-1'>
+                                            <Typography variant="body2">{option.name}</Typography>
+                                            <span className='text-[11px]'>
+                                            {option.id}
+                                            </span>
+                                        </div>                                   
                                     </li>
                                 )}
                                 renderTags={(value, getTagProps) =>
@@ -258,6 +326,25 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                             />
                         )
                     }
+          
+
+                    <TextField
+                            name="additional_info.estimated_hours"
+                            label={ errors.additional_info?.estimated_hours && touched.additional_info?.estimated_hours ? 'Estimated hours are required' : 'Estimated Hours'}
+                            type="text"
+                            InputLabelProps={{ shrink: true }}
+                            fullWidth
+                            value={values.additional_info.estimated_hours}
+                            onChange={(e) => handleEstimatedHoursChange(e.target.value, setFieldValue)}
+                            onBlur={handleBlur}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end" >h</InputAdornment> // Adorno con mínimo espacio
+                                  )
+                            }}
+                            error={!!errors.additional_info?.estimated_hours && touched.additional_info?.estimated_hours} // Muestra error si hay error y el campo fue tocado
+                        />
+
 
 
 
@@ -265,12 +352,11 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                         expanded={goalsExpanded}
                         onChange={() => setGoalsExpanded(!goalsExpanded)}          
                         sx={{
-                            // backgroundColor: '#cae9ff',
-                            border: '1px solid gray'
+                            border: errors.goals && touched.goals ? '1px solid red' : '1px solid black',
                         }}
                     >
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography >Task Goals</Typography>
+                        <Typography >{ errors.goals && touched.goals ? 'Provide at leats 1 Goal for the Task' : 'Task Goals' }</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                         <TextField
@@ -307,17 +393,16 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                     </Accordion>
 
                     <TextField           
-                        InputLabelProps={{
-                            style: { color: 'black' } // Hace el texto de la etiqueta más oscuro
-                        }}
+                        InputLabelProps={{ shrink: errors.task_description && touched.task_description }}
                         name="task_description"
-                        label="Task Description"
+                        label={ errors.task_description && touched.task_description ? 'Task description is required' : 'Task Description' }
                         multiline
                         rows={4}
                         fullWidth
                         value={values.task_description}
                         onChange={handleChange}
                         onBlur={handleBlur}
+                        error={!!errors.task_description && touched.task_description} // Muestra error si hay error y el campo fue tocado
                     />
 
 

@@ -182,7 +182,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                             enterDelay={100}
                         >   
                             <div 
-                            onMouseEnter={() => handleMouseEnter('The Contributor can view open repositories on the layer and contribute new content or comments.', 'contributor')} 
+                            onMouseEnter={() => handleMouseEnter('The Reader can clone the repository by having access to the "Clone" command on PrJConsole, view the activity of the repository, such as commits history and tasks.', 'contributor')} 
                             onMouseLeave={handleMouseLeave}
                             >
                             <LiaQuestionCircleSolid />
@@ -205,7 +205,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                             enterDelay={100}
                         >   
                             <div 
-                            onMouseEnter={() => handleMouseEnter('The Coordinator can manage contributions, approve changes and coordinate activities within the layer. This role allows adding new collaborators with the role of contributors and access to open and internal repositories with editor access level in the layer.', 'coordinator')} 
+                            onMouseEnter={() => handleMouseEnter('The Editor has all the capabilities of the Reader with extra access to the "Push" and "Pull" commands on PrjConsole to contribute to the repository, he can contribute to open and assigned tasks of the repository.', 'coordinator')} 
                             onMouseLeave={handleMouseLeave}
                             >
                             <LiaQuestionCircleSolid />
@@ -228,7 +228,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                             enterDelay={100}
                         >   
                             <div 
-                            onMouseEnter={() => handleMouseEnter('The Administrator has full control over the layer and its repositories with administrator level access to them, including the ability to modify settings, manage all aspects and collaborators.', 'administrator')} 
+                            onMouseEnter={() => handleMouseEnter('The Administrator has all the capabilities of the Editor, including the ability to modify settings, manage all aspects and collaborators within the repository.', 'administrator')} 
                             onMouseLeave={handleMouseLeave}
                             >
                             <LiaQuestionCircleSolid />
@@ -249,7 +249,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                 </DialogActions>
                 </Dialog>
 
-                <div className='flex-grow overflow-y-auto px-3 h-[380px]'>
+                <div className='flex-grow overflow-y-auto px-3 h-[320px]'>
                 { values.newCollaborators.length === 0 
                     ?
                         <div className='flex h-full items-center justify-center'>
@@ -302,7 +302,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                     className='h-[55px] w-[95%] border-1 border-gray-400  rounded-extra glassi transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'
                     onClick={ () => handleAddNewCollaborators( values, setFieldValue ) }
                 >
-                Update new Collaborators
+                Update Collaborators
                 </button>
             </div>
         </div>

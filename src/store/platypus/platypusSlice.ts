@@ -9,6 +9,9 @@ const initialState = {
     layers: [], 
     repositories: [],
     fetchingResources: false,
+    errorWhileFetching: false,
+    errorMessage: null,
+    errorType: null
 };
 
 
@@ -46,10 +49,29 @@ export const platypusSlice = createSlice({
 
         setFetchingResources: ( state, { payload } : PayloadAction<boolean> ) => {
             state.fetchingResources = payload
+        },
+
+        setErrorMessage: ( state, { payload } : PayloadAction<string> ) => {
+            state.errorMessage = payload    
+        },
+
+        setError: (
+            state,
+            action: PayloadAction<{ fetchingResources: boolean, errorWhileFetching: boolean; errorMessage: string | null; errorType: string | null }>
+          ) => {
+            console.log('fetchingResources',action.payload.fetchingResources)
+            state.fetchingResources = action.payload.fetchingResources;
+            state.errorWhileFetching = action.payload.errorWhileFetching;
+            state.errorMessage = action.payload.errorMessage;
+            state.errorType = action.payload.errorType;
+          },
+
+        setErrorType: ( state, { payload } : PayloadAction<string> ) => {
+            state.errorType = payload
         }
   
     }
 });
 
 
-export const { setCurrentProject, setLayers, setRepositories, addNewLayer, addNewLayerRepository, setFetchingResources } = platypusSlice.actions;
+export const { setCurrentProject, setLayers, setRepositories, addNewLayer, addNewLayerRepository, setFetchingResources, setError, setErrorMessage, setErrorType } = platypusSlice.actions;

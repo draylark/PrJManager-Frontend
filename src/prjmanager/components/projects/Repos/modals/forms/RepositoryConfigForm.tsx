@@ -7,11 +7,11 @@ import { Branch } from '@ricons/carbon'
 import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-import LoadingCircle from '../../../../../../auth/helpers/Loading';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { RepoNewCollaborators } from './sub-forms/RepoNewCollaborators';
 import Swal from 'sweetalert2';
+import { PuffLoader  } from 'react-spinners';
 import bgform from '../assets/formbg.jpg'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -23,11 +23,10 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   const { repoID } = location.state.repository;
   const { uid } = useSelector(state => state.auth)
   const { layers } = useSelector(state => state.platypus)
-  const layer = layers.find(layer => layer._id === layerID)
-
-  const { users, setSearch } = useGlobalUsersSearcher()
 
 
+
+  const [layer, setLayer] = useState(null)
   const [cSearchTerm, setCSearchTerm] = useState('')
   const [currentOrNew, setCurrentOrNew] = useState(false)
   const [branchesExpanded, setBranchesExpanded] = useState(false) 
@@ -41,12 +40,12 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   const [accessLevelDialog, setAccessLevelDialog] = useState(false)
   const [branchTypeDialogContent, setBranchTypeDialogContent] = useState('')
 
+  const [tempVisibility, setTempVisibility] = useState('')  
   const [branchTypeDialog, setBranchTypeDialog] = useState(false)
   const [pendingDefaultBranchIndex, setPendingDefaultBranchIndex] = useState(null);
-  const [tempVisibility, setTempVisibility] = useState('')
 
+  const [modalOpacity, setModalOpacity] = useState(0);  
   const [currentCollaborators, setCurrentCollaborators] = useState([])
-  const [modalOpacity, setModalOpacity] = useState(0);
 
   const [accessLevel, setAccessLevel] = useState('');
   const [selectedUser, setSelectedUser] = useState({
@@ -56,7 +55,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
       accessLevel: ''
   })
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
 
@@ -84,19 +83,19 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
         case 'open':
           return (
             <DialogContentText>
-              Are you sure you want to change the visibility type? The "Open" type will allow all project collaborators to access the repository, if the project is open, it will allow all users in prjmanager to access it as well.
+              Are you sure you want to change the visibility type? The "Open" type will allow all project collaborators to access the repository, if the project and layer are open, it will allow all users in prjmanager to access it as well.
             </DialogContentText>
           );
         case 'internal':
           return (
             <DialogContentText>
-              Are you sure you want to change the visibility type? The "Internal" type will allow access to the repository only to the collaborators of its layer.
+              Are you sure you want to change the visibility type? The "Internal" type will allow access to the repository only to the collaborators of the project.
             </DialogContentText>
           );
         case 'restricted':
           return (
             <DialogContentText>
-              Are you sure you want to change the visibility type? The "Restricted" type will allow only collaborators of the repository to access the information contained.
+              Are you sure you want to change the visibility type? The "Restricted" type will allow access to the repository only to the collaborators invited exclusively.
             </DialogContentText>
           );
         default:
@@ -232,69 +231,104 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     };
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-      console.log('values', values)
       setSubmitting(true);
       setIsLoading(true);
 
-        axios.put(`${backendUrl}/repos/update-repository/${ID}/${layerID}/${repoID}`, values, {
-          params: {
-            uid
-          },
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('x-token')
-            }
-        })
-        .then( response => {
-            console.log(response)
-            setIsLoading(false);
-            Swal.fire({
-                title: 'Successful Update',
-                text: `${response.data.message}`,
-                icon: 'success',
-            })
+        try {
+          const response = await axios.put(`${backendUrl}/repos/update-repository/${ID}/${layerID}/${repoID}`, values, {
+            params: {
+              uid
+            },
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': localStorage.getItem('x-token')
+              }
+          })
 
-            setTimeout(() => {
-              resetForm();
-              handleClose();
-            }, 2000);
-        })
-        .catch( error => {
-            setIsLoading(false);
-            Swal.fire({
-                title: 'Error',
-                text: `${error.response.data.message}`,
-                icon: 'error',
-            })
+          resetForm();
+          setSubmitting(false);
+          setIsLoading(false);
+          handleClose();
 
-            setTimeout(() => {
-              resetForm();
-              handleClose();
-            }, 2000);
-        })
+          Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: response.data.message
+          });
 
+      } catch (error) {
+        setSubmitting(false);
+        setIsLoading(false);   
 
+        if( error.response.data?.type === 'collaborator-validation' ){
+          Swal.fire({
+              icon: 'warning',
+              title: 'Access Validation',
+              text: error.response.data.message,
+          });
+        } else {
+          Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: error.response.data.message,
+          });
+        }
+      }
     }
 
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+
     useEffect(() => {
-      setIsLoading(true)
-      axios.get(`http://localhost:3000/api/repos/get-repo-collaborators/${repo._id}`, {
-          headers: {
-              'Authorization': localStorage.getItem('x-token')
+        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+        preloadImage.src = bgform;
+    
+        preloadImage.onload = () => {
+          setIsBackgroundReady(true); // Indica que la imagen ha cargado
+        };
+    }, []);
+
+    useEffect(() => {
+      const url1 = `http://localhost:3000/api/repos/get-repo-collaborators/${repo._id}`
+      const url2 = `http://localhost:3000/api/layer/get-layer/${layerID}`
+      const layer = layers.find(layer => layer._id === layerID)
+
+      if(!layer){
+        axios.all([
+          axios.get(url1, {
+            headers: {
+                'Authorization': localStorage.getItem('x-token')
+            }
+          }),
+          axios.get(url2, {
+            headers: {
+                'Authorization': localStorage.getItem('x-token')
+            }
+          })])
+          .then(axios.spread((response1, response2) => {
+            const { collaborators } = response1.data
+            handleCollaboratorsData(collaborators)
+            setLayer(response2.data.layer)
+          }))
+          .catch((error) => {
+            console.error('Error fetching layer collaborators:', error);
           }
-      })
-      .then((response) => {
-
-        const { collaborators } = response.data
-        console.log('buenisss',collaborators)
-        handleCollaboratorsData(collaborators)
-      })
-      .catch((error) => {
-        console.error('Error fetching layer collaborators:', error);
-      });
+        )
+      } else {
+          setLayer(layer)
+          axios.get(url1, {
+            headers: {
+                'Authorization': localStorage.getItem('x-token')
+            }
+          })
+          .then((response) => {
+            const { collaborators } = response.data
+            handleCollaboratorsData(collaborators)
+          })
+          .catch((error) => {
+            console.error('Error fetching layer collaborators:', error);
+          });
+      }
     }, [repo])
-
-
 
     useEffect(() => {
       if (isRepoFormOpen) {
@@ -307,16 +341,16 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     }, [isRepoFormOpen]);
 
   return ( 
-    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
+    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div
           id="repositoryTaskModal"
           style={{ 
             opacity: modalOpacity, 
             transition: 'opacity 300ms ease-in-out, height 300ms ease-in-out, background 300ms ease-in-out',
-            backgroundImage: `url(${bgform})`,
+            backgroundImage: isBackgroundReady ? `url(${bgform})` : 'none',
             backgroundPosition: 'left center'
           }}
-          className={`flex flex-col space-y-3 w-[90%]  overflow-hidden md:w-[50%] pb-2 md:max-h-[700px] overflow-y-auto transition-colors duration-300  bg-white border-[1px] border-black rounded-2xl ${isRepoFormOpen ? '' : 'pointer-events-none'}`}
+          className={`flex flex-col space-y-3 w-[90%] overflow-hidden md:w-[50%] pb-2 md:h-[545px] overflow-y-auto transition-colors duration-300 glass2 border-[1px] border-gray-400 rounded-2xl ${isRepoFormOpen ? '' : 'pointer-events-none'}`}
         >
 
               <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
@@ -328,8 +362,12 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
 
               {
 
-                isLoading 
-                ? <LoadingCircle />
+                isLoading || !isBackgroundReady
+                ? (
+                    <div className='flex flex-grow items-center justify-center'>
+                      <PuffLoader  color={ !isBackgroundReady ? "#ffffff" : "#32174D" } size={50} /> 
+                    </div>  
+                  )
                 : (
                       <Formik
                             initialValues={{
@@ -349,7 +387,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                             onSubmit={handleSubmit}
                         >        
                             {({ isSubmitting, values, setFieldValue, handleChange, handleBlur }) => {
-                              {console.log(values)}
+                              // {console.log(values)}
                               const filteredCollaborators = values.collaborators.filter(collaborator => {
                                 return collaborator.name.toLowerCase().includes(cSearchTerm.toLowerCase()) || collaborator.id.toString().includes(cSearchTerm)
                               });
@@ -417,7 +455,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                 <Dialog open={visibilityDialog} onClose={() => setVisibilityDialog(false)}>
                                                     <DialogTitle>Confirm Visibility Change</DialogTitle>
                                                     <DialogContent>
-                                                        { renderDialogContentText()}                                          
+                                                        { renderDialogContentText() }                                          
                                                     </DialogContent>
                                                     <DialogActions>
                                                         <Button onClick={() => setVisibilityDialog(false)}>Cancel</Button>
@@ -438,7 +476,6 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                   expanded={branchesExpanded}
                                                   onChange={() => setBranchesExpanded(!branchesExpanded)}          
                                                   sx={{
-                                                      // backgroundColor: '#cae9ff',
                                                       border: '1px solid gray'
                                                   }}
                                               >
@@ -647,7 +684,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                               enterDelay={100}
                                                             >   
                                                               <div 
-                                                                onMouseEnter={() => handleMouseEnter('The Contributor can view open repositories on the layer and contribute new content or comments.', 'contributor')} 
+                                                                onMouseEnter={() => handleMouseEnter('The Reader can clone the repository by having access to the "Clone" command on PrJConsole, view the activity of the repository, such as commits history and tasks.', 'contributor')} 
                                                                 onMouseLeave={handleMouseLeave}
                                                               >
                                                                 <LiaQuestionCircleSolid />
@@ -670,7 +707,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                               enterDelay={100}
                                                             >   
                                                               <div 
-                                                                onMouseEnter={() => handleMouseEnter('The Coordinator can manage contributions, approve changes and coordinate activities within the layer. This role allows adding new collaborators with the role of contributors and access to open and internal repositories with editor access level in the layer.', 'coordinator')} 
+                                                                onMouseEnter={() => handleMouseEnter('The Editor has all the capabilities of the Reader with extra access to the "Push" and "Pull" commands on PrjConsole to contribute to the repository, he can contribute to open and assigned tasks of the repository.', 'coordinator')} 
                                                                 onMouseLeave={handleMouseLeave}
                                                               >
                                                                 <LiaQuestionCircleSolid />
@@ -693,7 +730,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                               enterDelay={100}
                                                             >   
                                                               <div 
-                                                                onMouseEnter={() => handleMouseEnter('The Administrator has full control over the layer and its repositories with administrator level access to them, including the ability to modify settings, manage all aspects and collaborators.', 'administrator')} 
+                                                                onMouseEnter={() => handleMouseEnter('The Administrator has all the capabilities of the Editor, including the ability to modify settings, manage all aspects and collaborators within the repository.', 'administrator')} 
                                                                 onMouseLeave={handleMouseLeave}
                                                               >
                                                                 <LiaQuestionCircleSolid />

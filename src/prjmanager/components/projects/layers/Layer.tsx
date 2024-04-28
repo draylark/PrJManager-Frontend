@@ -9,26 +9,19 @@ import { useState, useEffect } from 'react';
 import { MdLayers } from 'react-icons/md';
 import { LayerConfigForm } from '../forms/LayerConfigForm';
 import { LayerCollaboratorsForm } from '../forms/LayerCollaboratorsForm';
-import { World } from '@ricons/tabler'
 import { GoIssueOpened } from "react-icons/go";
 import { tierS } from '../../../helpers/accessLevels-validator';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { TbDatabasePlus } from "react-icons/tb";
 import { VscSettingsGear } from "react-icons/vsc";
 import { Tooltip } from '@mui/material';
 import { TfiWorld } from "react-icons/tfi";
+import { PuffLoader  } from 'react-spinners';
 import axios from 'axios';
 
 
 export const Layer = () => {
 
   const location = useLocation();
-
-  const [ isLayerCollaboratorsFormOpen, setIsLayerCollaboratorsFormOpen ] = useState(false)
-  const [ isLayerConfigFormOpen, setIsLayerConfigFormOpen] = useState(false)
-  const [isConfigOpen, setIsConfigOpen] = useState(false); // Estado para controlar la visibilidad del modal de configuración
-  const [isBellOpen, setIsBellOpen] = useState(false); // Estado para controlar la visibilidad del modal de configuración
-  const [isRepositoryFormOpen, setIsRepositoryFormOpen] = useState(false)
 
   const [layer, setLayer] = useState(null)
   const [isLoading, setIsLoading] = useState(true)  
@@ -37,17 +30,51 @@ export const Layer = () => {
   const { uid } = useSelector((state: RootState) => state.auth);
   const { currentProject: project, layers } = useSelector((state: RootState) => state.platypus);
 
+  const [ isBellOpen, setIsBellOpen ] = useState(false); 
+  const [ isConfigOpen, setIsConfigOpen ] = useState(false);
+  const [ isRepositoryFormOpen, setIsRepositoryFormOpen ] = useState(false)
+  const [ isLayerConfigFormOpen, setIsLayerConfigFormOpen ] = useState(false) 
+  const [ isLayerCollaboratorsFormOpen, setIsLayerCollaboratorsFormOpen ] = useState(false)
+
+  
+  const [errorType, setErrorType] = useState(null) 
+  const [errorMessage, seterrorMessage] = useState(null);
+  const [errorWhileFetching, setErrorWhileFetching] = useState(false);
+
 
   const toggleConfigModal = () => {
     isBellOpen ? setIsBellOpen(false) : null
     setIsConfigOpen(!isConfigOpen);
   };
   
+
+  const fetchLayerData = () => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/layer/get-layer/${layerID}`, {
+      params: {
+        projectID: project._id
+      },
+      headers: {
+        'Authorization': localStorage.getItem('x-token')
+      }
+    })
+    .then(res => {
+      // console.log(res)
+      setLayer(res.data.layer)
+      setIsLoading(false)
+    })
+    .catch(err => {
+      console.log(err)
+      setIsLoading(false)
+      setErrorWhileFetching(true)
+      setErrorType(err.response.data.type || 'Error')
+      seterrorMessage(err.response.data.message || 'An error occurred while fetching data')
+    })
+  }
+
   useEffect(() => {
     isLayerConfigFormOpen ? setIsConfigOpen(false) : null
     isLayerCollaboratorsFormOpen ? setIsConfigOpen(false) : null
   }, [isLayerConfigFormOpen, isLayerCollaboratorsFormOpen])
-  
 
   useEffect(() => {
     if( layerID ){
@@ -56,34 +83,41 @@ export const Layer = () => {
         setLayer(layerFromRState)
         setIsLoading(false)
       } else {
-        axios.get(`${import.meta.env.VITE_BACKEND_URL}/layer/get-layer/${layerID}`, {
-          params: {
-            projectID: project._id
-          },
-          headers: {
-            'Authorization': localStorage.getItem('x-token')
-          }
-        })
-        .then(res => {
-          console.log(res)
-          setLayer(res.data.layer)
-          setIsLoading(false)
-        })
-        .catch(err =>{
-           console.log(err)
-        })
+        fetchLayerData()
       }
     } 
   }, [])
   
   if( repository?.repoID ) return <Outlet/>
 
+  if( errorWhileFetching ) return (
+    <div className='flex flex-col flex-grow items-center justify-center'>
+      <h1 className='text-xl text-red-500'>{errorMessage}</h1>
+      {
+          errorType !== 'collaborator-validation' && errorType !== 'token-validation' ? (
+            <button
+              onClick={() => {
+                setErrorWhileFetching(false)
+                setIsLoading(true)
+                fetchLayerData()
+              }}
+              className='hover:text-blue-500 transition-colors duration-100'
+            >
+              Try Again
+            </button>
+          ) : null
+      }
+    </div>
+  )
+
   return (
     <div id='layer' className='flex flex-col h-full rounded-2xl w-full '>
         {
-          isLoading && layer === null ? 
-            <LoadingCircle />
-          :     
+          isLoading && layer === null ?  ( 
+            <div className='flex flex-grow items-center justify-center'>
+                <PuffLoader  color="#32174D" size={50} /> 
+            </div>                         
+          ) :     
             <div className="flex justify-between items-cente px-1">
 
                   <div className="flex  mx-4 ">          
@@ -99,13 +133,6 @@ export const Layer = () => {
                         {
                             tierS( uid, project, layer ) && (
                               <>
-                                  {/* <button 
-                                      onClick={ () => setIsRepositoryFormOpen(!isRepositoryFormOpen) }
-                                      className="glass2 border-1 text-sm border-gray-400 py-[3px] w-[11rem] rounded-lg transition-transform duration-150 ease-in-out transform active:translate-y-[2px]">
-                                      New repository
-                                  </button> */}
-
-                                  
                                   <button 
                                       onClick={ () => setIsRepositoryFormOpen(!isRepositoryFormOpen) }
                                       className='glassi h-7 border-1 border-gray-400 py-1 px-3 rounded-lg transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'>
@@ -167,8 +194,8 @@ export const Layer = () => {
         { layer !== null && <Repositories layer={layer} project={project} uid={uid} /> }
           
         { isRepositoryFormOpen && <RepositoryForm setIsRepositoryFormOpen={ setIsRepositoryFormOpen } isRepositoryFormOpen={ isRepositoryFormOpen } /> }
-        { isLayerConfigFormOpen && <LayerConfigForm setIsLayerConfigFormOpen={ setIsLayerConfigFormOpen } isLayerConfigFormOpen={isLayerConfigFormOpen}/> }
-        { isLayerCollaboratorsFormOpen && <LayerCollaboratorsForm setIsLayerCollaboratorsFormOpen={ setIsLayerCollaboratorsFormOpen } isLayerCollaboratorsFormOpen={isLayerCollaboratorsFormOpen}/> }
+        { isLayerConfigFormOpen && <LayerConfigForm layer={layer} setIsLayerConfigFormOpen={ setIsLayerConfigFormOpen } isLayerConfigFormOpen={isLayerConfigFormOpen}/> }
+        { isLayerCollaboratorsFormOpen && <LayerCollaboratorsForm layer={layer} setIsLayerCollaboratorsFormOpen={ setIsLayerCollaboratorsFormOpen } isLayerCollaboratorsFormOpen={isLayerCollaboratorsFormOpen}/> }
     </div>
   );
 };
