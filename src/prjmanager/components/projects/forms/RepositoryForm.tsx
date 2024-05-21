@@ -248,7 +248,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
 
 
     return (
-        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-10'>
+        <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-10'>
             <div 
                 id="layerRepositoryModal" 
                 style={{ 

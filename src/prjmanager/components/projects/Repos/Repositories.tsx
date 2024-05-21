@@ -10,7 +10,7 @@ import { TextField, Select, MenuItem} from '@mui/material'
 import { useDispatch } from 'react-redux';
 import { fetchLayerRepositories } from '../../../../store/platypus/thunks';
 import { TbDatabasePlus } from "react-icons/tb";
-
+import { PuffLoader  } from 'react-spinners';
 
 export const Repositories = ({ layer, project, uid }) => {
 
@@ -24,7 +24,6 @@ export const Repositories = ({ layer, project, uid }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [layerRepositories, setLayerRepositories] = useState([])
-
 
   useEffect(() => {
     const filteredRepos = repositories.filter( repo => repo.layerID === layer._id )
@@ -50,8 +49,12 @@ export const Repositories = ({ layer, project, uid }) => {
     }  
   }, [])
   
-
-  if(fetchingResources) return <LoadingCircle/>
+  if(fetchingResources) return  ( 
+    <div className='flex h-full w-full items-center justify-center'>
+        <PuffLoader  color="#32174D" size={50} /> 
+    </div>                         
+  )
+  // console.log(fetchingResources)
   return (
       
         <div className="flex w-full h-full overflow-hidden">        

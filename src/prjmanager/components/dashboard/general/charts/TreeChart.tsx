@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, Dispatch, SetStateAction} from "react";
 import { useTreeChartData } from "../../../../hooks/useTreeChartData";
 import * as d3 from "d3";
 import { TreeNodeToolTip } from "./TreeNodeToolTip";
-
+import { PuffLoader  } from 'react-spinners';
 
 type TreeNodeData = {
   name: string;
@@ -20,9 +20,8 @@ type TooltipState = {
   visible: boolean;
 };
 
-export const TreeChart = () => {
+export const TreeChart = ({ data, isLoading }) => {
 
-  const data = []
   const ref = useRef<HTMLDivElement>(null);
   const [pinnedNode, setPinnedNode] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -34,7 +33,6 @@ export const TreeChart = () => {
 
 
   useEffect(() => {
-    renderChart(data, ref.current, setTooltip, tooltip, pinnedNode, setPinnedNode);
     
     // Manejador del evento "click" en el cuerpo
     const handleBodyClick = () => {
@@ -53,8 +51,10 @@ export const TreeChart = () => {
   }, [data, tooltip, pinnedNode]);
 
 
+  renderChart(data, ref.current, setTooltip, tooltip, pinnedNode, setPinnedNode);
+
   return <div ref={ref}>
-        <TreeNodeToolTip id={tooltip.id} position={{ top: tooltip.top, left: tooltip.left }} visible={tooltip.visible} type={ tooltip.type } />
+        <TreeNodeToolTip data={data} id={tooltip.id} position={{ top: tooltip.top, left: tooltip.left }} visible={tooltip.visible} type={ tooltip.type } />
   </div>;
   
 };
@@ -65,7 +65,11 @@ export const TreeChart = () => {
 const getNodeColor = (d: d3.HierarchyNode<TreeNodeData>): string => {
   if (d.data.name.startsWith("user")) return "black";
   if (d.data.name.startsWith("project")) return "#abc4ff";
-  if (d.data.name.startsWith("task")) return "#00b4d8";
+  if (d.data.name.startsWith("layer")) return "#ff82a9";
+  if (d.data.status === 'pending') return "#FE0000";
+  if (d.data.status === 'approval') return "#FFD700";
+  if (d.data.status === 'completed') return "#0000B8";
+  if (d.data.name.startsWith("repo")) return "#52b788";
   if (d.data.name.startsWith("commit")) return "#ffafcc";
   return "black";
 };
@@ -73,7 +77,7 @@ const getNodeColor = (d: d3.HierarchyNode<TreeNodeData>): string => {
 
 
 
-const renderChart =(
+const renderChart = (
   data: TreeNodeData, 
   container: HTMLDivElement | null, 
   setTooltip: Dispatch<SetStateAction<TooltipState>>, 
@@ -86,7 +90,7 @@ const renderChart =(
   if (!container) return;
 
   const width = 785;
-  const height = 300;
+  const height = 400;
 
   // Verifica si ya hay un SVG en el contenedor.
   // Si no hay un SVG, crea uno.
@@ -135,7 +139,7 @@ const renderChart =(
   }));
 
   if (!g.attr("data-initialized")) {
-    g.attr("transform", `translate(20, -30)`);
+    g.attr("transform", `translate(20, -80)`);
     g.attr("data-initialized", "true");
   }
 

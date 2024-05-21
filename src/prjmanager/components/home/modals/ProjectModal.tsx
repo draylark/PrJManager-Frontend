@@ -4,7 +4,6 @@ import { TextField } from '@mui/material'
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FormNames } from '../formFields/projects/FormNames';
-import { DatePickers } from '../formFields/projects/DatePickers';
 import { ClientsForm } from '../formFields/projects/ClientsForm';
 import { postNewProject } from '../../../helpers/formHelpers';
 import { useSelector } from 'react-redux';
@@ -154,13 +153,13 @@ export const ProjectModal: FC<ProjectModalProps> = ({ setIsProjectModalOpen }) =
                                             {/* {console.log(values)} */}
                                            <FormNames/>
 
-                                           <DatePickers 
+                                           {/* <DatePickers 
                                                 selectedDate={selectedDate} 
                                                 setFieldValue={setFieldValue} 
                                                 endDate={endDate}
                                                 setEndDate={setEndDate}
                                                 setSelectedDate={setSelectedDate}
-                                            />
+                                            /> */}
 
 
                                             <div className="flex w-full h-10 rounded-extra space-x-2 mt-7">

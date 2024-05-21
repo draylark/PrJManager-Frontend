@@ -1,5 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 import plugin from 'tailwindcss/plugin';
+import defaultTheme from 'tailwindcss/defaultTheme';
+import colors from 'tailwindcss/colors';
+import { default as flattenColorPalette }from 'tailwindcss/lib/util/flattenColorPalette'
+
+// This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
+const addVariablesForColors = plugin(function({ addBase, theme }) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+
+  addBase({
+    ":root": newVars,
+  });
+});
 
 export default {
   content: ["./src/**/*.{html,js,tsx}"],
@@ -9,28 +24,44 @@ export default {
         '1/7': '14.2857143%',  // 100 ÷ 7
       },
       height: {
-        '6/7': '85.7142857%',  // 6/7 in percentage
+        '6/7': '85.7142857%',  // 6/7 en porcentaje
         '9/10': '90%',
         '1/5': '20%'
       },
       borderRadius: {
-        'extra': '2rem', // O cualquier otro valor que desees
+        'extra': '2rem',
       },
       screens: {
         'sn': '450px'
       },
       backdropBlur: {
-        xl: '80px', // Desenfoque de 20px
+        xl: '80px',
       },
       colors: {
-        'glass-blue': 'rgba(41, 155, 255, 0.1)', // Color azul claro con transparencia
+        ...colors, // Asegúrate de extender con todos los colores de Tailwind
+        'glass-blue': 'rgba(41, 155, 255, 0.1)',
       },
       borderColor: {
-        'glass-white': 'rgba(255, 255, 255, 0.2)', // Borde blanco con transparencia
+        'glass-white': 'rgba(255, 255, 255, 0.2)',
       },
       boxShadow: {
-        'glass-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)', // Sombra ligera
+        'glass-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)',
       },
+              
+        "animation": {
+          shimmer: "shimmer 2s linear infinite"
+        },
+        "keyframes": {
+          shimmer: {
+            from: {
+              "backgroundPosition": "0 0"
+            },
+            to: {
+              "backgroundPosition": "-200% 0"
+            }
+          }
+        }
+        
     },
   },
   plugins: [
@@ -45,5 +76,6 @@ export default {
       };
       addComponents(newComponents);
     }),
+    addVariablesForColors,
   ],
-}
+};

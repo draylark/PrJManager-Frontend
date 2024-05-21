@@ -1,0 +1,23 @@
+.nav-button {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 600; 
+  }
+.nav-button2 {
+    font-family: 'Montserrat', sans-serif; 
+}
+
+
+.user-image {
+  cursor: pointer;
+  height: 40px; /* 10 rem */
+  width: 40px; /* 10 rem */
+  border-radius: 50%; /* rounded-full */
+  margin-right: 12px; /* 3 rem */
+  border: 1px solid transparent; /* Define un borde inicial transparente */
+  transition: border-color 200ms ease, border-width 200ms ease; /* Transiciona ambas propiedades */
+}
+
+.user-image:hover {
+  border-color: blue; /* Nuevo color de borde al pasar el cursor */
+  border-width: 2px; /* Nuevo grosor del borde al pasar el cursor */
+}

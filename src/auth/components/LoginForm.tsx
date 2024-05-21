@@ -79,18 +79,9 @@ const LoginForm = () => {
                      email: data.payload.email,
                 });
 
-                console.log(mongoResponse)
-
-                const userNotis = await axios.get(`http://localhost:3000/api/notis/${ mongoResponse.data.user.uid }`);
-                
-                // console.log(userNotis)
-                // console.log('mongito', mongoResponse)
-
-          
+                console.log(mongoResponse)  
                 localStorage.setItem('x-token', mongoResponse.data.token )
-                dispatch(startUploadingNotis( userNotis.data.notis ))
                 dispatch( startGoogleLoginWEmailPassword( mongoResponse.data ) )
-
               } catch (error: any) {
                     console.error('LoginForm Error message:', error.response.data.msg);
                     dispatch( logout({ msg: error.response.data.msg, b: false }) )

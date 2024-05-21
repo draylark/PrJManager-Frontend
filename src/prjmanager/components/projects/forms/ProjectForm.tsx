@@ -22,7 +22,6 @@ export const ProjectForm = ({ uid, isProjectFormOpen, setIsProjectFormOpen }) =>
 
     const generateReadmeContent = (values, setFieldValue) => {
         if(firstTime){
-            console.log('Generating Readme Content')
             const content = `
 # ${values.name}
 ${values.description}
@@ -78,7 +77,6 @@ ${values.tags.length > 0 ? values.tags.join(' ') : 'No tags specified'}
                     'Authorization': localStorage.getItem('x-token')
                 }
             })
-            console.log(res.data)
             resetForm()
             setSubmitting(false)
             handleClose()
@@ -89,15 +87,23 @@ ${values.tags.length > 0 ? values.tags.join(' ') : 'No tags specified'}
                 confirmButtonText: 'Ok'
             })
         } catch (error) {
-            console.log(error)
-            setSubmitting(false)
-            setIsLoading(false)
-            Swal.fire({
-                title: 'Error',
-                text:  error.response.data.message || 'An error occurred while creating the project',
-                icon: 'error',
-                confirmButtonText: 'Ok'
-            })
+            setSubmitting(false);
+            setIsLoading(false);
+
+            if(  error.response.data?.type === 'projects-limit' ){
+                handleClose();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'User Projects limit reached\n ( 3 projects )',
+                    text: error.response.data.message,
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.response.data.message,
+                });
+            }
         }
     }
 
@@ -124,7 +130,7 @@ ${values.tags.length > 0 ? values.tags.join(' ') : 'No tags specified'}
 
 
   return (
-    <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
+    <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div 
                 id="projectFormModal"
                 className={`flex flex-col space-y-5 w-[70%] md:w-[50%] rounded-2xl pb-4 border-[1px] glass2 border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isProjectFormOpen ? '' : 'pointer-events-none'}`}

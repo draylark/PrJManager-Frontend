@@ -58,17 +58,8 @@ export const startGoogleLoginWEmailPassword = ( payload: DataM ) => {
 }
 
 
-export const startStatePersistence = ( userData: DataM, userNotes: [] ) => {
-
+export const startStatePersistence = ( userData: DataM ) => {
     return async( dispatch: ThunkDispatch<unknown, unknown, AnyAction> ) => {     
-        dispatch( checkingAuthentication() )
-
-        setTimeout(() => {
-            dispatch( setNotis( userNotes ) )   
-            dispatch( login( userData.user ) )   
-
-        }, 3000);
- 
+        dispatch( login( userData.user ) )   
     }
-
 }

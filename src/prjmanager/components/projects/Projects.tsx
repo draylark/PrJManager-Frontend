@@ -56,8 +56,6 @@ export const Projects = () => {
   )
 
   return (
-
-    <div id="projectsMainDiv" className="flex flex-col w-full h-full">
         <div id="projects" className="flex flex-col flex-grow w-full overflow-y-auto">
             {
               projectID 
@@ -111,13 +109,9 @@ export const Projects = () => {
 
                 )
             }
+
+            { isProjectFormOpen && <ProjectForm uid={uid} isProjectFormOpen={isProjectFormOpen} setIsProjectFormOpen={setIsProjectFormOpen} /> }
         </div>
-
-
-        { isProjectFormOpen && <ProjectForm uid={uid} isProjectFormOpen={isProjectFormOpen} setIsProjectFormOpen={setIsProjectFormOpen} /> }
-
-    </div>
-
 
   )
 }

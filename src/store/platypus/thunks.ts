@@ -120,7 +120,7 @@ export const fetchProjectReposAndLayers = ( projectID, accessLevel, uid ) => {
 export const fetchLayerRepositories = ( projectID: string, layerID: string, uid: string ) => {
     return async ( dispatch ) => {
         dispatch( setFetchingResources( true ) )
-        axios.get(`http://localhost:3000/api/repos/get-layer-repos/${ projectID }/${ layerID}`,
+        axios.get(`http://localhost:3000/api/repos/get-layer-repos/${ projectID }/${layerID}`,
         {
             params: {
                 uid
@@ -132,7 +132,6 @@ export const fetchLayerRepositories = ( projectID: string, layerID: string, uid:
         }
         )
         .then( ( response ) => {
-            console.log('Respuesta desde el thunk L', response)
             dispatch( setRepositories( response.data.repos ) )
             dispatch( setFetchingResources( false ) )
         })

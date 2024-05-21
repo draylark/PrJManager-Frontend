@@ -1,6 +1,6 @@
 import { cn } from "../../../utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
-import { cleanUrl } from "./helpers/cleanUrl";
+import { cleanUrl } from "./helpers/helpers";
 import { useState } from "react";
 import projectbg from '../../assets/imgs/projectbg.jpg'
  

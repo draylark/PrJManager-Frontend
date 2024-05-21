@@ -2,7 +2,6 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Project } from '../types/stateInterfaces';
 import { ProjectType } from '../types/stateTypes';
 import { platypusSlice } from '../gitlab/gitlabSlice';
-import { set } from 'date-fns';
 
 const initialState = {    
     currentProject: null,   

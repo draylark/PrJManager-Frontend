@@ -341,7 +341,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     }, [isRepoFormOpen]);
 
   return ( 
-    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
+    <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div
           id="repositoryTaskModal"
           style={{ 

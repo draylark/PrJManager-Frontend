@@ -23,13 +23,13 @@ export const Profile = () => {
   };
 
     return (
-        <div className='absolute z-10 h-16 right-0 mt-5 flex justify-end mr-10'>
+        <div className='absolute z-10 h-16 right-0 mt-5 flex justify-end mr-10 border-2 border-black'>
 
             { showNotis && (<ModalNotis setIsOpen={ setShowNotis }/>) }
 
             <button 
                 className='flex items-center justify-center glass mr-5 w-8 h-8 rounded-full transition-transform duration-150 ease-in-out transform active:translate-y-[2px]'
-                onClick={() => setShowNotis(prevShowNotis => !prevShowNotis)} // Modificado aquí
+                // onClick={() => setShowNotis(prevShowNotis => !prevShowNotis)} // Modificado aquí
             >   
                 <Icon size={18}>
                 <Noti/>
@@ -56,9 +56,7 @@ export const Profile = () => {
           </button>
 
           { isPopoverPrVisible && ( <Modalprofile setIsOpen={ setIsPopoverPrVisible }/> )}
-             
-              
-
+                       
         </div>
     );
 }

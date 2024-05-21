@@ -16,7 +16,7 @@ import projectbg from '../../assets/imgs/projectbg.jpg'
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { tierS } from '../../helpers/accessLevels-validator';
-import { cleanUrl } from './helpers/cleanUrl';
+import { cleanUrl } from './helpers/helpers';
 import { PuffLoader  } from 'react-spinners';
 
 export const Project = () => {

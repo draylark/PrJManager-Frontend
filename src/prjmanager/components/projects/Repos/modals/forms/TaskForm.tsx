@@ -57,12 +57,6 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
     // Límite de caracteres para la visualización en el Chip
     const MAX_CHARACTERS = 20;
 
-    const repoCollaborators = [
-        { id: '124', name: 'John Doe' },
-        { id: '245', name: 'Jane Doe' },
-        { id: '378', name: 'Jim Doe' },
-        { id: '434', name: 'Jill Doe' },
-    ]
 
     
     const handleTypeChange = (e, handleChange) => {
@@ -153,7 +147,6 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
 
         } catch (error) {
             console.log(error)
-            // resetForm();
             setSubmitting(false);
             setIsLoading(false);
             
@@ -190,7 +183,6 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                 repository_related_id: repoID,
                 task_name: '',
                 task_description: '',
-                status: 'completed', // Por defecto, según el esquema
                 goals: [],
                 additional_info: {
                     estimated_hours: 0,
@@ -200,7 +192,8 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                 priority: '', // Valor por defecto
                 type: '', // Valor por defecto
                 deadline: null,
-                assigned_to: null
+                assigned_to: null,
+                creator: uid
                 }}
                 validationSchema={TaskSchema}
                 onSubmit={handleSubmit}
@@ -208,6 +201,7 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                 {({ values, setFieldValue, handleChange, handleBlur, isSubmitting, errors, touched }) => (
                 <Form 
                     className="flex flex-col h-full space-y-7 mx-auto w-[95%] pt-5 pb-4 overflow-y-auto">
+                    {console.log(values)}
                     <IsTheButtonDisabled values={values} />
                     
                     <div className='flex space-x-2'>

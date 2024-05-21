@@ -234,7 +234,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
     }, [layerID])
 
     return (
-        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
+        <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="layerCollaboratorModal" 
               className={`flex flex-col space-y-5 w-[70%] glass2 border-[1px] border-gray-400 md:w-[50%] md:h-[620px]  rounded-2xl transition-opacity duration-300 ease-in-out opacity-0 ${isLayerCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
               style={{

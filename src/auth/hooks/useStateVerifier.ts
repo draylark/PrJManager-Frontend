@@ -5,12 +5,11 @@ import { RootState } from '../../store/store';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../store/auth/authSlice';
-import { startStatePersistence } from '../../store/auth/thunks';
+import { startStatePersistence, checkingAuthentication } from '../../store/auth/thunks';
 import { setGitlabAuth } from '../../store/auth/authSlice';
 
 export const useStateVerifier = () => {
 
-  
   const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('x-token');
@@ -42,9 +41,7 @@ export const useStateVerifier = () => {
     return results.map((result) => result.data);
   };
 
-  useEffect(() => {
-
-    const verifyUserState = async () => {
+  const verifyUserState = async () => {
       if (!token) {
         setLoading(false);
         dispatch(logout({}));
@@ -52,7 +49,6 @@ export const useStateVerifier = () => {
       }
 
       try {
-
         const userData = await getUserData(token);
         if (!userData.state) {
           setLoading(false);
@@ -60,23 +56,17 @@ export const useStateVerifier = () => {
           return;
         }
 
-        const [notis] = await getData(userData.user.uid);
-
-        dispatch(
-          startStatePersistence(
-            userData,
-            notis.notis,
-          )
-        );
-
+        dispatch(startStatePersistence(userData));      
         setLoading(false);
       } catch (error) {
         setLoading(false);
         dispatch(logout({}));
       }
+  };
 
-    };
 
+  useEffect(() => {
+    dispatch(checkingAuthentication());
     verifyUserState();
   }, [dispatch, token]);
 

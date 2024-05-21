@@ -5,7 +5,6 @@ import { RootState } from '../../../../store/store';
 import { Formik, Form, FormikHelpers } from 'formik';
 import { TextField } from '@mui/material'
 import { FormNames } from '../formFields/tasks/FormNames';
-import { DatePickers } from '../formFields/tasks/DatePickers';
 import { postNewTask, handleProjectChange } from '../../../helpers/formHelpers';
 import { startSavingNewTask } from '../../../../store/tasks/thunks';
 import LoadingCircle from '../../../../auth/helpers/Loading';
@@ -135,12 +134,12 @@ export const TaskModal: FC<TaskModalProps> = ({ setIsTaskModalOpen }) => {
 
                                              {/* { console.log(values)  } */}
                                            <FormNames/>
-
+{/* 
                                            <DatePickers 
                                                 selectedDate={selectedDate} 
                                                 setFieldValue={setFieldValue} 
                                                 setSelectedDate={setSelectedDate}
-                                            />
+                                            /> */}
 
                                             <div className='flex w-full h-10 rounded-extra space-x-2 mt-7'>
                                                  <Selectors label="Status" name="status" options={ statusOptions } className="w-[100%]"/>

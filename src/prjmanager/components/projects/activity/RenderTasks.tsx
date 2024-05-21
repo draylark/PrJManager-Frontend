@@ -18,7 +18,6 @@ import { Copy20Regular } from '@ricons/fluent'
 
 
 import { TaskCollaborators } from './TaskCollaborators';
-import { set } from 'date-fns';
 
 
   export const RenderTasks = ({ projectLayers, projectRepositories, tasksCompleted, setTasksCompleted, wFApprovalTasks, setWFApprovalTasks, setRender, render }) => {
@@ -480,7 +479,7 @@ import { set } from 'date-fns';
                                       <p className="text-[14px] text-gray-700 line-clamp-2 w-[82%]">{task.task_description}</p>
 
                                       <div className="mt-2">
-                                        <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">#{task.layer_number_task}</span>  
+                                        <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">#{task.repository_number_task}</span>  
                                         <span className={`inline-block ${ task.type === 'open' ? 'bg-pink-100 text-gray-700' : 'bg-black text-white'} rounded-full  px-3 py-1 text-[13px] font-semibold mr-2`}>{task.type}</span>                   
                                         <span className="inline-block bg-yellow-300 rounded-full px-3 py-1 text-sm font-semibold text-black mr-2">Commits: { task.commits_hashes.length }</span>
                                         <span className={`inline-block ${ task.status ==='completed' ? 'bg-blue-500 text-white' : 'bg-yellow-200 text-black' } rounded-full px-3 py-1 text-sm font-semibold  mr-2`}> {

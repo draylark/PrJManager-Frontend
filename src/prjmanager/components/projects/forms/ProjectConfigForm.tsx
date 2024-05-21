@@ -4,9 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { RootState } from '../../../../store/store';
 import { Formik, Form, Field } from 'formik';
 import { TextField, MenuItem, FormControl, Select, InputLabel, Autocomplete, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MdOutlineDeleteSweep } from "react-icons/md";
 import { ImCancelCircle } from "react-icons/im";
 import LoadingCircle from '../../../../auth/helpers/Loading';
@@ -187,7 +184,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
 
 
     return (
-        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
+        <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="projectConfigModal" 
                 style={{
                     backgroundImage: isBackgroundReady ? `url(${formbg})` : 'none',
@@ -292,16 +289,16 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                                         </FormControl>
                     
         
-                                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                                            <DatePicker  
+                                                        {/* <LocalizationProvider dateAdapter={AdapterDateFns}> */}
+                                                            {/* <DatePicker  
                                                                 sx={{width: '50%'}}                                     
                                                                 label="End Date"
                                                                 value={values.endDate}
                                                                 onChange={(date) => setFieldValue('endDate', date)}
                                                                 renderInput={(params) => <TextField {...params} />}
                                                                 minDate={values.startDate}
-                                                            />
-                                                        </LocalizationProvider>
+                                                            /> */}
+                                                        {/* </LocalizationProvider> */}
                                                     </div>
                                                     <Autocomplete
                                                         multiple
@@ -327,7 +324,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                                     />
 
 
-                                                    <div className='flex w-full justify-center '>                                     
+                                                    <div className='flex w-full justify-center'>                                     
                                                         <button 
                                                             type="submit"
                                                             disabled={ buttonDisabled || isSubmitting }

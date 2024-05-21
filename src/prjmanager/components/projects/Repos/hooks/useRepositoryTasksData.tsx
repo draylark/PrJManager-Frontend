@@ -8,6 +8,9 @@ export const useRepositoryTasksData = ( repoID: string ) => {
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [errorMessage, setErrorMessage] = useState(null)
+    const [errorWhileFetching, setErrorWhileFetching] = useState(false)
+
     const fetchCollaborators = async ( collaborators ) => {
         try {
           const response = await axios.post(`http://localhost:3000/api/users?limit=${collaborators.length}`, { IDS: collaborators });
@@ -18,7 +21,6 @@ export const useRepositoryTasksData = ( repoID: string ) => {
     };
 
     const fetchAndSetData = async (tasks) => {
-      console.log( 'tasks', tasks )
         setIsLoading(true);
         try {
         const tasksWithCollaborators = await Promise.all(tasks.map(async (task) => {
@@ -38,33 +40,39 @@ export const useRepositoryTasksData = ( repoID: string ) => {
         setTasks(tasksWithCollaborators);
         setIsLoading(false)
         } catch (error) {
-        console.error("Error fetching data:", error);
+          console.error("Error fetching data:", error);
         }
         setIsLoading(false);
     };
-    
-    useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                setIsLoading(true)
-                const { data: { tasks } } = await axios.get(`${backendUrl}/tasks/${repoID}`, {        
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('x-token')
-                    }
-                });
-               fetchAndSetData(tasks)
-            } catch (error) {
-                console.error('Error fetching tasks:', error);
-                setIsLoading(false)
-            }
+
+    const fetchTasks = async () => {
+        try {
+            setIsLoading(true)
+            const res = await axios.get(`${backendUrl}/tasks/${repoID}`, {        
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('x-token')
+                }
+            });
+            // console.log(res)
+            fetchAndSetData(res.data.tasks)
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+            setIsLoading(false)
+            setErrorWhileFetching(true)
+            setErrorMessage(error.response.data.message || 'There was an error while fetching repository tasks.')
         }
+    }
+
+    useEffect(() => {
         fetchTasks()
     }, [])
     
   return {
     isLoading,
     tasks,
-    setTasks
+    setTasks,
+    errorMessage,
+    errorWhileFetching
   }
 }

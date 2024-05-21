@@ -235,7 +235,7 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
     }, [showOptModal])
     
     return (
-        <div className='fixed flex w-screen h-screen pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
+        <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="projectCollaboratorModal" 
                   className={`flex flex-col space-y-5 w-[70%] md:w-[50%] md:h-[620px] rounded-2xl glass2 border-[1px] border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isProjectCollaboratorsFormOpen ? '' : 'pointer-events-none'}`}
                   style={{
@@ -478,6 +478,7 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
                                             <div id='newCollaborators' className='flex flex-col w-full h-full'>
                                                 <div className='flex flex-col w-full h-5/6 px-5'>
                                                     <Autocomplete
+                                                        fullWidth
                                                         options={users}
                                                         getOptionLabel={(option) => option.name}
                                                         renderOption={(props, option) => {
@@ -514,7 +515,6 @@ export const ProjectCollaboratorsForm = ({ setIsProjectCollaboratorsFormOpen, is
 
                                                           );
                                                         }}
-                                                        fullWidth
                                                         renderInput={
                                                           (params) => 
                                                           <TextField {...params} 

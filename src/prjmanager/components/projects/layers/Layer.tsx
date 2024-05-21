@@ -58,7 +58,7 @@ export const Layer = () => {
       }
     })
     .then(res => {
-      // console.log(res)
+      console.log(res)
       setLayer(res.data.layer)
       setIsLoading(false)
     })
@@ -113,7 +113,8 @@ export const Layer = () => {
   return (
     <div id='layer' className='flex flex-col h-full rounded-2xl w-full '>
         {
-          isLoading && layer === null ?  ( 
+          isLoading 
+          ? ( 
             <div className='flex flex-grow items-center justify-center'>
                 <PuffLoader  color="#32174D" size={50} /> 
             </div>                         

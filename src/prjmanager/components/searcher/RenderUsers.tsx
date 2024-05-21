@@ -12,14 +12,14 @@ export const RenderUsers = ({ users }) => {
 
     const { uid, username, photoUrl } = useSelector( (state: RootState) => state.auth )
     const { friends } = useSelector( (state: RootState) => state.friends )
+    const [requests, setRequests] = useState([])
+
 
     const onAddFriend = async (userId) => {
         setRequests([...requests, userId])
-        const response = await axios.post(`http://localhost:3000/api/friends/add-friend/${userId}`, { uid, username, photoUrl } )
+        const response = await axios.post(`http://localhost:3000/api/friends/friend-request/${userId}`, { uid, username, photoUrl } )
         console.log(response)
     }
-
-    const [requests, setRequests] = useState([])
 
   return (
     

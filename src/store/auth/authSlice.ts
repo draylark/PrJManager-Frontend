@@ -9,7 +9,11 @@ const initialState: Auth = {
   username: '',
   photoURL: '',
   description: '',
-  site: '',
+  topProjects: [],
+  website: '',
+  github: '',
+  linkedin: '',
+  twitter: '',
   gitlabAuth: false,
   errorMessage: '',
   state: true,
@@ -25,7 +29,7 @@ export const authSlice = createSlice({
 
         login: ( state, { payload } ) => {
 
-          // console.log(payload)
+          console.log(payload)
 
           state.status = 'authenticated', // 'not-authenticated', 'authenticated'
           state.uid = payload.uid,
@@ -33,7 +37,11 @@ export const authSlice = createSlice({
           state.username = payload.username,
           state.photoURL = payload.photoUrl || null,
           state.description = payload.description || null,
-          state.site = payload.site || null,
+          state.topProjects = payload.topProjects || [],
+          state.website = payload.website || null,
+          state.github = payload.github || null,
+          state.linkedin = payload.linkedin || null,
+          state.twitter = payload.twitter || null,
           state.errorMessage = null,
           state.state = payload.state
           state.friendsRequests = payload.friendsRequests || []
@@ -61,10 +69,15 @@ export const authSlice = createSlice({
 
         checkingCredentials: (state) => {
           state.status = 'checking'
+        },
+
+
+        setTopProjects: ( state, { payload } ) => {
+          state.topProjects = payload
         }
   
     }
 });
 
 // Action creators are generated for each case reducer function
-export const { login, logout, setGitlabAuth ,checkingCredentials } = authSlice.actions;		
+export const { login, logout, setGitlabAuth ,checkingCredentials, setTopProjects } = authSlice.actions;		

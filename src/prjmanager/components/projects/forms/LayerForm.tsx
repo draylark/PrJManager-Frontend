@@ -165,7 +165,7 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
 
 
     return (
-        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
+        <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div 
                 id='layerFormModal' 
                 style={{ 

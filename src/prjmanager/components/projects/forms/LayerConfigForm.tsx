@@ -12,7 +12,6 @@ import { RootState } from '../../../../store/store';
 import { ImCancelCircle } from "react-icons/im";
 import axios from 'axios';
 import bgform from './assets/formbg.jpg'
-import { set } from 'date-fns';
 import { PuffLoader  } from 'react-spinners';
 
 
@@ -183,7 +182,7 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
 
   return (
 
-    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
+    <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div 
             id="layerConfigModal" 
             style={{ 

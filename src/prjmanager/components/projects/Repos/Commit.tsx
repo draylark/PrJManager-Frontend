@@ -6,14 +6,13 @@ import { FileIcon } from 'react-file-icon';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { ArrowHookUpLeft16Regular } from '@ricons/fluent'
 import { Accordion, AccordionDetails, Breadcrumbs, TextField, Tooltip } from '@mui/material';
-import { cleanUrl } from '../helpers/cleanUrl';
+import { cleanUrl } from '../helpers/helpers';
 import { ArrowDropDownOutlined } from '@ricons/material'
 import FileCodeRegular from '@ricons/fa/FileCodeRegular'
 import { CodeOnBigScreen } from './modals/CodeOnBigScreen';
 import ArrowRightCircle from '@ricons/tabler/ArrowRightCircle'
 import FileSearchOutlined from '@ricons/antd/FileSearchOutlined'
 import { PuffLoader  } from 'react-spinners';
-import { set } from 'date-fns';
 
 export const Commit = () => {
 

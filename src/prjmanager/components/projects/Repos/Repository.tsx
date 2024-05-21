@@ -78,11 +78,13 @@ export const Repository = () => {
         }
       })
       .then( res => {
+        console.log(res)
         setFiles(res.data.files)
         setCurrentBranch(res.data.branch)
         setLoadingFiles(false)
       })
       .catch( error => {
+        console.log(error)
         setLoadingFiles(false)
         setErrorWhileFetching(true)
         setErrorType(error.response.data.type || 'Error')
@@ -118,11 +120,11 @@ export const Repository = () => {
       }
     })
     .then( res => {
-      // console.log(res)
+      console.log(res)
       handleRepoData(res.data.repo)
     })
     .catch( error => {
-      // console.log(error)
+      console.log(error)
       setIsLoading(false)
       setErrorWhileFetching(true)
       setErrorType(error.response.data.type || 'Error')
@@ -234,7 +236,7 @@ export const Repository = () => {
     </div>
   );
 
-  console.log(selectedFileContent)
+  // console.log(selectedFileContent)
 
     return (
       <div className="flex h-full w-full">

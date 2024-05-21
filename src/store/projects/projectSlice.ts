@@ -37,11 +37,8 @@ export const projectSlice = createSlice({
         },
 
         addTopProject: ( state, { payload } ) => {
-            state.topProjects = []
-            console.log( payload )
-            payload.forEach( ( projectId ) => {
-                state.topProjects.push( projectId )
-            });
+            console.log( payload )            
+            state.topProjects = payload
             state.loading = false
         },
 

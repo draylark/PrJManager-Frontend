@@ -10,13 +10,8 @@ interface PanelProps {
 const PrJManager = ({ children } : PanelProps) => {
 
 
-  // const location = useLocation();
-  // console.log(location)
-
-
   return (
-    <div id="prjmanager" className="flex overflow-y-auto h-screen w-screen bg-gray-100">
-      {/* Panel del Dashboard */}
+    <div id="prjmanager" className="flex overflow-y-auto h-full max-h-[840px] w-screen bg-gray-100 ">
 
       <Nav/>
 
@@ -26,8 +21,6 @@ const PrJManager = ({ children } : PanelProps) => {
 
     </div>
   )
-
-
 
 }
 

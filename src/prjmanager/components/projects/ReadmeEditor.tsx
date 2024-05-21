@@ -69,7 +69,6 @@ Una breve descripción del proyecto, explicando su propósito, funcionalidades p
                 <div className='flex w-full h-full justify-center items-center '>
                 <button 
                     type='submit'
-                //  onClick={() => setNextStep(true)}
                     className={`w-[95%] h-[55px] rounded-extra p-2 bg-blue-400/20 shadow-sm border-[1px] border-gray-400 transition-colors duration-300 ease-in-out transform active:translate-y-[2px]`}
                 >
                     Create Project

@@ -39,7 +39,7 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
 
 
     return (
-        <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center z-50'>
+        <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center z-50'>
             <div id="bigScreenModal" className={`relative flex flex-col space-y-5 w-full h-full overflow-hidden bg-[#282a36] transition-opacity duration-300 ease-in-out opacity-0 ${isCodeOnBigScreenOpen ? '' : 'pointer-events-none'}`}>
             {
                     getExtension(fileName) 

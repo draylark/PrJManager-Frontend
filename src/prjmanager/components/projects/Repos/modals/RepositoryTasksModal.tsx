@@ -26,7 +26,7 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
   const [render, setRender] = useState('completed');
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [ taskNameFilter, setTaskNameFilter ] = useState('');
-  const { tasks, setTasks,  isLoading } = useRepositoryTasksData(repoID);
+  const { tasks, setTasks,  isLoading, errorWhileFetching, errorMessage } = useRepositoryTasksData(repoID);
 
 
     const handleClose = () => {
@@ -60,10 +60,10 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
       }
     }, [isTasksModalOpen]);
     
-    // console.log(tasksCompleted)
+    // console.log('tasks',tasks)
 
   return ( 
-    <div className='fixed flex w-screen h-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
+    <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div
           id="repositoryTaskModal"
           style={{ 
@@ -77,7 +77,7 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
           className={`flex flex-col space-y-2 w-[90%] overflow-hidden md:w-[50%] transition-colors duration-300 glass2 border-[1px] border-gray-400
                       ${taskFormOpen && goalsExpanded ? 'md:h-[750px] md:min-h-[750px]' 
                       :  taskFormOpen ? 'md:h-[640px] md:min-h-[625px]' 
-                      : 'md:h-[760px]'} rounded-2xl ${isTasksModalOpen ? '' 
+                      : 'md:h-[800px]'} rounded-2xl ${isTasksModalOpen ? '' 
                       : 'pointer-events-none'}`}
 
         >
@@ -89,6 +89,14 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
                     <PuffLoader  color="#ffffff" size={50} /> 
                 </div>                         
               )           
+            :
+            errorWhileFetching 
+            ? 
+              (
+                <div className='flex w-full h-full items-center justify-center'>
+                  <h1 className='text-red-500'>{errorMessage}</h1>
+                </div>
+              )
             :
             <>
               <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500'>
@@ -186,7 +194,7 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
                                 tierA(uid, project, layer, repo)
                             ? (   
                                 <TaskAdd 
-                                    className='w-8 h-8 hover:text-gray-400 transition-colors duration-100 mr-2 cursor-pointer'
+                                    className='w-8 h-8 hover:text-blue-400 transition-colors duration-200 mr-2 cursor-pointer'
                                     onClick={() => setTaskFormOpen(true)}
                                 />
                   

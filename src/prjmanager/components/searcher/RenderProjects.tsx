@@ -6,7 +6,7 @@ import { Divider, Chip } from '@mui/material';
 import projectimg from '../../assets/imgs/projectbg.jpg';
 import { HandshakeFilled } from '@ricons/material'; // Asegúrate de tener este ícono disponible
 import { useNavigate } from 'react-router-dom';
-import { cleanUrl } from '../projects/helpers/cleanUrl';
+import { cleanUrl } from '../projects/helpers/helpers';
 
 export const RenderProjects = ({ projects }) => {
 

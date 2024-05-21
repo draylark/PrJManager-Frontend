@@ -1,3 +1,47 @@
+@import 'primereact/resources/themes/saga-blue/theme.css'; 
+@import 'primereact/resources/primereact.min.css';      
+@import 'primeicons/primeicons.css';                     
+
+
+
+/* Agregar margen a la fecha */
+.vertical-timeline-element-date {
+ margin-left: 20px; /* Ajusta el valor según sea necesario */
+ margin-right: 20px; /* Ajusta el valor según sea necesario */
+}
+
+
+/* Timeline.css */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+}
+
+.timeline-event {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.timeline-date {
+  flex: 1;
+  font-weight: bold;
+}
+
+.timeline-type.commit {
+  color: green;
+}
+
+.timeline-type.issue {
+  color: red;
+}
+
+.timeline-description {
+  flex: 2;
+}
+
+
 .dashboard-container {
     background-color: rgba(173, 216, 230, 0.6);
     border-radius: 12px;

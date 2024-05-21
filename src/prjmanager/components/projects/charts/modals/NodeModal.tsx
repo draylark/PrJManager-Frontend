@@ -2,7 +2,7 @@ import { useSelector } from "react-redux"
 import { useState, useEffect } from "react";
 import { FaGitAlt, FaEye, FaStar, FaCodeBranch, FaLayerGroup } from 'react-icons/fa';
 import { useNavigate } from "react-router-dom";
-import { cleanUrl } from "../../helpers/cleanUrl";
+import { cleanUrl } from "../../helpers/helpers";
 import { MdLayers } from "react-icons/md";
 
 export const NodeModal = ({ project, nodeData } ) => {

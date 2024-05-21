@@ -247,7 +247,7 @@ export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, han
     }, [tasks, userFilter, render, nameFilter]); 
 
     return (
-          <div id='container-scroll' className="flex flex-col flex-grow space-y-3 items-center max-h-[620px] h-full overflow-y-auto">
+          <div id='container-scroll' className="flex flex-col flex-grow space-y-3 items-center max-h-[650px] h-full overflow-y-auto">
                 {    
 
                     filteredTasks.length === 0
@@ -356,7 +356,7 @@ export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, han
                                     <p className="text-[14px] text-gray-700 line-clamp-2 w-[600px]">{task.task_description}</p>
 
                                     <div className=" mt-1 ">
-                                          <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-[10px] font-semibold text-gray-700 mr-2">#{task?.layer_number_task || task?.repository_number_task}</span>  
+                                          <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-[10px] font-semibold text-gray-700 mr-2">#{task?.repository_number_task}</span>  
                                           <span className={`inline-block ${ task.type === 'open' ? 'bg-pink-100 text-gray-700' : 'bg-black text-white'} rounded-full  px-3 py-1 text-[10px] font-semibold mr-2`}>{task.type}</span>                                                                           
                                           <span className="inline-block bg-yellow-300 rounded-full px-3 py-1 text-[10px] font-semibold text-black mr-2">Commits: { task.commits_hashes.length }</span>
                                           <span className={`inline-block text-[10px] ${ 

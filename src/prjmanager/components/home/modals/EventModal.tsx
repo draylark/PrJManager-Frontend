@@ -4,7 +4,6 @@ import { TextField } from '@mui/material'
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FormNames } from '../formFields/events/FormNames';
-import { DatePickers } from '../formFields/events/DatePickers';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/store';
 import { ParticipantsField } from '../formFields/events/ParticipantsField';
@@ -135,13 +134,13 @@ export const EventModal: FC<EventModalProps> = ({ setIsEventModalOpen }) => {
                                             {console.log(values)}
                                            <FormNames/>
 
-                                           <DatePickers 
+                                           {/* <DatePickers 
                                                 selectedDate={selectedDate} 
                                                 setFieldValue={setFieldValue} 
                                                 endDate={endDate}
                                                 setEndDate={setEndDate}
                                                 setSelectedDate={setSelectedDate}
-                                            />
+                                            /> */}
 
 
                                             <div className="flex w-full h-10 rounded-extra space-x-2 mt-7">

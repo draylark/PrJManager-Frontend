@@ -15,7 +15,6 @@ import { Task, Notification, Project, Auth, Client, Event, Friend, Commit, Repos
 
 export interface RootState {
     auth: Auth,
-    notis: Notification,
     projects: Project,
     task: Task,
     clients: Client,
@@ -30,7 +29,6 @@ export interface RootState {
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
-    notis: notisSlice.reducer,
     projects: projectSlice.reducer,
     events: eventSlice.reducer,
     friends: friendSlice.reducer,

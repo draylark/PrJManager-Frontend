@@ -1,10 +1,11 @@
-import { useEffect, useState, SyntheticEvent } from 'react';
+import { useEffect, useState } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import { useSelector } from 'react-redux';
 import { ProjectType } from '../../../../../store/types/stateTypes';
 import { RootState } from '../../../../../store/store';
 import { useFormikContext } from 'formik';
+import Swal from 'sweetalert2';
 
 interface OptionType {
   value: string;
@@ -22,11 +23,20 @@ export const ProjectField = () => {
   const [selectedOptions, setSelectedOptions] = useState<readonly OptionType[]>([]);
 
 
-  const handleClientSelect = ( _: SyntheticEvent<Element, Event>,  newValues: readonly OptionType[] ) => {
-    console.log(newValues)
-    setSelectedOptions(newValues);  // Actualizar el estado local para las etiquetas
-    const newProjectValues = newValues.map((project) => project.value);
-    setFieldValue('topProjects', newProjectValues);
+  const handleClientSelect = (_, newValues) => {
+    // Permitir sólo hasta tres selecciones
+    if (newValues.length <= 3) {
+      setSelectedOptions(newValues); // Actualizar el estado local para las etiquetas
+      const newProjectValues = newValues.map((project) => project.value);
+      setFieldValue('topProjects', newProjectValues);
+    } else {
+      Swal.fire({
+        title: 'Error',
+        text: 'You can only select up to 3 projects, delete one to add another one.',
+        icon: 'error',
+        confirmButtonText: 'Ok',
+      });
+    }
   };
 
 

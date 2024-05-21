@@ -11,11 +11,36 @@
     white-space: nowrap; /* Asegura que el contenido no se divida en varias líneas */
   }
 
+
+  .resize-panel {
+    overflow: auto; /* Permite scroll si el contenido es muy grande */
+}
+
+  #resizer {
+      cursor: col-resize; /* Cursor que indica que el elemento se puede arrastrar horizontalmente */
+      z-index: 10; /* Asegúrate de que el resizer está sobre los otros elementos */
+  }
+
+  #goals {
+    max-height: 260px; /* Ajusta esto según tus necesidades */
+    overflow-y: auto; /* Habilita el scroll vertical cuando el contenido exceda el max-height */
+    padding: 15px;
+    background: #f9f9f9; /* Color de fondo */
+    border-radius: 10px; /* Bordes redondeados para un look más suave */
+    box-shadow: 0 4px 6px rgba(206, 175, 175, 0.1); /* Sombra suave para profundidad */
+}
+
+
 .info-box-shadow-treechart {
     box-shadow: 0 5px 12px 0 rgba( 31, 38, 135, 0.37 );
   }
 
 .treechart-container {
+    box-shadow: 0 5px 4px 0 rgba( 31, 38, 135, 0.37 );
+
+  }
+
+.settask-container {
     box-shadow: 0 5px 4px 0 rgba( 31, 38, 135, 0.37 );
 
   }

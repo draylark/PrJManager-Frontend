@@ -10,7 +10,6 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useFetchComments } from './hooks/useFetchComments';
-import { format } from 'date-fns';
 import { tierS, tierA } from '../../../helpers/accessLevels-validator';
 import { PuffLoader  } from 'react-spinners';
 
@@ -142,7 +141,7 @@ export const Comments = () => {
     const getAccurateDate = (date) => {
         return (
             <Typography component="span" style={{ color: 'gray', fontSize: '10px' }}>
-                {format(new Date(date), 'MMMM do, yyyy')}
+                { date }
             </Typography>
         )
 
