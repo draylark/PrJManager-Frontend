@@ -14,7 +14,7 @@ export const QuickNotis = ({ uid }) => {
   const { notifications, isLoading, errorMessage, errorWhileFetching } = useQuickNotisData(uid)
 
 
-  const describeNotification = (type, noti) => {
+  const renderNotification = (type, noti) => {
 
     switch (type) {
       case 'new-task-commit':
@@ -119,8 +119,8 @@ export const QuickNotis = ({ uid }) => {
       default: 
         return <p>Unidentified Type</p>;
     }
-  }
-// console.log( notifications)
+  };
+
   const handleInvitation = (accepted, taskId, notiId, taskName) => {
       axios.put(`${backendUrl}/tasks/handle-task-invitation/${taskId}`, {
         uid,
@@ -133,7 +133,7 @@ export const QuickNotis = ({ uid }) => {
       })
       .then( res => {
         Swal.fire({
-          title: res.data.message || 'Invitation handled.',
+          title: res.data.message || 'Invitation Handled.',
           icon: 'success',
           timer: 2000,
           showConfirmButton: false
@@ -152,7 +152,6 @@ export const QuickNotis = ({ uid }) => {
         }
       })
       .catch( error => {
-        console.error(error);
         Swal.fire({
           title: error.response.data.message || 'Error handling invitation',
           icon: 'error',
@@ -160,8 +159,7 @@ export const QuickNotis = ({ uid }) => {
           showConfirmButton: false
         });
       })
-  }
-
+  };
 
   const invitationAlert = (notiId, taskId, taskName) => {
     Swal.fire({
@@ -182,8 +180,7 @@ export const QuickNotis = ({ uid }) => {
         handleInvitation(false, taskId, notiId,  taskName)
       }
     })
-  }
-
+  };
 
   return (
     <div className="flex flex-col space-y-4 flex-grow max-h-[252px] overflow-y-auto  rounded-b-extra">
@@ -213,7 +210,6 @@ export const QuickNotis = ({ uid }) => {
                   notifications.map((noti, index) => (
                     <div key={index} id="bu" className="flex space-x-2 w-full  px-5 ">
                       <img
-                          key={noti._id}
                           className="w-6 h-6 border-[1px] border-white rounded-full dark:border-gray-800"
                           src={ platy || `https://dummyimage.com/500x500/000/fff&text=S`}
                           alt=''
@@ -223,7 +219,7 @@ export const QuickNotis = ({ uid }) => {
                           }}
                       />
 
-                      {describeNotification(noti.type, noti)}
+                      {renderNotification(noti.type, noti)}
                     </div>
                   ))
                 )         

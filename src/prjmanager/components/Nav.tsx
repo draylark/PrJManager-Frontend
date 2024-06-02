@@ -18,10 +18,12 @@ export const Nav = () => {
     const pathName = location.pathname
     const [isNotisModalOpen, setIsNotisModalOpen] = useState(false)
     const { username } = useSelector( state => state.auth )
-
+    
+    // ! 14213d
+    // ! 0a1128
 
     return (
-      <div className="relative sidebar flex flex-col items-center bg-gray-800 text-white w-64 min-h-screen">
+      <div className="relative sidebar flex flex-col items-center bg-[#0a1128] text-white w-64 min-h-screen">
         
         { isNotisModalOpen && <NotificationsModal setIsOpen={ setIsNotisModalOpen }/> }
 

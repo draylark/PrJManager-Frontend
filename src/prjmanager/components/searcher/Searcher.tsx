@@ -1,8 +1,5 @@
-import { useEffect, useState, Fragment } from 'react'
-import { PersonAdd28Regular, PersonAvailable20Regular } from '@ricons/fluent'
-import { TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, Divider, Box, IconButton, Dialog, DialogContent, DialogTitle, DialogActions, Typography } from '@mui/material';
-import WechatOutlined from '@ricons/antd/WechatOutlined'
-import { Icon } from '@ricons/utils'
+import { useEffect, useState } from 'react'
+import { TextField} from '@mui/material';
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store/store'
 import axios from 'axios'
@@ -28,16 +25,16 @@ export const Searcher = () => {
             const response = await axios.post(`http://localhost:3000/api/searcher/${searchType}`, { searchTerm } )            
             const results = response.data.results
 
-            console.log(results)
+
             setResults(results)
 
         }
         fetchSearch()
     }, [searchTerm, searchType])
-
+            console.log(results)
   return (
-    <div className='flex flex-col w-full space-y-7 rounded-extra p-2'>
-        <div className='flex flex-col w-full rounded-extra  mt-4 '>
+    <div className='flex flex-col w-full space-y-7 p-2'>
+        <div className='flex flex-col w-full rounded-extra mt-4 px-4'>
             <TextField
                 id="outlined-basic"
                 label="Search"
@@ -74,7 +71,7 @@ export const Searcher = () => {
         </div>
 
 
-        <div className="h-full max-h-[690px] overflow-y-auto rounded-extra px-4 space-y-4 pr-8">
+        <div className="h-full max-h-[650px] overflow-y-auto pr-8 px-4">
             {
                 searchTerm === '' ?
                 (
@@ -95,8 +92,7 @@ export const Searcher = () => {
                 :
                     searchType === 'profiles' 
                     ? ( <RenderUsers users={results}  /> )      
-                    : ( <RenderProjects projects={results} />)
-                
+                    : ( <RenderProjects projects={results} />)          
             }
         </div>   
     </div>

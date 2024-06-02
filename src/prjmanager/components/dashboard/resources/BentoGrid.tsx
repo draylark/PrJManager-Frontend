@@ -68,9 +68,6 @@ export const BentoGridItem = ({
     header?: React.ReactNode;
     icon?: React.ReactNode;
   }) => {
-
-    console.log(textColor)
-
     return (
       <div
         style={{

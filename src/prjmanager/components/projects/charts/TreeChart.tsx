@@ -103,9 +103,9 @@ export const TreeChart = () => {
     )
 
     if( fetchingResources ) return  ( 
-        <div className='flex flex-grow items-center justify-center'>
-            <PuffLoader  color="#32174D" size={50} /> 
-        </div> 
+      <div className='flex flex-grow items-center justify-center'>
+          <PuffLoader  color="#32174D" size={50} /> 
+      </div> 
     ) 
 
    

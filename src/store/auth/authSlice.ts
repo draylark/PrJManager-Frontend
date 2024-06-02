@@ -9,6 +9,7 @@ const initialState: Auth = {
   username: '',
   photoURL: '',
   description: '',
+  followers: 0,
   topProjects: [],
   website: '',
   github: '',
@@ -42,6 +43,7 @@ export const authSlice = createSlice({
           state.github = payload.github || null,
           state.linkedin = payload.linkedin || null,
           state.twitter = payload.twitter || null,
+          state.followers = payload.followers || 0,
           state.errorMessage = null,
           state.state = payload.state
           state.friendsRequests = payload.friendsRequests || []

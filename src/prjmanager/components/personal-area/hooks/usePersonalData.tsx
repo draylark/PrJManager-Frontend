@@ -9,6 +9,7 @@ export const usePersonalData = ( uid ) => {
 
     const [fetchingProjects, setFetchingProjects] = useState(true)
     const [fetchingTimelineData, setFetchingTimelineData] = useState(true)
+    const [followersLength, setFollowersLength] = useState(null)
 
     const [projectsErrorMessage, setProjectsErrorMessage] = useState(null);
     const [projectsErrorWhileFetching, setProjectsErrorWhileFetching] = useState(false);
@@ -87,7 +88,6 @@ export const usePersonalData = ( uid ) => {
         })
     }
 
-
     const fetchTimelineData = () => {
         setFetchingTimelineData(true)
         const url = `http://localhost:3000/api/users/timeline-activity/${uid}`;
@@ -108,8 +108,20 @@ export const usePersonalData = ( uid ) => {
         })
     }
 
+    const fetchFollowersLength = () => {
+        axios.get(`http://localhost:3000/api/users/get-followers-length/${uid}`)
+        .then((response) => {
+            setFollowersLength(response.data.followersLength)
+        })
+        .catch((error) => {
+            console.log(error)
+        })
+    
+    }
+
     useEffect(() => {   
         fetchProjects()
+        fetchFollowersLength()
     }, [])
 
     useEffect(() => {
@@ -128,6 +140,7 @@ export const usePersonalData = ( uid ) => {
   return {
     timelineData,
     projects,
+    followersLength,
 
     selected,
     setSelected,

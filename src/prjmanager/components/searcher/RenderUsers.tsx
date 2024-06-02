@@ -1,103 +1,40 @@
-import {  useState, Fragment } from 'react'
-import { PersonAdd28Regular, PersonAvailable20Regular } from '@ricons/fluent'
-import Friendship from '@ricons/carbon/Friendship'
-import { List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, Divider } from '@mui/material';
-import WechatOutlined from '@ricons/antd/WechatOutlined'
-import { Icon } from '@ricons/utils'
-import { useSelector } from 'react-redux'
-import { RootState } from '../../../store/store'
-import axios from 'axios'
+import { useNavigate } from 'react-router-dom';
+import { cleanUrl, getInitialsAvatar } from '../projects/helpers/helpers';
+
+
 
 export const RenderUsers = ({ users }) => {
 
-    const { uid, username, photoUrl } = useSelector( (state: RootState) => state.auth )
-    const { friends } = useSelector( (state: RootState) => state.friends )
-    const [requests, setRequests] = useState([])
-
-
-    const onAddFriend = async (userId) => {
-        setRequests([...requests, userId])
-        const response = await axios.post(`http://localhost:3000/api/friends/friend-request/${userId}`, { uid, username, photoUrl } )
-        console.log(response)
-    }
+  const navigate = useNavigate()
 
   return (
-    
-        <List dense>
-            {
-                users.map( ( user, index ) => (                       
-                        <Fragment  key={user.uid} > 
-                            <ListItem style={{ padding: '10px' }} >
-                                <ListItemAvatar>
-                                    <Avatar alt={ user.username } src={ user.photoUrl || user.username }  />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary={user.username}
-                                    secondary={user.uid}
-                                />
-                                <ListItemSecondaryAction>
-                                <div className='flex space-x-6 items-center h-full mb-2'>                      
-                                        <div className='flex flex-col justify-center items-center h-12 mt-2'>
-                                            <button className='w-10 h-8 rounded-xl glassi border-1 border-black hover:bg-blue-500/40 transition-colors duration-150 ml-1'>
-                                                <Icon >
-                                                    <WechatOutlined/>
-                                                </Icon>
-                                            </button>
-                                            <p className='text-[9px] ml-1'>Message</p>
-                                        </div>
-                                        <div className='flex flex-col justify-center items-center h-12 mt-2'>
+    <>
+    {
+        users.map( ( user) => (                       
+            <div 
+                key={user.uid} 
+                className='flex justify-between items-center hover:bg-slate-300 transition-all duration-150 ease-in-out cursor-pointer py-4 px-4   border-b-[1px] border-black'  
+                onClick={() => navigate(`/profile/${cleanUrl(user.username)}`, { state: { user: { uid: user.uid, username: user.username } } })}
+                > 
+                    <div className='flex space-x-4 items-center'>
+                        <img 
+                            className='w-12 h-12 rounded-full'
+                            alt={ user.username } 
+                            src={ user.photoUrl || getInitialsAvatar(user.username) }                                      
+                        />
+                        <h3 className='text-[15px] font-semibold'>@{user.username}</h3>
+                    </div>
 
-                                            {
-
-                                                friends.includes(user.uid) ? (
-                                                    <>
-                                                        <div className='flex items-center justify-center w-10 h-8 rounded-xl glassi border-1 border-black ml-1'>
-                                                            <Icon >
-                                                                <Friendship className='text-green-600'/>
-                                                            </Icon>
-                                                        </div>
-                                                        <p className='text-[9px] ml-1'>Friend</p>                   
-
-                                                    </>
-                                                ) : 
-                                                requests.includes(user.uid) ? (
-                                                    <>
-                                                        <div className='flex items-center justify-center w-10 h-8 rounded-xl glassi border-1 border-black ml-1'>
-                                                            <Icon >
-                                                                <PersonAvailable20Regular className='text-green-600' />
-                                                            </Icon>
-                                                        </div>
-                                                        <p className='text-[9px] ml-1 text-green-600'>Added</p>                   
-                                                    </>
-                                                    
-                                                ) : (   
-                                                    <>
-                                                        <button 
-                                                            onClick={ () => onAddFriend(user.uid)}
-                                                            className='w-10 h-8 rounded-xl glassi border-1 border-black hover:bg-blue-500/40 transition-colors duration-150 ml-1'>
-                                                            <Icon >
-                                                                <PersonAdd28Regular/>
-                                                            </Icon>
-                                                            
-                                                        </button>
-                                                        <p className='text-[9px] ml-1'>Add</p>
-                                                    </>                                                         
-                                                    )
-
-                                            }                                     
-                                       </div>
-                                    </div>  
-                                    
-                                </ListItemSecondaryAction>
-                            </ListItem>
-
-                            {
-                                user !== users[users.length - 1] && <Divider variant="inset" component="li"   style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', marginBottom: '5px'  }} />
-                            }
-
-                        </Fragment>
-                    ))
-            }
-        </List>
+                    <div className='flex space-x-6 items-center h-full'>                      
+                        <h2
+                            className='text-[18px] font-semibold text-blue-400 nav-button'
+                        >
+                            Projects: <span className='text-black ml-2'>{user.projects}</span>
+                        </h2>
+                    </div>  
+            </div>
+        ))
+    }
+    </>
   )
 }

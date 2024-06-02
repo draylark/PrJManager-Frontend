@@ -8,6 +8,8 @@ import { ScaleLoader } from 'react-spinners';
 import { BeatLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
 import { getInitialsAvatar } from "../projects/helpers/helpers";
+import { useNavigate } from "react-router-dom";
+import { cleanUrl } from "../projects/helpers/helpers";
 
 type MyComponentProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -16,6 +18,7 @@ type MyComponentProps = {
 
 export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
 
+  const navigate = useNavigate()
   const { uid, photoURL, username } = useSelector( (selector) => selector.auth);
   const { notifications, fetchingNotifications, errorMessage, errorWhileFetching } = useNotificationsData(uid)
 
@@ -218,7 +221,45 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
             <div className="border-[1px] border-gray-300 w-full"/>      
           </div>
         );
-      default:
+      case 'new-follower' :
+        return (
+          <div className="flex flex-col items-center space-y-4">
+            <div className="flex items-center space-x-3 justify-between w-full">
+              <div className="flex items-center space-x-3">
+                <img
+                  src={request.from.photoUrl || getInitialsAvatar(request.from.name)}
+                  className='border-[1px] border-gray-400 rounded-full'
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                  }}
+                />
+                <div className="flex flex-col h-full">
+                  <p className="text-[9px] text-black">{request.type}</p>
+                  <p 
+                    className="w-[200px] text-black text-xs font-semibold cursor-pointer"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate(`/profile/${cleanUrl(request.from.name)}`, {
+                        state: {
+                          user: {
+                            uid: request.from.ID,
+                            username: request.from.name
+                          }
+                        }
+                      })
+                    }}
+                  >
+                    @{request.from.name}
+                  </p>
+                  <p className="text-black text-xs">Started following you.</p>
+                </div>
+              </div>     
+            </div>
+            <div className="border-[1px] border-gray-300 w-full"/>        
+          </div>
+        )
+        default:
         return <p>Unidentified Type</p>;
       }
   };
@@ -234,6 +275,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
     };
   }, []);
 
+  console.log(notifications)
   const animationClasses = isActive ? 'opacity-100' : 'opacity-0';
 
   return (

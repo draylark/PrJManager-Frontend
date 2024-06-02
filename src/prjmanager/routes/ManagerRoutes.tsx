@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Home } from '../components/home/Home'
 import PrJManager from '../views/PrJManager'
-import { Projects, Dashboard, Project, Layer, Repository, Comments, Searcher, TreeChart, Activity, Commits, Commit, Workspace, Resources, TaskSetDetails, PersonalArea } from '../components'
+import { Projects, Dashboard, Project, Layer, Repository, Comments, Searcher, TreeChart, Activity, Commits, Commit, Workspace, Resources, TaskSetDetails, PersonalArea, Profile } from '../components'
 // import ExtAuth from '../../auth/components/ExtAuth'
 
 
@@ -38,9 +38,9 @@ const ManagerRoutes = () => {
                 </Route>             
             </Route>
 
-            <Route path='personal-area/:username' element={ <PersonalArea/> }/>        
+            <Route path='personal-area/:username' element={ <PersonalArea/> }/>    
+            <Route path='profile/:username' element={ <Profile/> }/>
             <Route path='searcher' element={ <Searcher/> }/>
-
         </Routes>
     </PrJManager>
   )

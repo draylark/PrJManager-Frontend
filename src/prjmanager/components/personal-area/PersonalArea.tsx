@@ -6,15 +6,10 @@ import { FaLayerGroup, FaTasks, FaCheck, FaUserCheck } from 'react-icons/fa';
 import { ScaleLoader } from 'react-spinners';
 import { usePersonalData } from './hooks/usePersonalData';
 import { RenderProjects } from './RenderProjects';
-import { IosLink, LogoLinkedin } from '@ricons/ionicons4';
-import Github from '@ricons/fa/Github';
-import { FaXTwitter } from "react-icons/fa6";
-import { PiGitCommitLight } from "react-icons/pi";
 import { FaGitAlt } from "react-icons/fa6";
 import { VscRepoPush } from "react-icons/vsc";
 import { TbFolderPlus } from "react-icons/tb";
 import { TaskAdd } from '@ricons/carbon'
-import { LayersSharp } from '@ricons/material'
 import { Tooltip } from '@mui/material';
 import { PiGitCommitBold } from "react-icons/pi";
 import { ArrowLeftFilled, ArrowRightFilled } from '@ricons/material'
@@ -22,6 +17,8 @@ import { ArrowCounterclockwise16Regular } from '@ricons/fluent'
 import { Icon } from '@ricons/utils';
 import { Followers } from './modals/Followers';
 import { MyLinks } from './modals/MyLinks';
+import { getInitialsAvatar } from '../projects/helpers/helpers';
+import { abbreviateNumber, capitalizeFirstLetter } from '../../helpers/helpers';
 
 const eventIcons = {
   project_created: <TbFolderPlus />,
@@ -201,9 +198,8 @@ const getEventDescription = (type, data) => {
 
 export const PersonalArea = () => {
 
-
-  const { uid, username, photoUrl, email, site, followers, following } = useSelector(state => state.auth);
-  const { projects, timelineData, selected, setSelected, 
+  const { uid, username, photoUrl, email, followers } = useSelector(state => state.auth);
+  const { followersLength, projects, timelineData, selected, setSelected, 
     timelineErrorMessage, timelineErrorWhileFetching, projectsErrorMessage, projectsErrorWhileFetching,
     endDate, startDate, fetchingProjects, fetchingTimelineData, handleNext, handlePrevious } = usePersonalData(uid);
 
@@ -211,40 +207,27 @@ export const PersonalArea = () => {
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false)
   const [isMyLinksModalOpen, setIsMyLinksModalOpen] = useState(false)
 
-
-  const getInitialsAvatar = (name) => {
-    let initials = name?.match(/\b\w/g) || [];
-    initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-    return `data:image/svg+xml;base64,${btoa(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-        <rect width="100%" height="100%" fill="#2c3e50"/>
-        <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="30px" font-family="Arial, sans-serif">${initials}</text>
-      </svg>`
-    )}`;
-  };
-
   const formatDate = (date) => {
     const options = { year: 'numeric', month: 'long' };
     return new Date(date).toLocaleDateString('en-US', options);
   };
 
-
-
-
   return (
-    <div className="flex h-full w-full shadow-lg rounded-lg p-6">
+    <div className="flex h-full w-full p-6 bg-blue-50">
 
       { isMyLinksModalOpen && <MyLinks isMyLinksModalOpen={isMyLinksModalOpen} setIsMyLinksModalOpen={setIsMyLinksModalOpen} /> }
       { isFollowersModalOpen && <Followers isFollowersModalOpen={isFollowersModalOpen} setIsFollowersModalOpen={setIsFollowersModalOpen} /> }
 
       <div className="flex flex-col w-1/2 space-y-3 ">
-        <div className='flex space-x-4 items-center'>
+        <div className='flex space-x-4 '>
           <img src={photoUrl || getInitialsAvatar(username || "N A")} alt={username || "Avatar"} className="rounded-lg w-[100px] h-[100px] object-cover" />
-          <div className='flex flex-col'>
-            <h1 className="text-2xl font-semibold">@{username || "Unknown User"}</h1>
-            <p className="text-black text-sm">{email || "No email"}</p>
-            <p className="text-black text-sm">{followers} <span className='font-bold'>345 <span onClick={() => setIsFollowersModalOpen(true)} className='font-normal cursor-pointer hover:text-gray-700 transition-colors duration-200'>followers</span> </span></p>
+          <div className='flex flex-col pt-1'>
+            <h1 className="text-2xl font-bold nav-button">@{username || "Unknown User"}</h1>
+            <p className="text-black text-sm font-semibold">{email || "No email"}</p>
+            <div className='flex space-x-2'>
+            <p className="text-black text-sm font-semibold">{abbreviateNumber(followersLength || followers)} <span onClick={() => setIsFollowersModalOpen(true)} className='font-normal cursor-pointer hover:text-gray-700 transition-colors duration-200'>followers</span> </p>
             <p onClick={() => setIsMyLinksModalOpen(true)} className="ttext-black text-sm cursor-pointer hover:text-gray-700 transition-colors duration-200r">My Links</p>
+            </div>
           </div>
         </div>
 
@@ -378,36 +361,3 @@ export const PersonalArea = () => {
     </div>
   );
 };
-
-              {/* <div id='links' className='flex space-x-4 items-center'>
-                <div className="flex space-x-2 items-center mb-2">
-                  <IosLink className='w-5 h-5' />
-                  {site ? <a href="#" className="text-blue-600 dark:text-blue-500 hover:underline">{site}</a>
-                    : <a href="#" className="text-[12px] text-blue-600 dark:text-blue-500 hover:underline">Add your personal website</a>}
-                </div>
-                <div className="flex space-x-2 items-center mb-2">
-                  <Github className='w-5 h-5' />
-                  <a href="#" className="text-sm text-blue-600 dark:text-blue-500 hover:underline">@itzhack</a>
-                </div>
-                <div className="flex space-x-2 items-center mb-2">
-                  <LogoLinkedin className='w-6 h-6' />
-                  <a href="#" className="text-sm text-blue-600 dark:text-blue-500 hover:underline">@itzhack</a>
-                </div>
-                <div className="flex space-x-2 items-center mb-2">
-                  <FaXTwitter size={20} />
-                  <a href="#" className="text-sm text-blue-600 dark:text-blue-500 hover:underline">@itzhack</a>
-                </div>
-              </div> */}
-          {/* <div className="flex space-x-6 pt-3 pr-4">
-            <div className="flex mb-2">
-              <span className="mr-2 font-semibold text-gray-400">
-                <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-                  <path d="M17.947 2.053a5.209 5.209 0 0 0-3.793-1.53A6.414 6.414 0 0 0 10 2.311 6.482 6.482 0 0 0 5.824.5a5.2 5.2 0 0 0-3.8 1.521c-1.915 1.916-2.315 5.392.625 8.333l7 7a.5.5 0 0 0 .708 0l7-7a6.6 6.6 0 0 0 2.123-4.508 5.179 5.179 0 0 0-1.533-3.793Z" />
-                </svg>
-              </span>
-              <span className="text-sky-950 -mt-1">4,567,346 <span className='ml-2 text-gray-500 text-sm'>Followers</span> </span>
-            </div>
-            <div className="flex mb-2">
-              <span className="text-sky-950 -mt-1">{following ?? 0}<span className='ml-2 text-gray-500 text-sm'>Following</span> </span>
-            </div>
-          </div> */}
