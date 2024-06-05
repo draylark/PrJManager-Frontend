@@ -12,7 +12,7 @@ import axios from 'axios'
 import { useSelector } from "react-redux";
 import { Tooltip } from "@mui/material";
 import { abbreviateNumber } from "../../../helpers/helpers";
-import { ProfileFollowers } from "../modals/ProfileFollowers";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 type Tab = {
   title: string;
@@ -52,7 +52,7 @@ export const ProfileNav = ({
   tabClassName?: string;
   contentClassName?: string;
 }) => {
-// console.log('user',user)
+
   const { uid, username, photoUrl } = useSelector( (state) => state.auth )
   const [following, setFollowing] = useState(usersRelation.iFollow || false)
   const [followsMe, setFollowsMe] = useState(usersRelation.followsMe || false)
@@ -94,10 +94,8 @@ export const ProfileNav = ({
     }
   };
 
-
-
   const followProfile = (profileUID) => {
-    axios.post(`http://localhost:3000/api/users/follow-profile`,{ profileUID, uid, username, photoUrl })
+    axios.post(`${backendUrl}/users/follow-profile`,{ profileUID, uid, username, photoUrl })
     .then( res => {
       // console.log(res)
       handleFollowRes(res.data.type)
@@ -108,7 +106,7 @@ export const ProfileNav = ({
   };
 
   const unfollowProfile = (profileUID) => {
-    axios.delete(`http://localhost:3000/api/users/unfollow-profile/${profileUID}`, { 
+    axios.delete(`${backendUrl}/users/unfollow-profile/${profileUID}`, { 
         params: { uid }
     })
     .then( res => {
@@ -134,11 +132,11 @@ export const ProfileNav = ({
   return (
       <div
         className={cn(
-          "absolute px-8 top-11 z-10 flex flex-row justify-between [perspective:1000px] overflow-auto sm:overflow-visible no-visible-scrollbar max-w-full w-full",
+          "bg-blue-50 absolute top-14 left-8 pb-4 z-10 px-1 flex flex-row justify-between [perspective:1000px] overflow-auto sm:overflow-visible no-visible-scrollbar max-w-full w-[95%]",
           containerClassName
         )}
       >
-          <div id="profile" className="flex space-x-4 h-full">
+          <div id="profile" className="flex space-x-4 h-full ">
               <img src={user.photoUrl || getInitialsAvatar(user.username)} alt={user.username} className="h-[120px] w-[120px] rounded-2xl" />
               <div className="flex flex-col pt-1">
                   <h3 className="text-2xl">@{user.username}</h3>
@@ -308,8 +306,6 @@ export const ProfileNav = ({
                 ))}
             </div>
           </div>
-
-
       </div>
     
   );
@@ -336,7 +332,7 @@ export const FadeInDiv = ({
     return tab.value === tabs[0].value && !firstTime;
   };
   return (
-    <div className="relative w-full h-full">
+    <div className="w-full h-full">
       {tabs.map((tab, idx) => (
         <motion.div
           key={tab.value}
@@ -350,7 +346,7 @@ export const FadeInDiv = ({
           animate={{
             y: isActive(tab) ? [0, 10, 0] : 0,
           }}
-          className={cn("w-full h-full absolute top-0 left-0", className)}
+          className={cn("flex w-full h-full items-end absolute rounded-2xl border-[1px] border-gray-400 bg-blue-50 treechart-container", className)}
         >
           {render(tabToRender)}
         </motion.div>

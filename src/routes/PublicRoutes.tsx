@@ -12,7 +12,7 @@ const PublicRoutes = ({ children }: PublicRoutesProps ) => {
     const { status } = useCheckAuth()
     return ( status === 'not-authenticated')
     ? children
-    : <Navigate to='/dashboard'/>
+    : <Navigate to='/projects'/>
 }
 
 export default PublicRoutes

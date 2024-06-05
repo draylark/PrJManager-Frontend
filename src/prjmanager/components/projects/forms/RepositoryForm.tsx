@@ -5,50 +5,45 @@ import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/store';
 import { PuffLoader  } from 'react-spinners';
-import { loadNewRepo } from '../../../../store/gitlab/thunks';
 import axios from 'axios';
-
 import { ImCancelCircle } from "react-icons/im";
 import { LiaQuestionCircleSolid } from "react-icons/lia";
-
 import Swal from 'sweetalert2';
-
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
-import { AddColaboratorsForm } from './sub-components/AddColaboratorsForm';
 import bgform from './assets/formbg.jpg'
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const RepositorySchema = Yup.object().shape({
     name: Yup.string().required('Repository name is required'),
     description: Yup.string().required('Description is required'),
     visibility: Yup.string().required('Visibility is required'),
-  });
+    collaborators: Yup.array(),
+    uid: Yup.string().required('User ID is required')
+});
   
-  interface RepositoryValues {
+interface RepositoryValues {
+  name: string;
+  description: string;
+  visibility: string;
+  collaborators: Array<{
+    id: string;
     name: string;
-    description: string;
-    visibility: string;
-    collaborators: Array<{
-      id: string;
-      name: string;
-      accessLevel: string;
-      photoUrl?: string;
-    }>;
-    projectID: string;
-    layerID: string;
-    uid: string;
-  }
+    accessLevel: string;
+    photoUrl?: string;
+  }>;
+  projectID: string;
+  layerID: string;
+  uid: string;
+}
   
-  interface RepositoryProps {
-        setIsRepositoryFormOpen: (value: boolean) => void;
-        isRepositoryFormOpen: boolean;
-  }
+interface RepositoryProps {
+      setIsRepositoryFormOpen: (value: boolean) => void;
+      isRepositoryFormOpen: boolean;
+}
   
-
 
 export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, isRepositoryFormOpen }) => {
-
 
     const location = useLocation();
     const dispatch = useDispatch();
@@ -65,13 +60,15 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     const [openDialog, setOpenDialog] = useState(false)
     const [buttonDisabled, setButtonDisabled] = useState(false)
 
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);
     const [currentCollaboratorForTooltip, setCurrentCollaboratorForTooltip] = useState(null);
     const [selectedFriend, setSelectedFriend] = useState({
         id: '',
         name: '',
         // photoUrl: '',
         accessLevel: ''
-    })
+    });
+
     const [friends, setFriends] = useState([
         {
             id: '1',
@@ -108,7 +105,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
             name: 'Maria Lopez7',
             accessLevel: ''
         }
-    ])
+    ]);
 
     const handleCollaboratorTooltipContent = (collaborator) => {
       // Retornar JSX en lugar de un string
@@ -126,7 +123,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     const handleMouseEnter = (text, type) => {
         setTooltipContent(text);
         setTooltipOpen(type);
-      };
+    };
 
     const handleMouseLeave = () => {
       setTooltipOpen('');
@@ -147,7 +144,6 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
       setAccessLevel('');
     };
   
-
     const handleClose = () => {
       const modal = document.getElementById('layerRepositoryModal');
       if (modal) {
@@ -178,7 +174,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
         setSubmitting(true); 
 
         try {
-            const response = await axios.post(`http://localhost:3000/api/repos/create-repository/${ID}/${layerID}`, values, {
+            const response = await axios.post(`${backendUrl}/repos/create-repository/${ID}/${layerID}`, values, {
                 params: {
                   uid
                 },
@@ -221,8 +217,6 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     };
 
 
-    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
-
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
         preloadImage.src = bgform;
@@ -230,7 +224,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
         preloadImage.onload = () => {
           setIsBackgroundReady(true); // Indica que la imagen ha cargado
         };
-      }, []);
+    }, []);
 
     useEffect(() => {
       if (isRepositoryFormOpen) {
@@ -243,9 +237,6 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
         return () => clearTimeout(timer);
       }
     }, [isRepositoryFormOpen]);
-
-
-
 
     return (
         <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-10'>

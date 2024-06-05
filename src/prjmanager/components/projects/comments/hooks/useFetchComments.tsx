@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { RootState } from '../../../../../store/store';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const useFetchComments = () => {
 
@@ -36,15 +37,13 @@ export const useFetchComments = () => {
             if (existingLike) {
                 if (existingLike.isLike === true) {
                     // Si el like/dislike actual es del mismo tipo, eliminarlo
-                    const resp = await axios.put(`http://localhost:3000/api/likes/${commentId}`, { commentId, uid, isLike: false });
+                    const resp = await axios.put(`${backendUrl}/likes/${commentId}`, { commentId, uid, isLike: false });
                     setLikes(prev => prev.filter(like => like.commentId !== commentId || like.uid !== uid));
-                    console.log('Quitando like',resp.data)
                 }
             } else {
                 // Agregar un nuevo like/dislike
-                const resp = await axios.post(`http://localhost:3000/api/likes/${commentId}`, { uid, isLike: true });              
+                const resp = await axios.post(`${backendUrl}/likes/${commentId}`, { uid, isLike: true });              
                 setLikes(prev => [...prev, { commentId, uid, isLike: true }]);
-                console.log('Nuevo like',resp.data)
             }
         } catch (error) {
             console.error('There was an error', error);
@@ -54,7 +53,7 @@ export const useFetchComments = () => {
     const fetchCommentsLikes = async ( comments ) => {       
         return ( await Promise.all(comments.map(async (comment) => {
                 try {
-                    const { data: { like } } = await axios.get(`http://localhost:3000/api/likes/${comment._id}/${uid}`);
+                    const { data: { like } } = await axios.get(`${backendUrl}/likes/${comment._id}/${uid}`);
                     return like ? like : null; // Retorna el like si existe, de lo contrario retorna null
                 } catch (error) {
                     console.error('Error fetching likes:', error);
@@ -66,7 +65,7 @@ export const useFetchComments = () => {
     const fetchCommentWithUser = async (comments) => {  
         return await Promise.all( comments.map( async (comment) => {
             try {
-                const { data: { user } } = await axios.get(`http://localhost:3000/api/users/${comment.createdBy}`);
+                const { data: { user } } = await axios.get(`${backendUrl}/users/${comment.createdBy}`);
                 return {
                     id: comment._id,
                     content: comment.content,
@@ -88,7 +87,7 @@ export const useFetchComments = () => {
 
     const fetchMoreReplies = async (commentId, currentPage) => {
         try {
-            const { data: { replies, total_pages: totalPages, current_page: currentPageS, totalReplies } } = await axios.get(`http://localhost:3000/api/comments/get-replies/${commentId}?page=${currentPage}`);          
+            const { data: { replies, total_pages: totalPages, current_page: currentPageS, totalReplies } } = await axios.get(`${backendUrl}/comments/get-replies/${commentId}?page=${currentPage}`);          
             const processedReplies = await fetchCommentWithUser(replies.flat());
             console.log(totalReplies)
             setComments(prev => {
@@ -118,7 +117,7 @@ export const useFetchComments = () => {
     const fetchReplies = async (commentsFromServer) => {
         await Promise.all(commentsFromServer.map( async comment => { 
             try {
-                const { data: { replies } } = await axios.get(`http://localhost:3000/api/comments/get-replies/${comment._id}?page=${currentPage}`);
+                const { data: { replies } } = await axios.get(`${backendUrl}/comments/get-replies/${comment._id}?page=${currentPage}`);
                 const allReplies = replies.flat();           
                 const processedReplies = await fetchCommentWithUser(allReplies);
                 const l = await fetchCommentsLikes(allReplies);
@@ -145,7 +144,7 @@ export const useFetchComments = () => {
         try {
             fetchOne ? setisLoading(true) : null
 
-            const { data: { comments: commentsFromServer, current_page, total_pages }} = await axios.get(`http://localhost:3000/api/comments/get-comments/${project.ID}?page=${currentPage}`, {
+            const { data: { comments: commentsFromServer, current_page, total_pages }} = await axios.get(`${backendUrl}/comments/get-comments/${project.ID}?page=${currentPage}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': localStorage.getItem('x-token')

@@ -1,4 +1,3 @@
-// import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { TabDesktopClock20Regular } from '@ricons/fluent'
 import { BrandSentry } from '@ricons/tabler'
@@ -20,7 +19,7 @@ export const Bar = ({ setRender, render }) => {
         <div className='h-full w-[40%] rounded-extra  pl-7'>
             <h2 className='text-2xl font-bold text-sky-950  mt-5'>Dashboard</h2>
 
-            <div className='flex  justify-center items-center w-[92%] h-12  mt-5 '>
+            <div id='dashboard-nav-buttons' className='flex  justify-center items-center w-[92%] h-12  mt-5 '>
 
                 <button 
                     onClick={() => {
@@ -58,8 +57,7 @@ export const Bar = ({ setRender, render }) => {
         </div>
 
 
-        <div className='flex h-full w-[60%] justify-end rounded-extra space-x-2 pr-[10px]'>
-
+        <div className='flex h-full w-[60%] justify-end rounded-extra space-x-2 pr-[10px] max-h-[120px] min-h-[120px]'>
 
             <div className='flex h-full w-40'>
                 <div className='mt-7 mr-3'>
@@ -94,7 +92,7 @@ export const Bar = ({ setRender, render }) => {
             </div>
 
 
-                        <div className='flex h-full w-40'>
+            <div className='flex h-full w-40'>
                 <div className='mt-7 mr-3'>
                     <p className='text-2xl font-bold text-sky-950 text-end'>
                         {totalProjects}

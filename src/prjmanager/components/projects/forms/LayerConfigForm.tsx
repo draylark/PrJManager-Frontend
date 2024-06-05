@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Formik, Form, FormikHelpers, useFormikContext } from 'formik';
+import { Formik, Form } from 'formik';
 import { TextField, Select, MenuItem, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material'
-
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
-import LoadingCircle from '../../../../auth/helpers/Loading';
-
 import { useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../../store/store';
@@ -13,12 +10,16 @@ import { ImCancelCircle } from "react-icons/im";
 import axios from 'axios';
 import bgform from './assets/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
 
 
-
-
+const LayerSchema = Yup.object().shape({
+    name: Yup.string().required('Group name is required'),
+    description: Yup.string(),
+    visibility: Yup.string().required('Visibility is required'),
+});
 
 
 export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfigFormOpen }) => {
@@ -30,17 +31,12 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
     const { ID } = location.state.project;
     const { layerID } = location.state.layer;
 
-    const LayerSchema = Yup.object().shape({
-        name: Yup.string().required('Group name is required'),
-        description: Yup.string(),
-        visibility: Yup.string().required('Visibility is required'),
-    });
-
     const [IsLoading, setIsLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
     const [tempVisibility, setTempVisibility] = useState(''); 
     const [buttonDisabled, setButtonDisabled] = useState(false)
     const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+
 
     const renderDialogContentText = () => {
         switch (tempVisibility) {
@@ -116,7 +112,7 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
         setSubmitting(true);
 
         try {
-            const response = await axios.put(`http://localhost:3000/api/layer/update-layer/${ID}/${layerID}`, values, 
+            const response = await axios.put(`${backendUrl}/layer/update-layer/${ID}/${layerID}`, values, 
             { 
                 params: {
                     uid
@@ -157,9 +153,6 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
             }
         }
     };
-
-    
-
 
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen

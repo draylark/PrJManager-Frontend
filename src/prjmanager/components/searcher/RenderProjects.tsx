@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import  { Fragment } from 'react';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -9,9 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { cleanUrl } from '../projects/helpers/helpers';
 
 export const RenderProjects = ({ projects }) => {
-
-    const navigate = useNavigate();
-
+  const navigate = useNavigate();
   const limitDescription = (description, limit = 100) => {
     return description.length > limit ? `${description.substring(0, limit)}...` : description;
   };

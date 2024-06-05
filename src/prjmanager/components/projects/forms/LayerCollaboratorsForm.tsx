@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFormik, Formik, Form, Field, FieldArray } from 'formik';
+import { Formik, Form,  FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { TextField, Button, List, ListItem, ListItemText, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Autocomplete, Typography, Tooltip } from '@mui/material';
 import { LiaHandsHelpingSolid } from "react-icons/lia";
@@ -10,52 +10,44 @@ import Avatar from '@mui/material/Avatar';
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import axios from 'axios';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useGlobalUsersSearcher } from './hooks/useGlobalUsersSearcher';
 import Partnership from '@ricons/carbon/Partnership';
 import RemoveCircleOutlineOutlined from '@ricons/material/RemoveCircleOutlineOutlined'
 import Swal from 'sweetalert2';
 import modalbg from './assets/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLayerCollaboratorsFormOpen }) => {
     
     const location = useLocation();
     const dispatch = useDispatch();
     const { uid } = useSelector((stateU) => stateU.auth); 
-    const { layers, repositories } = useSelector((stateP) => stateP.platypus);
-    const { users, setSearch} = useGlobalUsersSearcher()
+    const { users, setSearch } = useGlobalUsersSearcher()
 
     const { layerID } = location.state.layer;
     const { ID } = location.state.project;
 
-
     const [deleteCDialog, setDeleteCDialog] = useState(false)
     const [currentCollaborators, setCurrentCollaborators] = useState([])   
-
-    const [selectedUser, setSelectedUser] = useState({
-      name: '',
-      accessLevel: '',
-      id: ''
-    })
-
-
 
     const [accessLevel, setAccessLevel] = useState('');
     const [isLoading, setIsLoading] = useState(false)
 
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
     const [fetchingCollaborators, setFetchingCollaborators] = useState(false)
     const [currentOrNew, setCurrentOrNew] = useState(false)
     const [tooltipOpen, setTooltipOpen] = useState('');
     const [tooltipContent, setTooltipContent] = useState('');
     const [openDialog, setOpenDialog] = useState(false)
     const [buttonDisabled, setButtonDisabled] = useState(false)
-
-
-
     const [searchQuery, setSearchQuery] = useState("");
 
-
+    const [selectedUser, setSelectedUser] = useState({
+      name: '',
+      accessLevel: '',
+      id: ''
+    })
 
     const handleDeleteNewCollaborator = (values, setFieldValue, id) => {
       const updateLayerCollaborators = values.collaborators.filter(collaborator => collaborator.id !== id);
@@ -64,6 +56,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       setFieldValue('newCollaborators', updatedNewCollaborators);
       setFieldValue('collaborators', updateLayerCollaborators);
     };
+
     const addUserAsCollaborator = (values, setFieldValue) => {
       const newCollaborator = { ...selectedUser, accessLevel };
     
@@ -78,6 +71,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       setOpenDialog(false);
       setAccessLevel('');
     };
+
     const handleAddNewCollaborators = (values, setFieldValue) => {
       // Obtener los IDs de los nuevos colaboradores.
       const newCollaboratorIds = new Set(values.newCollaborators.map(collab => collab.id));
@@ -102,9 +96,11 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
       setTooltipContent(text);
       setTooltipOpen(type);
     };
+
     const handleMouseLeave = () => {
       setTooltipOpen('');
     };
+
     const handleClose = () => {
       const modal = document.getElementById('layerCollaboratorModal');
       if (modal) {
@@ -117,6 +113,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
           }, 500); // Asume que la duración de tu transición es de 500ms
       }
     };
+
     const IsTheButtonDisabled = ({ values }) => {
       useEffect(() => {
           const isDisabled = 
@@ -144,12 +141,13 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
         setFetchingCollaborators(false)
 
     };
+
     const handleSubmit = async( values,  { setSubmitting, resetForm } ) => {
       setIsLoading(true)
       setSubmitting(true)
 
       try {
-        const response = await axios.put(`http://localhost:3000/api/layer/collaborators/${ID}/${layerID}`, 
+        const response = await axios.put(`${backendUrl}/layer/collaborators/${ID}/${layerID}`, 
           values,
           {
             params: {
@@ -193,8 +191,6 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
     };
 
 
-    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
-
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
         preloadImage.src = modalbg;
@@ -218,7 +214,7 @@ export const LayerCollaboratorsForm = ({ setIsLayerCollaboratorsFormOpen, isLaye
 
     useEffect(() => {
       setFetchingCollaborators(true)
-      axios.get(`http://localhost:3000/api/layer/get-layer-collaborators/${layerID}`, {
+      axios.get(`${backendUrl}/layer/get-layer-collaborators/${layerID}`, {
           headers: {
               'Authorization': localStorage.getItem('x-token')
           }

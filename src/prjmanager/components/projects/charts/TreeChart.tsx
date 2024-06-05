@@ -9,11 +9,10 @@ import { FaLayerGroup } from 'react-icons/fa';
 import AddSquareMultiple16Regular from '@ricons/fluent/AddSquareMultiple16Regular';
 import { LayerForm } from '../forms/LayerForm';
 import { tierS } from '../../../helpers/accessLevels-validator';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { fetchProjectReposAndLayers } from '../../../../store/platypus/thunks';
 import { useDispatch } from 'react-redux';
 import { PuffLoader  } from 'react-spinners';
-import { setError, setErrorMessage } from '../../../../store/platypus/platypusSlice';
+import { setError } from '../../../../store/platypus/platypusSlice';
 
 export const TreeChart = () => {
 
@@ -100,15 +99,13 @@ export const TreeChart = () => {
             ) : null
           }
         </div>
-    )
+    );
 
     if( fetchingResources ) return  ( 
       <div className='flex flex-grow items-center justify-center'>
           <PuffLoader  color="#32174D" size={50} /> 
       </div> 
-    ) 
-
-   
+    );
 
     return (
       <div className='flex flex-grow relative'>
@@ -218,7 +215,6 @@ export const TreeChart = () => {
                           onClick={toggleNode}
                           onMouseOver={ nodeDatum.name !== 'Layers' ? (event) => handleMouseOver(event, nodeDatum) : undefined }
                           onMouseMove={handleMouseMove}
-                          // onMouseOut={() => console.log('Mouse out', nodeDatum)}
                         />      
                       </>
                     )}
@@ -227,7 +223,6 @@ export const TreeChart = () => {
               }}
             />
           </div>
-
       </div>
 
     );

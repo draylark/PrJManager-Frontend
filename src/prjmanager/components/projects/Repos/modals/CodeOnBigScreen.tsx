@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Icon } from '@ricons/utils';
@@ -9,7 +9,6 @@ import ReactMarkdown from 'react-markdown';
 import { getLanguageFromFileName } from '../helpers/repos-fn';
 
 export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen, fileName, fileContent }) => {
-
 
     const handleClose = () => {
         const modal = document.getElementById('bigScreenModal');
@@ -22,8 +21,7 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
                 setIsCodeOnBigScreenOpen(false);
             }, 500); // Asume que la duración de tu transición es de 500ms
         }
-      };
-
+    };
 
     useEffect(() => {
         if (isCodeOnBigScreenOpen) {
@@ -37,9 +35,8 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
         }
     }, [isCodeOnBigScreenOpen]);
 
-
     return (
-        <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center z-50'>
+        <div className='fixed inset-0 flex h-full top-0 right-0 justify-center items-center z-20'>
             <div id="bigScreenModal" className={`relative flex flex-col space-y-5 w-full h-full overflow-hidden bg-[#282a36] transition-opacity duration-300 ease-in-out opacity-0 ${isCodeOnBigScreenOpen ? '' : 'pointer-events-none'}`}>
             {
                     getExtension(fileName) 

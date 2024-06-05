@@ -1,4 +1,5 @@
 import { useEffect, useState  } from 'react'
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
 
 export const usePersonalData = ( uid ) => {
@@ -53,7 +54,7 @@ export const usePersonalData = ( uid ) => {
 
     const fetchProjectTimeline = () => {
         setFetchingTimelineData(true)
-        const url = `http://localhost:3000/api/users/project-timeline-activity/${selected.pid}`;
+        const url = `${backendUrl}/users/project-timeline-activity/${selected.pid}`;
         axios.get(url, {
             params: {
                 uid,
@@ -70,11 +71,11 @@ export const usePersonalData = ( uid ) => {
             setTimelineErrorMessage( error.response.data.message ||  'An error occurred while fetching the data');
             setFetchingTimelineData(false);
         })
-    }
+    };
 
     const fetchProjects = () => {
         setFetchingProjects(true)
-        const url1 = `http://localhost:3000/api/projects/get-projects/${uid}`;
+        const url1 = `${backendUrl}/projects/get-projects/${uid}`;
 
         axios.get(url1)
         .then(res => {
@@ -86,11 +87,11 @@ export const usePersonalData = ( uid ) => {
             setProjectsErrorMessage( error.response.data.message ||  'An error occurred while fetching the data');
             setFetchingProjects(false);
         })
-    }
+    };
 
     const fetchTimelineData = () => {
         setFetchingTimelineData(true)
-        const url = `http://localhost:3000/api/users/timeline-activity/${uid}`;
+        const url = `${backendUrl}/users/timeline-activity/${uid}`;
         axios.get(url, {
             params: {
                 startDate: startDate,
@@ -106,10 +107,10 @@ export const usePersonalData = ( uid ) => {
             setTimelineErrorMessage( error.response.data.message ||  'An error occurred while fetching the data');
             setFetchingTimelineData(false);
         })
-    }
+    };
 
     const fetchFollowersLength = () => {
-        axios.get(`http://localhost:3000/api/users/get-followers-length/${uid}`)
+        axios.get(`${backendUrl}/users/get-followers-length/${uid}`)
         .then((response) => {
             setFollowersLength(response.data.followersLength)
         })
@@ -117,7 +118,7 @@ export const usePersonalData = ( uid ) => {
             console.log(error)
         })
     
-    }
+    };
 
     useEffect(() => {   
         fetchProjects()

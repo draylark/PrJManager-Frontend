@@ -1,16 +1,9 @@
-import { useState } from 'react'
 import { TextField, MenuItem, Tooltip } from '@mui/material';
 import HeatMap from '@uiw/react-heat-map';
-import { useProfileHeatMapData } from './hooks/useProfileHeatMapData';
 import { ScaleLoader } from 'react-spinners';
-import { useLocation } from 'react-router-dom';
+
 
 export const ProfileHeatMap = ({ user, year, setYear, data, detailsMap, formatDateFromHeatMap, fetchingUserActivity, errorWhileFetching, errorMessage }) => {
-
-
-    // const location = useLocation()
-    // const [year, setYear] = useState(new Date().getFullYear().toString());
-    // const { data, detailsMap, formatDateFromHeatMap, fetchingUserActivity, errorWhileFetching, errorMessage } = useProfileHeatMapData(location, year);
 
     const userCreatedAt = new Date(user.createdAt).getFullYear();
     const currentYear = new Date().getFullYear();
@@ -78,9 +71,9 @@ export const ProfileHeatMap = ({ user, year, setYear, data, detailsMap, formatDa
                     </TextField>
                 </div>
 
-                <div className='flex justify-center w-[80%] mx-auto  pt-1'>              
+                <div className='flex flex-grow justify-center mx-auto  pt-3'>              
                         <HeatMap
-                        rectSize={14}
+                            rectSize={15}
                             value={data}
                             width={1000}
                             startDate={startDate}

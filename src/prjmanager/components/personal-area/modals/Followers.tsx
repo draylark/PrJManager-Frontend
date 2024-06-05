@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { cleanUrl } from '../../projects/helpers/helpers';
 import { TextField } from '@mui/material';
 import { capitalizeFirstLetter, abbreviateNumber } from '../../../helpers/helpers';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => {
 
@@ -119,7 +120,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
     };
 
     const followUser = (profileUID, ) => {
-        axios.post(`http://localhost:3000/api/users/follow-profile`,{ profileUID, uid, username, photoUrl })
+        axios.post(`${backendUrl}/users/follow-profile`,{ profileUID, uid, username, photoUrl })
         .then( res => {
           const { followedProfile, friendship, type } = res.data
           handleFollow(profileUID, type, followedProfile, friendship)
@@ -130,7 +131,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
     }
 
     const unfollowUser = (followedUID) => {
-        axios.delete(`http://localhost:3000/api/users/unfollow-profile/${followedUID}`, { 
+        axios.delete(`${backendUrl}/users/unfollow-profile/${followedUID}`, { 
             params: { uid }
         })
         .then( res => {

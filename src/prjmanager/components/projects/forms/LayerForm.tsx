@@ -1,21 +1,17 @@
 import { FC, useEffect, useState } from 'react';
 import { Formik, Form, FormikHelpers,  } from 'formik';
 import { TextField, FormControl, Select, InputLabel, MenuItem, Tooltip, Typography } from '@mui/material'
-
 import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/store';
-import { addNewLayer } from '../../../../store/gitlab/gitlabSlice';
 import { loadNewLayer } from '../../../../store/gitlab/thunks';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import bgform from './assets/formbg.jpg'
 import axios from 'axios';
-
 import Swal from 'sweetalert2';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { ImCancelCircle } from "react-icons/im";
 import { PuffLoader  } from 'react-spinners';
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
 
@@ -44,10 +40,9 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
     const location = useLocation();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
     const [IsLoading, setIsLoading] = useState(false);
-
     const { ID } = location.state?.project;
 
-
+   const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
     const [buttonDisabled, setButtonDisabled] = useState(false)
     const [tooltipOpen, setTooltipOpen] = useState('');
     const [tooltipContent, setTooltipContent] = useState('');
@@ -57,7 +52,7 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
         setSubmitting(true);  
 
         try {
-            const response = await axios.post(`http://localhost:3000/api/layer/create-layer/${ID}`, values, {
+            const response = await axios.post(`${backendUrl}/layer/create-layer/${ID}`, values, {
                 withCredentials: true,
                 params: {
                     uid
@@ -113,8 +108,7 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                 setIsLayerFormOpen(false);
             }, 500); // Asume que la duración de tu transición es de 500ms
         }
-    }
-
+    };
 
     const IsTheButtonDisabled = ({ values }) => {
         useEffect(() => {
@@ -125,15 +119,16 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
         // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
+
     const handleMouseEnter = (text, type) => {
         setTooltipContent(text);
         setTooltipOpen(type);
     };
-     const handleMouseLeave = () => {
+
+    const handleMouseLeave = () => {
         setTooltipOpen('');
     };
 
-    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
 
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
@@ -142,9 +137,8 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
         preloadImage.onload = () => {
           setIsBackgroundReady(true); // Indica que la imagen ha cargado
         };
-      }, []);
+    }, []);
   
-
     useEffect(() => {
         if (isLayerFormOpen) {
           // Asegúrate de que el modal existe antes de intentar acceder a él
@@ -155,13 +149,13 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
           }, 20); // Un retraso de 20ms suele ser suficiente
           return () => clearTimeout(timer);
         }
-      }, [isLayerFormOpen]);
+    }, [isLayerFormOpen]);
 
     useEffect(() => {
     if(showOptModal){
         setShowOptModal(false);
     }
-    }, [showOptModal])
+    }, [showOptModal]);
 
 
     return (

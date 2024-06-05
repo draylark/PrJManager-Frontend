@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { getLanguageFromFileName } from '../../../projects/Repos/helpers/repos-fn';
 import { ScaleLoader } from 'react-spinners';
 import { IoIosArrowForward, IoIosArrowBack  } from "react-icons/io";
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, selecteDiffData }) => {
 
@@ -74,7 +75,7 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
     setDiff(null)
     if( diff1.hash || diff2.hash ) {
       setIsLoading(true)
-      axios.get(`http://localhost:3000/api/gitlab/diff`, {
+      axios.get(`${backendUrl}/gitlab/diff`, {
         params: {
           uuid1: diff1.hash || '',
           uuid2: diff2.hash || ''

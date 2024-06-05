@@ -3,12 +3,11 @@ import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux'
 import { RootState } from '../../../../../store/store'
 import { Formik, Form } from 'formik'
-import { ProjectField } from './ProjectField'
-import { addTopProject } from '../../../../../store/projects/projectSlice'
 import { setTopProjects } from '../../../../../store/auth/authSlice'
 import { Autocomplete, TextField, Chip } from '@mui/material';
 import { ImCancelCircle } from "react-icons/im";
 import { ScaleLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
 import Swal from 'sweetalert2';
 
@@ -74,7 +73,7 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
 
     const fetchProjects = async() => {
         try {
-            const res = await axios.get(`http://localhost:3000/api/projects/get-projects/${uid}`, {
+            const res = await axios.get(`${backendUrl}/projects/get-projects/${uid}`, {
                 params: {
                     type: 'id_name'
                 },
@@ -106,7 +105,7 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
         setIsLoading(true);
         
         try {
-            const { data: { response, user } } = await axios.put(`http://localhost:3000/api/users/update-top-projects/${uid}`, values, {
+            const { data: { response, user } } = await axios.put(`${backendUrl}/users/update-top-projects/${uid}`, values, {
                 headers: {
                     'Authorization': localStorage.getItem('x-token')
                 }

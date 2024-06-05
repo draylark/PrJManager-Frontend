@@ -59,9 +59,8 @@ export const TaskHeatmap = ({ data, commitsDetailsByDay, createdAt }) => {
 
   return (
 
-    <div className='flex pl-6 pt-5 w-[95%] rounded-2xl '>
+    <div className='flex pl-6 pt-5 w-[95%] rounded-2xl mx-auto justify-center'>
             <HeatMap 
-                style={{ width: '100%'}}
                 panelColors={{
                     0: '#eff7ff',
                     2: '#caf0f8',
@@ -71,6 +70,7 @@ export const TaskHeatmap = ({ data, commitsDetailsByDay, createdAt }) => {
                     30: '#03045e',
                     872349287928342: "#FFFF00",
                 }}
+                width={380}
                 value={data} 
                 startDate={ startDate } 
                 endDate={ endDate }

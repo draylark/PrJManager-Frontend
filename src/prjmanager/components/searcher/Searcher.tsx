@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react'
 import { TextField} from '@mui/material';
-import { useSelector } from 'react-redux'
-import { RootState } from '../../../store/store'
 import axios from 'axios'
 import { RenderUsers } from './RenderUsers';
 import { RenderProjects } from './RenderProjects';
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 export const Searcher = () => {
-
-
-    const { uid } = useSelector( (state: RootState) => state.auth )
     const [results, setResults] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [searchType, setSearchType] = useState('profiles')
@@ -17,23 +13,23 @@ export const Searcher = () => {
 
     useEffect(() => {
         const fetchSearch = async () => {
-            if (searchTerm === '') {
-                setResults([])
-                return
+            try {
+                if (searchTerm === '') {
+                    setResults([])
+                    return
+                }
+                const response = await axios.post(`${backendUrl}/searcher/${searchType}`, { searchTerm } )            
+                const results = response.data.results
+                setResults(results)
+            } catch (error) {
+                console.error("Error fetching search results:", error);
             }
-
-            const response = await axios.post(`http://localhost:3000/api/searcher/${searchType}`, { searchTerm } )            
-            const results = response.data.results
-
-
-            setResults(results)
-
         }
         fetchSearch()
     }, [searchTerm, searchType])
-            console.log(results)
+
   return (
-    <div className='flex flex-col w-full space-y-7 p-2'>
+    <div className='flex flex-col w-full h-full space-y-7 p-2'>
         <div className='flex flex-col w-full rounded-extra mt-4 px-4'>
             <TextField
                 id="outlined-basic"

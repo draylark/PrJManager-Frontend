@@ -10,16 +10,19 @@ import { TaskHeatmap } from './heatmap/TaskHeatmap';
 import { AnimatedTooltip } from './animated=tooltip';
 import { AiOutlineDiff } from "react-icons/ai";
 import { DiffModal } from './modals/DiffModal';
-import { Copy20Regular, CommentMultipleCheckmark28Regular } from '@ricons/fluent'
+import { Copy20Regular, CommentMultipleCheckmark28Regular, CommentDismiss20Regular, CommentCheckmark28Regular, Warning24Regular } from '@ricons/fluent'
+import { MessageReport } from '@ricons/tabler'
 import { Tooltip } from '@mui/material';
 import Swal from 'sweetalert2';
-import { TaskComplete, TaskView, TaskRemove, UserFollow, UserMultiple } from '@ricons/carbon'
+import { TaskComplete, TaskView, TaskRemove, UserMultiple } from '@ricons/carbon'
+import { TaskRejectionReasons } from './modals/TaskRejectionReasons';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { GiLaurelsTrophy } from "react-icons/gi";
 import TaskNotesDialog from './modals/TaskNotesDialog';
 import { ContributorsNotes } from './modals/ContributorsNotes';
 import { TaskContributors } from './modals/TaskContributors';
 import img1 from '../../../assets/imgs/formbg.jpg'
+import { capitalizeFirstLetter } from '../../../helpers/helpers';
 
 export const TaskSetDetails = () => {
 
@@ -45,12 +48,12 @@ export const TaskSetDetails = () => {
     const [isDiffModalOpen, setIsDiffModalOpen] = useState(false)
     const [isNotesOpen, setIsNotesOpen] = useState(false)
     const [isTaskCOpen, setIsTaskCOpen] = useState(false)
+    const [isTaskReasonsOpen, setIsTaskReasonsOpen] = useState(false)
 
     const [open, setOpen] = useState(false)
     const [notes, setNotes] = useState([])
     const { taskId } = location.state.task
-
-
+    const locationState = location.state.task
 
 
     const formatDate = (date) => {
@@ -124,6 +127,9 @@ export const TaskSetDetails = () => {
             setReady(readySetted(task))
             processDataForHeatmap(commits, task.createdAt, task.deadline)
 
+            if( task.reasons_for_rejection.length > 0 && locationState.reasons ) {
+                setIsTaskReasonsOpen(true)
+            }
         } catch (error) {
             console.log(error)
             setErrorWhileFetching(true)
@@ -148,6 +154,7 @@ export const TaskSetDetails = () => {
             })
         })
         .catch( err => {
+            console.log('erriquwhxoniuqwhiuqwdh',err)
             setHandlingParticipation(false)
             Swal.fire({
                 icon: 'error',
@@ -191,13 +198,12 @@ export const TaskSetDetails = () => {
     useEffect(() => {
          setIsLoading(true)
          fetchTaskData()
+         
     }, [taskId])
-// console.log('uid',uid)
-console.log('task',task)
 
   return (
     <div 
-        className='flex flex-col w-[95%] h-[80%] rounded-2xl settask-container bg-white/40'
+        className='flex flex-col w-[95%] h-[80%] pb-1 rounded-2xl settask-container bg-white/40'
         style={{
             backgroundImage: `url(${img1})`,
             backgroundPosition: 'center bottom',
@@ -209,6 +215,7 @@ console.log('task',task)
         { isNotesOpen && <ContributorsNotes setIsNotesOpen={setIsNotesOpen} isNotesOpen={isNotesOpen} taskNotes={taskNotes} uid={uid} setTaskNotes={setTaskNotes} /> }
         { isDiffModalOpen && <DiffModal isDiffModalOpen={isDiffModalOpen} setIsDiffModalOpen={setIsDiffModalOpen} commits={commits} selecteDiffData={selecteDiffData} /> }
         { open && <TaskNotesDialog open={open} setOpen={setOpen} notes={notes} setNotes={setNotes} handleParticipation={handleParticipation} /> }
+        { isTaskReasonsOpen && <TaskRejectionReasons reasons={task?.reasons_for_rejection} setIsTaskReasonsOpen={setIsTaskReasonsOpen} isTaskReasonsOpen={isTaskReasonsOpen} /> }
 
         {
             isLoading 
@@ -225,7 +232,7 @@ console.log('task',task)
             (
                  <div className='flex flex-grow bg-white-900 rounded-2xl glassi border border-gray-100  py-7 pr-7 '>
 
-                    <div id='TleftPanel' className='relative w-[65%] h-full px-6 '>
+                    <div id='TleftPanel' className='relative w-[65%] h-full px-6'>
                         <div className='flex flex-col space-y-4'>
                             <div className="flex space-x-2">
                                 <div className='flex flex-col'>
@@ -295,7 +302,7 @@ console.log('task',task)
                                         ( 
                                             <>
                                                 <TaskComplete  className='w-[26px] h-[26px] text-blue-500'/> 
-                                                <p className='text-[12px] font-semibold ml-4'>{task.status}</p>
+                                                <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task.status)}</p>
                                             </>
                                         )
                                         : task.status === 'approval' ?
@@ -310,7 +317,7 @@ console.log('task',task)
                                         (            
                                           <>
                                             <TaskRemove  className='w-[26px] h-[26px] text-[#FF0800]'/>
-                                            <p className='text-[12px] font-semibold ml-4'>{task.status}</p>
+                                            <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task.status)}</p>
                                           </>
                                         )
                                     }
@@ -332,15 +339,27 @@ console.log('task',task)
                         </div>
 
 
-                        <div className='absolute bottom-0 w-[94%] mx-auto'>               
+                        <div className='absolute flex-grow bottom-0 w-[94%]'>               
                             {
                                 task?.readyContributors.length > 0 && (
-                                    <div className="flex items-center mb-2 w-full">
+                                    <div className="flex items-center mb-2 w-full max-h-[820px]">
                                         <AnimatedTooltip items={task.readyContributors} commits={commits} />
                                     </div>
                                 )
                             }  
                             {
+                            
+                                task.status === 'completed' ? (
+                                    <div className='flex items-center justify-center w-full p-4'>
+                                        <p className='text-xl font-semibold text-blue-500'>Task Completed.</p>
+                                    </div>
+                                )
+                                : task.status === 'approval' ? (
+                                    <div className='flex items-center justify-center w-full p-4'>
+                                        <p className='text-xl font-semibold text-yellow-600'>Waiting for approval.</p>
+                                    </div>
+                                )
+                                :      
                                 ready ? (
                                     <div className='flex items-center justify-center w-full p-4'>
                                         <p className='text-xl font-semibold text-blue-500'>Contributions Finished.</p>
@@ -350,7 +369,7 @@ console.log('task',task)
                                 (                      
                                     <button 
                                     onClick={dialog}
-                                    className="flex justify-center overflow-y-hidden w-full p-4 rounded-2xl border-[1px] border-gray-400 max-w-[722px] max-h-[57px] overflow-x-auto font-semibold bg-green-400/20 transition-all duration-200 ease-in-out transform active:translate-y-[2px]">
+                                    className="flex justify-center overflow-y-hidden  p-4 rounded-2xl border-[1px] border-gray-400 w-full  max-h-[57px] overflow-x-auto font-semibold bg-green-400/20 transition-all duration-200 ease-in-out transform active:translate-y-[2px]">
                                       {
                                             handlingParticipation 
                                             ? ( <ScaleLoader height={20} width={3}  color="#32174D" /> )                                                                        
@@ -372,9 +391,17 @@ console.log('task',task)
                              <h4 className='font-semibold'>Task Activity</h4> 
                              <div className='flex space-x-2'>
                                 {
+                                    task?.reasons_for_rejection.length > 0 && (
+                                        <button onClick={() =>  setIsTaskReasonsOpen(true)}>
+                                        <Warning24Regular className='w-5 h-5 hover:text-red-600 transition-colors duration-100'/>
+                                    </button>
+                                    )
+                                }
+
+                                {
                                     taskNotes.length > 0 && (
                                         <button onClick={() =>  setIsNotesOpen(true) }>
-                                            <CommentMultipleCheckmark28Regular className='w-5 h-5 hover:text-green-600 transition-colors duration-100'/>
+                                            <CommentCheckmark28Regular className='w-5 h-5 hover:text-green-600 transition-colors duration-100'/>
                                         </button>
                                     )
                                 }
@@ -390,7 +417,7 @@ console.log('task',task)
                         
                         <TaskHeatmap data={heatmapData} commitsDetailsByDay={commitsDetailsByDay} createdAt={task.createdAt} />
 
-                        <div id='hashes-users' className='flex flex-grow flex-col max-h-[390px] overflow-auto w-[92%] mx-auto border-t-[1px] pt-4 border-gray-400'>
+                        <div id='hashes-users' className='flex flex-grow flex-col min-h-[460px] max-h-[460px] overflow-auto w-[92%] mx-auto border-t-[1px] pt-4 border-gray-400'>
                                 {
                                 
                                 commits.length > 0  ?
@@ -428,7 +455,8 @@ console.log('task',task)
                                     </div>
                                 }
                         </div>                     
-                    </div>                   
+                    </div>  
+
                 </div>
             )
         }

@@ -24,7 +24,7 @@ import { InformationOutline } from '@ricons/ionicons5'
 import { tierS } from '../../../helpers/accessLevels-validator';
 import { RepositoryInfo } from './modals/RepositoryInfo';
 import { PuffLoader  } from 'react-spinners';
-
+import './styles/repository.css'
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 export const Repository = () => {
@@ -120,11 +120,11 @@ export const Repository = () => {
       }
     })
     .then( res => {
-      console.log(res)
+      // console.log(res)
       handleRepoData(res.data.repo)
     })
     .catch( error => {
-      console.log(error)
+      // console.log(error)
       setIsLoading(false)
       setErrorWhileFetching(true)
       setErrorType(error.response.data.type || 'Error')
@@ -205,7 +205,6 @@ export const Repository = () => {
 
   `;
  
-
   if( isLoading ) return ( 
     <div className='flex flex-grow items-center justify-center'>
         <PuffLoader  color="#32174D" size={50} /> 
@@ -236,188 +235,184 @@ export const Repository = () => {
     </div>
   );
 
-  // console.log(selectedFileContent)
+  return (
+    <div className="flex flex-grow w-full h-full">
+        
+      { isRepoInfoOpen && <RepositoryInfo uid={uid} repo={repo} instructions={gitInstructions} isRepoInfoOpen={isRepoInfoOpen} setRepoInfoOpen={setIsRepoInfoOpen} /> }
+      { isRepoFormOpen && <RepositoryConfigForm isRepoFormOpen={isRepoFormOpen} setIsRepoFormOpen={setIsRepoFormOpen} repo={repo} /> }  
+      { isTasksModalOpen && <RepositoryTasksModal project={project} layer={layer} repo={repo} isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
+      { isCodeOnBigScreenOpen && <CodeOnBigScreen  getExtension={getExtension}  isCodeOnBigScreenOpen={isCodeOnBigScreenOpen} setIsCodeOnBigScreenOpen={setIsCodeOnBigScreenOpen} fileName={selectedFileName} fileContent={selectedFileContent} /> } 
 
-    return (
-      <div className="flex h-full w-full">
-          
-        { isRepoInfoOpen && <RepositoryInfo uid={uid} repo={repo} instructions={gitInstructions} isRepoInfoOpen={isRepoInfoOpen} setRepoInfoOpen={setIsRepoInfoOpen} /> }
-        { isRepoFormOpen && <RepositoryConfigForm isRepoFormOpen={isRepoFormOpen} setIsRepoFormOpen={setIsRepoFormOpen} repo={repo} /> }  
-        { isTasksModalOpen && <RepositoryTasksModal project={project} layer={layer} repo={repo} isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
-        { isCodeOnBigScreenOpen && <CodeOnBigScreen  getExtension={getExtension}  isCodeOnBigScreenOpen={isCodeOnBigScreenOpen} setIsCodeOnBigScreenOpen={setIsCodeOnBigScreenOpen} fileName={selectedFileName} fileContent={selectedFileContent} /> } 
+      {
 
-        {
+        commits
+        ? <Outlet />
+        : files.length === 0 
+        ?               
+            (
+              <div className="flex flex-col w-full h-full space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <button className="flex items-center space-x-2" onClick={() => navigate(-1)}>
+                      <Icon size={20}>
+                        <ArrowBackUp />
+                      </Icon>      
+                    </button>
+                    <button className="flex items-center space-x-2" onClick={() => loadRepoFiles()}>
+                      <Icon size={18}>
+                        <ReloadSharp />
+                      </Icon>
+                    </button>
+                  </div>
 
-          commits
-          ? <Outlet />
-          : files.length === 0 
-          ?               
-              (
-                <div className="flex flex-col w-full h-full max-h-[770px] space-y-3 ">
+                  <div className='overflow-y-auto bg-[#282a36] rounded-b-3xl'>
+                      <SyntaxHighlighter  language="bash" style={dracula} customStyle={{ fontSize: '13px' }}>
+                        {gitInstructions}
+                      </SyntaxHighlighter>
+                  </div>
+              </div>
+            )
+            :
+            (     
+              <div className='flex h-full w-full'>                   
+                  <div className="z-10 min-w-[340px] h-full glassi rounded-bl-3xl">
 
-                    <div className="flex items-center justify-between px-1">
-                      <button className="flex items-center space-x-2" onClick={() => navigate(-1)}>
-                        <Icon size={20}>
-                          <ArrowBackUp />
-                        </Icon>      
-                      </button>
-                      <button className="flex items-center space-x-2" onClick={() => loadRepoFiles()}>
-                        <Icon size={18}>
-                          <ReloadSharp />
-                        </Icon>
-                      </button>
-                    </div>
+                    <div className="flex items-center justify-between h-[39px] mt-2 pr-3 pl-4">
+                        <button className="flex items-center" onClick={() => navigate(-1)}>
+                          <Icon size={20}>
+                            <ArrowBackUp />
+                          </Icon>             
+                        </button>
 
-                    <div className='overflow-y-auto bg-[#282a36] rounded-b-3xl'>
-                        <SyntaxHighlighter  language="bash" style={dracula} customStyle={{ fontSize: '13px' }}>
-                          {gitInstructions}
-                        </SyntaxHighlighter>
-                    </div>
+                        <div className='relative flex  items-center'>
+                              <CommitSharp 
+                                className='w-5 h-5 cursor-pointer hover:text-yellow-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
+                                onClick={() => navigate(
+                                  `commits`, 
+                                  { 
+                                    state: { 
+                                      project: { ID, name }, 
+                                      layer: { layerID, layerName }, 
+                                      repository: { repoID, repoName },
+                                      commits: true 
+                                    } 
+                                  })}
+                              />
 
-                </div>
-              )
-              :
-              (     
-                <div className='flex h-full w-full'>                   
-                    <div className="z-10 w-[25%] h-full glassi rounded-bl-3xl ">
+                              <TaskSettings 
+                                    className='w-[17px] h-[17px] cursor-pointer hover:text-blue-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
+                                    onClick={() => setIsTasksModalOpen(true)}
+                              />
 
-                      <div className="flex items-center justify-between h-[39px] mt-2 pr-3 pl-4">
-                          <button className="flex items-center" onClick={() => navigate(-1)}>
-                            <Icon size={20}>
-                              <ArrowBackUp />
-                            </Icon>             
-                          </button>
+                              {
+                                tierS(uid, project, layer, repo) && 
+                                  (
+                                      <CloudSatelliteConfig
+                                          className='w-[17px] h-[17px] cursor-pointer hover:text-slate-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
+                                          onClick={() => setIsRepoFormOpen(true)}
+                                      />                              
+                                  )                           
+                              }
 
-                          <div className='relative flex  items-center'>
-                                <CommitSharp 
-                                  className='w-5 h-5 cursor-pointer hover:text-yellow-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
-                                  onClick={() => navigate(
-                                    `commits`, 
-                                    { 
-                                      state: { 
-                                        project: { ID, name }, 
-                                        layer: { layerID, layerName }, 
-                                        repository: { repoID, repoName },
-                                        commits: true 
-                                      } 
-                                    })}
-                                />
+                              <InformationOutline 
+                                className='w-[19px] h-[19px] cursor-pointer hover:text-green-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
+                                onClick={() => setIsRepoInfoOpen(true)}
+                              />
 
-                                <TaskSettings 
-                                      className='w-[17px] h-[17px] cursor-pointer hover:text-blue-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
-                                      onClick={() => setIsTasksModalOpen(true)}
-                                />
-
-                                {
-                                  tierS(uid, project, layer, repo) && 
-                                    (
-                                        <CloudSatelliteConfig
-                                            className='w-[17px] h-[17px] cursor-pointer hover:text-slate-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
-                                            onClick={() => setIsRepoFormOpen(true)}
-                                        />                              
-                                    )                           
-                                }
-
-                                <InformationOutline 
-                                  className='w-[19px] h-[19px] cursor-pointer hover:text-green-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
-                                  onClick={() => setIsRepoInfoOpen(true)}
-                                />
-
-                                <button 
-                                  className='flex items-center justify-center w-[60px] h-[25px] text-[13px] hover:bg-blue-200 rounded-lg transition-all glassi border-[1px] border-gray-400  duration-150 ease-in-out transform active:translate-y-[2px]'
-                                  onClick={() => setOpenBranches(!openBranches)}>
-                                  
-                                  {currentBranch} <ArrowDropDownOutlined className='w-[17px] h-[17px]' />
-                                </button> 
-                                {
-                                  openBranches && (
-                                    <div className='absolute z-10 flex flex-col min-w-[150px] bg-white border-[1px] border-black top-8 left-[55px] rounded-md p-1 '>
-                                      
-                                      <div className='text-center w-full py-2 text-sm font-semibold'>Branches</div>
-
-                                      <div className='flex flex-col max-h-60 overflow-y-auto'>
-                                        {repo.branches.map(branch => (
-                                          <button 
-                                            key={branch._id}
-                                            className={`flex justify-center items-center py-2  text-sm hover:bg-blue-200 transition-colors duration-100 ${branch.name === currentBranch ? 'bg-blue-100' : ''} `}
-                                            onClick={() => handleLoadNewBranch(branch.name)}
-                                          >
-                                            {branch.name} {branch.default && <span className="w-[50px] text-[9px] px-1 ml-2 bg-green-100 rounded-extra border-[1px] h-[19px] border-black">default</span>}
-                                          </button>
-                                        ))}
-                                      </div>
-
-                                    </div>
-                                  )
-                                }                        
-                          </div>
-                      </div> 
-
-                      <FileTree 
-                          branch={currentBranch} 
-                          files={files} 
-                          repo={repo} 
-                          setFiles={setFiles} 
-                          setSelectedFileContent={setSelectedFileContent} 
-                          setSelectedFileName={setSelectedFileName} 
-                          selectedFileName={selectedFileName}
-                          onFileClick={loadFileContent} 
-                          onFolderClick={loadFolderContents}  
-                          />
-                    </div>
-    
-                      {/* File content */}
-                      <div className={`relative flex flex-grow max-h-[750px] min-w-[945px] ${ getExtension() ? 'bg-white' : 'bg-[#282a36]' } overflow-y-auto`}>
-                          {
-
-                            selectedFileName && getExtension(selectedFileName) 
-                            ? (
-                                <div className="markdown-body custom-markdown border-2 w-full p-10 max-h-[750px] overflow-y-auto">
-                                    <ReactMarkdown children={selectedFileContent}  />
-                                 </div>
-                              )
-
-                            : selectedFileName ?           
-                            (                    
-                              <SyntaxHighlighter
-                                language={getLanguageFromFileName(selectedFileName)}
-                                style={dracula}
-                                customStyle={{
-                                  marginTop: '0px',
-                                  padding: '15px',
-                                  borderRadius: '0px', // Establece el borderRadius a 0 para eliminar el borde redondeado
-                                  height: '100%',
-                                  fontSize: '12px',
-                                  width: '100%'
-                                }}
+                              <button 
+                                className='flex items-center justify-center w-[60px] h-[25px] text-[13px] hover:bg-blue-200 rounded-lg transition-all glassi border-[1px] border-gray-400  duration-150 ease-in-out transform active:translate-y-[2px]'
+                                onClick={() => setOpenBranches(!openBranches)}>
                                 
-                              >
-                                {selectedFileContent === '' ? 'This file is empty.' :  `${selectedFileName}\n \n${selectedFileContent}`}                               
-                              </SyntaxHighlighter>                        
-                            )
-                            : 
-                            (
-                              <div className="flex flex-col flex-grow items-center justify-center">
-                                <h2 className="text-xl font-semibold mb-2 text-white">Select a file to see its content</h2>
-                                <p className="text-white">Click on a file in the list on the left</p>
-                              </div>
-                            )      
-                          }
+                                {currentBranch} <ArrowDropDownOutlined className='w-[17px] h-[17px]' />
+                              </button> 
+                              {
+                                openBranches && (
+                                  <div className='absolute z-10 flex flex-col min-w-[150px] bg-white border-[1px] border-black top-8 left-[55px] rounded-md p-1 '>
+                                    
+                                    <div className='text-center w-full py-2 text-sm font-semibold'>Branches</div>
 
-                          {
-                            selectedFileContent !== '' && (
-                              <button className='absolute z-10 text-white bottom-5 right-6'>
-                                  <Icon>
-                                    <ExpandSharp onClick={() => setIsCodeOnBigScreenOpen(!isCodeOnBigScreenOpen)} />
-                                  </Icon>
-                              </button>
-                            )
-                          }
-                      </div>                             
-                </div>
+                                    <div className='flex flex-col max-h-60 overflow-y-auto'>
+                                      {repo.branches.map(branch => (
+                                        <button 
+                                          key={branch._id}
+                                          className={`flex justify-center items-center py-2  text-sm hover:bg-blue-200 transition-colors duration-100 ${branch.name === currentBranch ? 'bg-blue-100' : ''} `}
+                                          onClick={() => handleLoadNewBranch(branch.name)}
+                                        >
+                                          {branch.name} {branch.default && <span className="w-[50px] text-[9px] px-1 ml-2 bg-green-100 rounded-extra border-[1px] h-[19px] border-black">default</span>}
+                                        </button>
+                                      ))}
+                                    </div>
 
-              )
-        }
-      </div>
-    );
+                                  </div>
+                                )
+                              }                        
+                        </div>
+                    </div> 
+
+                    <FileTree 
+                        branch={currentBranch} 
+                        files={files} 
+                        repo={repo} 
+                        setFiles={setFiles} 
+                        setSelectedFileContent={setSelectedFileContent} 
+                        setSelectedFileName={setSelectedFileName} 
+                        selectedFileName={selectedFileName}
+                        onFileClick={loadFileContent} 
+                        onFolderClick={loadFolderContents}  
+                      />
+                  </div>
+  
+                    {/* File content */}
+                    <div id='fileContent' className={`flex flex-grow relative h-full max-h-[92.6vh] overflow-x-auto ${ getExtension() ? 'bg-white' : 'bg-[#282a36]' }`}>
+                        {
+
+                          selectedFileName && getExtension(selectedFileName) 
+                          ? (
+                              <div className="markdown-body custom-markdown border-2 w-full p-10 max-h-[750px] overflow-y-auto">
+                                  <ReactMarkdown children={selectedFileContent}  />
+                                </div>
+                            )
+
+                          : selectedFileName ?           
+                          (                    
+                            <SyntaxHighlighter
+                              language={getLanguageFromFileName(selectedFileName)}
+                              style={dracula}
+                              customStyle={{
+                                marginTop: '0px',
+                                padding: '15px',
+                                borderRadius: '0px', // Establece el borderRadius a 0 para eliminar el borde redondeado
+                                // height: '100%',
+                                fontSize: '12px',
+                                width: '100%'
+                              }}
+                              
+                            >
+                              {selectedFileContent === '' ? 'This file is empty.' :  `${selectedFileName}\n \n${selectedFileContent}`}                               
+                            </SyntaxHighlighter>                        
+                          )
+                          : 
+                          (
+                            <div className="flex flex-col flex-grow items-center justify-center">
+                              <h2 className="text-xl font-semibold mb-2 text-white">Select a file to see its content</h2>
+                              <p className="text-white">Click on a file in the list on the left</p>
+                            </div>
+                          )      
+                        }
+
+                        {
+                          selectedFileContent !== '' && (
+                            <button className='absolute z-10 text-white bottom-5 right-6'>
+                                <Icon>
+                                  <ExpandSharp onClick={() => setIsCodeOnBigScreenOpen(!isCodeOnBigScreenOpen)} />
+                                </Icon>
+                            </button>
+                          )
+                        }
+                    </div>                             
+              </div>
+
+            )
+      }
+    </div>
+  );
 };

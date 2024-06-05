@@ -1,6 +1,3 @@
-import { tierS } from "../../../helpers/accessLevels-validator";
-
-
 export const Options = ({ uid, project, showOptModal, setIsProjectConfigFormOpen, setIsLayerFormOpen, setIsProjectCollaboratorsFormOpen }) => {
     return (
         <div 

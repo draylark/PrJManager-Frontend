@@ -1,7 +1,6 @@
 import { Chip } from '@mui/material';
 import projectimg from '../../assets/imgs/projectbg.jpg';
-// import img from '../../assets/imgs/'
-import { HandshakeFilled } from '@ricons/material'; // Asegúrate de tener este ícono disponible
+import { HandshakeFilled } from '@ricons/material'; 
 import { useNavigate } from 'react-router-dom';
 import { cleanUrl } from '../projects/helpers/helpers';
 

@@ -1,0 +1,18 @@
+#commits-scroll-container {
+    max-height: 88vh;
+
+    overflow-y: auto;
+  }
+  
+  /* Media query para pantallas más pequeñas */
+  @media (max-height: 600px) {
+    #commits-scroll-container {
+      max-height: 185vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+  @media (max-height: 400px) {
+    #commits-scroll-container {
+      max-height: 785vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }

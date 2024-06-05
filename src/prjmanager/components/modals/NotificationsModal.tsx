@@ -1,6 +1,5 @@
 import { useSelector } from "react-redux"
 import { useState, useEffect, useRef, FC, Fragment } from "react";
-import { ListItem, Avatar, ListItemSecondaryAction, ListItemAvatar, List, Divider } from "@mui/material";
 import axios from "axios";
 import projectbg from '../../assets/imgs/projectbg.jpg'
 import { useNotificationsData } from "./hooks/useNotificationsData";
@@ -9,7 +8,8 @@ import { BeatLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
 import { getInitialsAvatar } from "../projects/helpers/helpers";
 import { useNavigate } from "react-router-dom";
-import { cleanUrl } from "../projects/helpers/helpers";
+import { formateDate, cleanUrl } from "../../helpers/helpers";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 type MyComponentProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,7 +31,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
       switch (type) {
         case 'friend-request': {
           handlingR(notiID);
-          await axios.put(`http://localhost:3000/api/friends/handle-friend-request/${requester}`, { requestStatus, uid, notiID, ref: additional.ref }, {
+          await axios.put(`${backendUrl}/friends/handle-friend-request/${requester}`, { requestStatus, uid, notiID, ref: additional.ref }, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': localStorage.getItem('x-token')
@@ -60,7 +60,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
   
         case 'project-invitation': {
           handlingR(notiID);
-          await axios.put(`http://localhost:3000/api/projects/handle-invitation/${additional.projectID}`, { requestStatus, uid, name: username, photoUrl: photoURL, accessLevel: additional.accessLevel, notiID }, {
+          await axios.put(`${backendUrl}/projects/handle-invitation/${additional.projectID}`, { requestStatus, uid, name: username, photoUrl: photoURL, accessLevel: additional.accessLevel, notiID }, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': localStorage.getItem('x-token')
@@ -179,7 +179,13 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
                 <div className="flex flex-col">
                   <p className="text-[9px] text-black">{request.type}</p>
                   <p className="text-black">{request.additionalData.project_name}</p>
-                  <p className="w-[200px] text-black text-xs"> <span className="font-semibold cursor-pointer">@{request.from.name}</span>  invited you to join this project as <span className="font-bold text-green-600"> {request.additionalData.accessLevel} </span> </p>
+                  <p className="w-[200px] text-black text-xs"> <span 
+                    onClick={() => navigate(`/profile/${cleanUrl(request.from.name)}`, { 
+                        state: { 
+                            user: { uid: request.from.ID, username: request.from.name } 
+                        }
+                      })
+                    } className="font-semibold cursor-pointer">@{request.from.name}</span>  invited you to join this project as <span className="font-bold text-green-600"> {request.additionalData.accessLevel} </span> </p>
                 </div>
               </div>
 
@@ -254,7 +260,13 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
                   </p>
                   <p className="text-black text-xs">Started following you.</p>
                 </div>
-              </div>     
+              </div>   
+
+              <div className="flex flex-grow h-full justify-end  px-3">
+                <p className="text-black font-semibold text-[12px]">
+                  {formateDate(request.createdAt)}
+                </p> 
+              </div>  
             </div>
             <div className="border-[1px] border-gray-300 w-full"/>        
           </div>
@@ -275,7 +287,6 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
     };
   }, []);
 
-  console.log(notifications)
   const animationClasses = isActive ? 'opacity-100' : 'opacity-0';
 
   return (
@@ -319,8 +330,6 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
                     )
               }
           </div>
-
       </div>
-
   )
 }

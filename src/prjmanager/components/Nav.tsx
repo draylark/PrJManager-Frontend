@@ -6,28 +6,23 @@ import GlobeSearch20Filled from '@ricons/fluent/GlobeSearch20Filled'
 import platy from '../assets/imgs/platy.jpg'
 import idk from '../assets/imgs/abstract.jpeg'
 import Noti from '@ricons/material/NotificationsNoneOutlined'
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './styles/fonts.css'
 import { NotificationsModal } from './modals/NotificationsModal'
 import { useSelector } from 'react-redux'
 
 export const Nav = () => {
 
-    const navigate = useNavigate();
     const location = useLocation();
     const pathName = location.pathname
     const [isNotisModalOpen, setIsNotisModalOpen] = useState(false)
     const { username } = useSelector( state => state.auth )
     
-    // ! 14213d
-    // ! 0a1128
-
     return (
-      <div className="relative sidebar flex flex-col items-center bg-[#0a1128] text-white w-64 min-h-screen">
+      <div id='Nav' className="flex flex-col items-center bg-[#0a1128] text-white min-h-screen w-64">
         
         { isNotisModalOpen && <NotificationsModal setIsOpen={ setIsNotisModalOpen }/> }
 
-        {/* Logo and Application Name */}
         <div className="flex space-x-2 logo p-5 w-full items-center ">
           <img src={platy} alt="Logo" className="ml-2 h-14 w-14 mr-3 rounded-lg border-[1px] border-black"/>
           <span className="text-sm nav-button">PrJManager</span>
@@ -62,7 +57,6 @@ export const Nav = () => {
             </Link>
         </div>
         
-        {/* User Information and Notification */}
         <div className="user-info flex flex-grow items-end  pb-10 p-5 w-full  pl-9">
             <div className='flex flex-col  space-y-6 '>
                 <button 

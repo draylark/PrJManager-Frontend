@@ -1,0 +1,59 @@
+#fileContent {
+    max-height: 92.6vh;
+
+    overflow-y: auto;
+  }
+  
+  /* Media query para pantallas más pequeñas */
+  @media (max-height: 600px) {
+    #fileContent {
+      max-height: 185vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+  @media (max-height: 400px) {
+    #fileContent {
+      max-height: 785vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+#fileTree {
+    max-height: 87vh;
+
+    overflow-y: auto;
+  }
+  
+  /* Media query para pantallas más pequeñas */
+  @media (max-height: 600px) {
+    #fileTree {
+      max-height: 185vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+
+  @media (max-height: 600px) {
+    #fileTree {
+      max-height: 785vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+
+#repos-scroll-container {
+    max-height: 87vh;
+
+    overflow-y: auto;
+  }
+  
+  /* Media query para pantallas más pequeñas */
+  @media (max-height: 600px) {
+    #repos-scroll-container {
+      max-height: 185vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+
+  @media (max-height: 600px) {
+    #repos-scroll-container {
+      max-height: 785vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }

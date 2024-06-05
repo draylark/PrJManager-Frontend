@@ -15,7 +15,8 @@ import { tierS, tierA } from '../../../helpers/accessLevels-validator';
 import { BeatLoader } from 'react-spinners';
 import { InformationOutline } from '@ricons/ionicons5'
 import { Copy20Regular } from '@ricons/fluent'
-
+import './activity.css'
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 import { TaskCollaborators } from './TaskCollaborators';
 
@@ -81,8 +82,8 @@ import { TaskCollaborators } from './TaskCollaborators';
       setIsLoading(true)
       const layer = layers.filter( layer => layer._id === layerID )
       const repo = repositories.filter( repo => repo._id === repoID )
-      const repoUrl = `http://localhost:3000/api/repos/${repoID}`
-      const layerUrl = `http://localhost:3000/api/layer/get-layer/${layerID}`
+      const repoUrl = `${backendUrl}/repos/${repoID}`
+      const layerUrl = `${backendUrl}/layer/get-layer/${layerID}`
 
       if( !layer[0] && !repo[0] ) {
         axios.all([
@@ -195,13 +196,13 @@ import { TaskCollaborators } from './TaskCollaborators';
       </Dialog>
 
       )
-    })
+    });
 
     const handleTask = async( taskId, approved, status, reasons ) => {
       const task = wFApprovalTasks.filter( task => task._id === taskId )[0]
       setHandlingTask(taskId)
 
-      axios.put(`http://localhost:3000/api/tasks/update-task-status/${task.project}/${taskId}`, { approved, status, reasons }, {
+      axios.put(`${backendUrl}/tasks/update-task-status/${task.project}/${taskId}`, { approved, status, reasons }, {
         params: {
           uid,
           layerID: task.layer_related_id,
@@ -240,7 +241,7 @@ import { TaskCollaborators } from './TaskCollaborators';
                 setTaskHandled(taskId) 
           }, 2000);
         })
-    }
+    };
 
     const filteredTasks = useMemo(() => {
       // Implementa tu lógica de filtrado aquí, basada en los estados de filtros
@@ -275,7 +276,7 @@ import { TaskCollaborators } from './TaskCollaborators';
     
 
     return (
-          <div className="flex flex-col  flex-grow px-7 h-full overflow-y-auto">
+          <div className="flex flex-col  flex-grow px-7 h-full">
             <div className='flex justify-between h-[70px]'>
                 <div className='flex space-x-4 items-center h-full'>
                     <Select       
@@ -375,7 +376,7 @@ import { TaskCollaborators } from './TaskCollaborators';
                   </div>
             </div>
 
-            <div  id='container-scroll' className='flex flex-col space-y-4 pb-6 flex-grow  max-h-[655px] overflow-y-auto '>
+            <div id='task-container-scroll' className='flex flex-col space-y-4 pb-6 flex-grow overflow-y-auto'>
                 {             
                   filteredTasks.length === 0 
                   ?

@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, Dispatch, SetStateAction} from "react";
-import { useTreeChartData } from "../../../../hooks/useTreeChartData";
 import * as d3 from "d3";
 import { TreeNodeToolTip } from "./TreeNodeToolTip";
-import { PuffLoader  } from 'react-spinners';
 
 type TreeNodeData = {
   name: string;
@@ -51,12 +49,13 @@ export const TreeChart = ({ data, isLoading }) => {
   }, [data, tooltip, pinnedNode]);
 
 
-  renderChart(data, ref.current, setTooltip, tooltip, pinnedNode, setPinnedNode);
+  useEffect(() => {
+    renderChart(data, ref.current, setTooltip, tooltip, pinnedNode, setPinnedNode);
+  }, [data, tooltip, pinnedNode]);
 
-  return <div ref={ref}>
-        <TreeNodeToolTip data={data} id={tooltip.id} position={{ top: tooltip.top, left: tooltip.left }} visible={tooltip.visible} type={ tooltip.type } />
-  </div>;
-  
+  return <div ref={ref} style={{ width: '100%', height: '100%' }}>
+            <TreeNodeToolTip data={data} id={tooltip.id} position={{ top: tooltip.top, left: tooltip.left }} visible={tooltip.visible} type={ tooltip.type } />
+          </div>
 };
 
 
@@ -89,15 +88,14 @@ const renderChart = (
 
   if (!container) return;
 
-  const width = 785;
-  const height = 400;
-
   // Verifica si ya hay un SVG en el contenedor.
   // Si no hay un SVG, crea uno.
   if (!d3.select(container).select("svg").node()) {
     d3.select(container).append("svg");
   }
 
+  const width = container.clientWidth;
+  const height = container.clientHeight;
 
   const zoom = d3.zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.5, 3])
@@ -106,8 +104,8 @@ const renderChart = (
     });
     
   const svg = d3.select(container).select<SVGSVGElement>("svg")
-    .attr("width", width)
-    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
     .on("mousedown", () => {
       // Ocultar el tooltip cuando se haga clic en el SVG
       if (tooltip.visible) {
@@ -129,6 +127,10 @@ const renderChart = (
   const clusterLayout = d3.cluster<TreeNodeData>().size([height, width]);
   clusterLayout(root);
 
+  const rootX = root.x;
+  const centerY = height / 2;
+  const offsetY = centerY - rootX;
+
   const linkFunc = d3.linkHorizontal()
     .x(d => d[0])
     .y(d => d[1]);
@@ -139,7 +141,7 @@ const renderChart = (
   }));
 
   if (!g.attr("data-initialized")) {
-    g.attr("transform", `translate(20, -80)`);
+    g.attr("transform", `translate(20, ${offsetY})`);
     g.attr("data-initialized", "true");
   }
 

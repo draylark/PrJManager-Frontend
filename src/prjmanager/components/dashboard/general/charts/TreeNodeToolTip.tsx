@@ -75,7 +75,7 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
 
   return (
     <div
-      className={`absolute p-3 z-50 min-w-[400px] max-w-[450px] rounded-lg shadow-lg glass border-[1px] ${
+      className={`absolute p-3 z-50 min-w-[400px] max-w-[450px] rounded-lg shadow-lg bg-black border-[1px] ${
         type === 'project' ? 'border-blue-400' : type === 'layer' ? 'border-pink-400' : type === 'repo' ? 'border-green-400' : 'border-blue-600'
       }`}
       style={{ top: position.top + 10, left: position.left - 250 }}
@@ -84,12 +84,12 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
         <div className='flex flex-col space-y-2 p-2'>
             <div className='flex justify-between'>
                 <div className='text-blue-400 font-bold'>{removePrefix(toolTipData.name)}</div>
-                <div className='text-[12px]'>#{toolTipData.id}</div>
+                <div className='text-[12px] text-white'>#{toolTipData.id}</div>
             </div>
           
-          <div className='text-sm'>{toolTipData.description}</div>
+          <div className='text-sm text-white'>{toolTipData.description}</div>
 
-          <div className='flex space-x-2'>
+          <div className='flex space-x-2 text-white'>
             <div className='text-sm'>Start Date: {formatDate(toolTipData.startDate)}</div>
             <div className='text-sm'>End Date: {formatDate(toolTipData.endDate)}</div>
           </div>
@@ -104,15 +104,15 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
             <div className='flex flex-col'>
                 <div className='flex justify-between'>
                     <div className='text-blue-500 font-bold truncate w-[200px] cursor-pointer'>{removePrefix(toolTipData.name)}</div>
-                    <div className='text-[12px]'>#{toolTipData.id}</div>
+                    <div className='text-[12px] text-white'>#{toolTipData.id}</div>
                 </div>
-                <div className='flex space-x-2'>
+                <div className='flex space-x-2 text-white'>
                     <div className='text-[12px]'>{capitalizeFirstLetter(toolTipData.status)}</div>
                     <div className='text-[12px]'>{capitalizeFirstLetter(toolTipData.priority)}</div>
                 </div>
             </div>
-            <div className='text-sm'>{toolTipData.description}</div>
-            <div className='text-[12px]'>Estimated hours: {toolTipData?.additional_info?.estimated_hours}h</div>
+            <div className='text-sm text-white'>{toolTipData.description}</div>
+            <div className='text-[12px] text-white'>Estimated hours: {toolTipData?.additional_info?.estimated_hours}h</div>
 
             <div className='flex justify-between mb-3'>
 
@@ -168,9 +168,9 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
         <div className='flex flex-col space-y-2'>
             <div className='flex  justify-between'>
                 <div className='text-green-500 font-bold'>{removePrefix(toolTipData.name)}</div>
-                <div className='text-[12px]'>#{toolTipData.id}</div>
+                <div className='text-[12px] text-white'>#{toolTipData.id}</div>
             </div>
-          <div className='text-sm'>{toolTipData.description}</div>
+          <div className='text-sm text-white'>{toolTipData.description}</div>
         </div>
       )}
 
@@ -178,10 +178,10 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
         <div className='flex flex-col space-y-2'>
             <div className='flex min-w-[] justify-between'>
                 <div className='text-pink-400 font-bold'>{removePrefix(toolTipData.name)}</div>
-                <div className='text-[12px]'>#{toolTipData.id}</div>
+                <div className='text-[12px] text-white'>#{toolTipData.id}</div>
             </div>
           
-          <div className='text-sm'>{toolTipData.description}</div>
+          <div className='text-sm text-white'>{toolTipData.description}</div>
         </div>
       )}
     </div>

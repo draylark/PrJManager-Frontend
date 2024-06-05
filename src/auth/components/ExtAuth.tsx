@@ -5,6 +5,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import LoadingCircle from "../helpers/Loading";
 import { decodeParams } from "../helpers/decodeParams";
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 const ExtAuth = () => {
 
@@ -55,10 +56,8 @@ const ExtAuth = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/api/auth/extension-auth-user', { code: authCode });    
+            const response = await axios.post(`${backendUrl}/auth/extension-auth-user`, { code: authCode });    
             const { data } = response;
-
-            console.log('Desde onPrJCUPersistance', data )
 
             if( data.status === true ) {
                 socket.emit('onPrJCUPersistance', { type: 'NPM', success: true, npmsocketid, user: data.user, pat: data.pat, token: data.token }, (response) => {                                   
@@ -90,7 +89,7 @@ const ExtAuth = () => {
             setIsLoading(false);
             socket.close();   
         }
-    }
+    };
 
     useEffect(() => {
         const newSocket = io('http://localhost:8081');
@@ -111,9 +110,9 @@ const ExtAuth = () => {
                     respStatus.message,
                     'success'
                 )
-            // setTimeout(() => {
-            //     window.close()
-            // }, 5000);
+            setTimeout(() => {
+                window.close()
+            }, 5000);
         } else {
             Swal.fire(
                 'Error',

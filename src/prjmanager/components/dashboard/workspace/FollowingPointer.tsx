@@ -59,9 +59,20 @@ export function TaskSet({ navigate, taskSet, uid }) {
             </h2>
 
           
-            <div className="flex flex-row space-x-4">
-                <div className={`${ taskSet.type === 'open' ? 'bg-pink-300 text-black' : 'bg-black text-white'} flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl`}>
+            <div className="flex flex-row space-x-2">
+                <div className={`${ taskSet.type === 'open' ? 'bg-pink-300 text-black' : 'bg-black text-white'} max-h-6 flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl`}>
                     <p className={"text-[11px]"}>{taskSet.type}</p>
+                </div>
+                <div className={`${ 
+                  taskSet.status === 'pending'
+                  ? 'bg-red-400'
+                  : taskSet.status === 'approval'
+                  ? 'bg-yellow-600'
+                  : taskSet.status === 'completed'
+                  ? 'bg-blue-500 text-white'
+                  : ''
+                  } max-h-6  flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl`}>
+                    <p className={"text-[11px]"}>{taskSet.status}</p>
                 </div>
                 <div className={`${ 
                   taskSet.priority === 'Critical'
@@ -71,11 +82,11 @@ export function TaskSet({ navigate, taskSet, uid }) {
                   : taskSet.priority === 'Medium'
                   ? 'bg-yellow-400'
                   : 'bg-green-400 '
-                  } flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl`}>
+                  } max-h-6  flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl`}>
                     <p className="text-[11px]">{taskSet.priority}</p>
                 </div>
-                <div className="bg-blue-400 flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl">
-                    <p className="text-[11px] text-white">Goals: {taskSet.goals.length}</p>
+                <div className="max-h-6  bg-white flex flex-row space-x-2 items-center border-[1px] border-gray-400 px-3 py-1 rounded-2xl">
+                    <p className="text-[11px] text-black">G: {taskSet.goals.length}</p>
                 </div>
             </div>
             

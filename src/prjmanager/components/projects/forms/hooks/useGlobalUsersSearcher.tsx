@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
 
 export const useGlobalUsersSearcher = () => {
@@ -24,7 +25,7 @@ export const useGlobalUsersSearcher = () => {
             setUsers([])
             return
         }
-        axios.get(`http://localhost:3000/api/users/find-user?search=${search}`)
+        axios.get(`${backendUrl}/users/find-user?search=${search}`)
             .then(res => {
                 console.log(res.data)
                 handleUsersData(res.data.users)

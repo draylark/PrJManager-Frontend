@@ -1,9 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
-import { Home } from '../components/home/Home'
 import PrJManager from '../views/PrJManager'
 import { Projects, Dashboard, Project, Layer, Repository, Comments, Searcher, TreeChart, Activity, Commits, Commit, Workspace, Resources, TaskSetDetails, PersonalArea, Profile } from '../components'
-// import ExtAuth from '../../auth/components/ExtAuth'
-
 
 const ManagerRoutes = () => {
 

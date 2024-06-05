@@ -46,7 +46,7 @@ export const FileTree = ({ branch, files, onFileClick, onFolderClick, repo, setF
     };
 
     return (
-      <ul className='overflow-y-auto overflow-x-auto h-full max-h-[690px] px-5 pt-2 rounded-bl-extra'>
+      <ul id='fileTree' className='overflow-y-auto overflow-x-auto h-full  px-5 pt-2 rounded-bl-extra'>
 
         {files.map(file => (
           <Fragment key={file.id}>

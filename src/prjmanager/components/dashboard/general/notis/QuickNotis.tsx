@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useQuickNotisData } from './hooks/useQuickNotisData'
+import { useQuickNotisData } from '../../hooks/useQuickNotisData'
 import platy from '../../../../assets/imgs/platy.jpg'
 import { ScaleLoader   } from 'react-spinners';
 import { useNavigate } from 'react-router-dom';
@@ -183,7 +183,7 @@ export const QuickNotis = ({ uid }) => {
   };
 
   return (
-    <div className="flex flex-col space-y-4 flex-grow max-h-[252px] overflow-y-auto  rounded-b-extra">
+    <div className="flex flex-col space-y-4 flex-grow max-h-[300px] overflow-y-auto  rounded-b-extra">
         {
 
             isLoading 
@@ -208,7 +208,7 @@ export const QuickNotis = ({ uid }) => {
               :
                 (
                   notifications.map((noti, index) => (
-                    <div key={index} id="bu" className="flex space-x-2 w-full  px-5 ">
+                    <div key={index} className="flex space-x-2 w-full px-5">
                       <img
                           className="w-6 h-6 border-[1px] border-white rounded-full dark:border-gray-800"
                           src={ platy || `https://dummyimage.com/500x500/000/fff&text=S`}

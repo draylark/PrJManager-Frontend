@@ -13,7 +13,7 @@ export const Dashboard = () => {
 
   const renderComponent = (currentLocation) => {
     switch (render) {
-      case 'general':
+    case 'general':
         return <General/>
       case 'workspace':
         return <Outlet/>
@@ -35,7 +35,7 @@ export const Dashboard = () => {
   if( location?.state?.repository ) return <Outlet/>
   
   return (
-    <div className="flex flex-col w-full h-full rounded-extra items-center">
+    <div className="flex flex-grow flex-col space-y-2 items-center">
         <Bar setRender={setRender} render={render}/>
       
         {renderComponent(currentLocation)}   

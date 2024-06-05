@@ -15,7 +15,6 @@ import { PuffLoader  } from 'react-spinners';
 
 export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, setIsTasksModalOpen }) => {
 
-
   const location = useLocation();
   const { repoID } = location.state.repository;
   const { uid } = useSelector( (state) => state.auth );
@@ -27,40 +26,36 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [ taskNameFilter, setTaskNameFilter ] = useState('');
   const { tasks, setTasks,  isLoading, errorWhileFetching, errorMessage } = useRepositoryTasksData(repoID);
+  const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
 
+  const handleClose = () => {
+    if( isTasksModalOpen ) {
+      setModalOpacity(0);
+      setTimeout(() => {
+        setIsTasksModalOpen(false);
+      }, 700);
+    }
+  };
 
-    const handleClose = () => {
-      if( isTasksModalOpen ) {
-        setModalOpacity(0);
-        setTimeout(() => {
-          setIsTasksModalOpen(false);
-        }, 700);
-      }
-    };
+  useEffect(() => {
+      const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+      preloadImage.src = formbg;
+  
+      preloadImage.onload = () => {
+        setIsBackgroundReady(true); // Indica que la imagen ha cargado
+      };
+  }, []);
 
-
-    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
-
-    useEffect(() => {
-        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
-        preloadImage.src = formbg;
+  useEffect(() => {
+    if (isTasksModalOpen) {
+      // Retraso mínimo para iniciar la transición después de abrir el modal
+      const timer = setTimeout(() => setModalOpacity(1), 20); // Ajusta la opacidad a 1 (visible)
+      return () => clearTimeout(timer);
+    } else {
+      setModalOpacity(0); // Ajusta la opacidad a 0 (invisible) inmediatamente al cerrar
+    }
+  }, [isTasksModalOpen]);
     
-        preloadImage.onload = () => {
-          setIsBackgroundReady(true); // Indica que la imagen ha cargado
-        };
-      }, []);
-
-    useEffect(() => {
-      if (isTasksModalOpen) {
-        // Retraso mínimo para iniciar la transición después de abrir el modal
-        const timer = setTimeout(() => setModalOpacity(1), 20); // Ajusta la opacidad a 1 (visible)
-        return () => clearTimeout(timer);
-      } else {
-        setModalOpacity(0); // Ajusta la opacidad a 0 (invisible) inmediatamente al cerrar
-      }
-    }, [isTasksModalOpen]);
-    
-    // console.log('tasks',tasks)
 
   return ( 
     <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>

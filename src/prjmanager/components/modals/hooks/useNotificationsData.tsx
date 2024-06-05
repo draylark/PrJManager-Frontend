@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
 
 export const useNotificationsData = (uid) => {
@@ -11,7 +12,7 @@ export const useNotificationsData = (uid) => {
 
     const fetchNotifications = () => {
         setFetchingNotifications(true)
-        axios.get(`http://localhost:3000/api/notis/${uid}`, {
+        axios.get(`${backendUrl}/notis/${uid}`, {
             params: {
                 limit: 15,
                 type: 'general'

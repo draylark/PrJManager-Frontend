@@ -24,8 +24,7 @@ export function TopReposGlowingStars({ topProjects }) {
 
   const currentProject = topProjects.length > 0 ? topProjects[currentIndex] : emptyData;
 
-  return (
-    <div className="flex h-full antialiased">
+  return (  
       <GlowingStarsBackgroundCard mouseEnter={mouseEnter}>
         <GlowingStarsTitle  setMouseEnter={setMouseEnter} currentProject={currentProject} navigate={navigate}>
           {currentProject.name}
@@ -45,8 +44,7 @@ export function TopReposGlowingStars({ topProjects }) {
             )
           }
         </div>
-      </GlowingStarsBackgroundCard>
-    </div>
+      </GlowingStarsBackgroundCard> 
   );
 }
  

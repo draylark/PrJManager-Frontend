@@ -97,19 +97,20 @@ export const HeatMapCalendar = () => {
     );
   };
 
+
   return (
 
-    <div className='flex flex-col flex-grow'>
+    <div className='flex flex-col flex-grow  justify-center space-y-4 '>
 
-      <div className='flex items-center w-full justify-between pr-10 '>              
-          <h3 className='text-lg w-[30%] font-bold text-sky-950 ml-5 mb-1'>Activity</h3>   
+      <div className='flex items-center w-full justify-between px-10'>              
+          <h3 className='text-xl w-[30%] font-bold text-sky-950'>Activity</h3>   
           <h3 className="text-sm text-sky-950 font-bold mt-[2px]">{showYears()}</h3>   
       </div>
 
-      <div className='flex flex-col h-full w-full rounded-extra space-y-2 mt-3 px-2'>
-          <div id="heatMap" className="flex flex-col w-[95%]">   
+      <div className='flex flex-col h-full w-full rounded-extra space-y-2'>
+          <div id="heatMap" className="flex flex-col w-full ">   
 
-              <div id="heatMapOpt" className='flex w-full h-10 pl-2 space-x-3  rounded-extra'>
+              <div id="heatMapOpt" className='flex w-full h-10 space-x-3 justify-center rounded-extra px-7'>
                     <button onClick={ handleLeftButtonClick } 
                     className='dashboard-buttons hover:bg-[#1f26870e] rounded-l-extra flex items-center justify-center w-[10%] h-8 transition-all duration-300 ease-in-out transform active:translate-y-[2px]'>
                       <Icon size={22}>
@@ -130,7 +131,7 @@ export const HeatMapCalendar = () => {
 
               </div>
 
-              <div id='calendar' className='w-full mt-4 overflow-visible pl-2'>
+              <div id='calendar' className='flex w-full mt-4 overflow-visible justify-center'>
 
                 {
                   isLoading 
@@ -148,7 +149,6 @@ export const HeatMapCalendar = () => {
                   :
                     (
                       <HeatMap 
-                        style={{ width: '100%'}}
                         panelColors={{
                             0: '#eff7ff',
                             2: '#caf0f8',
@@ -158,9 +158,10 @@ export const HeatMapCalendar = () => {
                             30: '#03045e',
                         }}
                         value={!isTorC ? tasks : commits} 
+                        width={410}
                         startDate={ startDate } 
                         endDate={ endDate }
-                        rectSize={11}
+                        rectSize={13}
                         rectProps={{     
                           rx: 2,
                           ry: 2,

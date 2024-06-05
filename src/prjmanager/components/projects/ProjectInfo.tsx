@@ -8,7 +8,7 @@ import { HeatMapComponent } from './HeatMap';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
 import './styles/idk.css'
-
+import { abbreviateNumber } from '../../helpers/helpers';
 
 export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => {
   const [animationStep, setAnimationStep] = useState(0);
@@ -100,7 +100,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
               <div className='flex space-x-2 items-center'>
                 <FaLayerGroup className='w-8 h-8 text-pink-400 mr-3'/>
                 <p className='flex text-[20px] mt-2 font-extralight'>
-                  <span className='font-semibold text-pink-400 mr-3'>{project.layers}</span>
+                  <span className='font-semibold text-pink-400 mr-3'>{abbreviateNumber(project.layers || 0)}</span>
                   Layers
                 </p>
               </div>
@@ -119,7 +119,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
                 <div className='flex space-x-2 items-center'>
                   <FaGitAlt className='w-9 h-9 text-green-400 mr-3'/>
                   <p className='flex text-[20px] mt-2 font-extralight'>
-                    <span className='font-semibold text-green-400 mr-3'>{project.repositories}</span>
+                    <span className='font-semibold text-green-400 mr-3'>{abbreviateNumber(project.repositories || 0)}</span>
                     Repositories
                   </p>
                 </div>
@@ -139,7 +139,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
                 <div className='flex space-x-2 items-center'>
                   <GitCompare className='w-9 h-9 text-yellow-400 mr-3'/>
                   <p className='flex text-[20px] mt-2 font-extralight'>
-                    <span className='font-semibold text-yellow-400 mr-3'>{project.commits}</span>
+                    <span className='font-semibold text-yellow-400 mr-3'>{abbreviateNumber(project.commits || 0)}</span>
                     Commits
                   </p>
                 </div>
@@ -159,7 +159,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
                 <div className='flex space-x-2 items-center'>
                   <TaskComplete className='w-8 h-8 text-blue-400 mr-3'/>
                   <p className='flex text-[20px] mt-2 font-extralight'>
-                    <span className='font-semibold text-blue-400 mr-3'>{project.completedTasks}</span>
+                    <span className='font-semibold text-blue-400 mr-3'>{abbreviateNumber(project.completedTasks || 0)}</span>
                     Completed Tasks
                   </p>
                 </div>
@@ -218,6 +218,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
+            className='flex flex-grow justify-center items-end py-5'
 
           >
             <HeatMapComponent project={project} projectID={projectID} />

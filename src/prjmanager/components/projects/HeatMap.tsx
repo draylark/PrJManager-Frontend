@@ -37,7 +37,7 @@ export const HeatMapComponent = ({ project, projectID }) => {
 
 
     return (
-        <div className='absolute bottom-6 w-[94%] flex flex-col h-[230px] rounded-2xl bg-blue-200/40 border-[1px] border-gray-400'>
+        <div className='border-[1px] border-gray-400 w-full flex flex-col h-[250px] rounded-2xl bg-blue-200/40'>
             {
                 errorWhileFetching
                 ? <div className='flex justify-center items-center h-full'>
@@ -45,11 +45,8 @@ export const HeatMapComponent = ({ project, projectID }) => {
                 </div>
                 :
                 <>
-                    <div className='flex w-full h-[70px] items-center px-[60px] justify-between pt-2'>
+                    <div className='flex w-full pt-5 items-center px-[60px] justify-between'>
                         <div className='flex space-x-3'>
-                            <h2 className='text-lg font-semibold'> 
-                                {year}  
-                            </h2>
                             <h2 className='text-lg font-semibold'>
                                 General Contributions
                             </h2>
@@ -70,10 +67,11 @@ export const HeatMapComponent = ({ project, projectID }) => {
                         </TextField>
                     </div>
 
-                    <div className='flex justify-center w-full  pt-1'>              
+                    <div className='flex flex-grow items-center justify-center w-full pt-1'>              
                             <HeatMap
+                                rectSize={13}
                                 value={data}
-                                width={800}
+                                width={850}
                                 startDate={startDate}
                                 endDate={endDate}
                                 panelColors={{

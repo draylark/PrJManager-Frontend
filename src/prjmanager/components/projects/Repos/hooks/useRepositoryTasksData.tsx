@@ -13,7 +13,7 @@ export const useRepositoryTasksData = ( repoID: string ) => {
 
     const fetchCollaborators = async ( collaborators ) => {
         try {
-          const response = await axios.post(`http://localhost:3000/api/users?limit=${collaborators.length}`, { IDS: collaborators });
+          const response = await axios.post(`${backendUrl}/users?limit=${collaborators.length}`, { IDS: collaborators });
           return response.data.users 
         } catch (error) {
           console.error("Error fetching collaborators:", error);
@@ -62,11 +62,11 @@ export const useRepositoryTasksData = ( repoID: string ) => {
             setErrorWhileFetching(true)
             setErrorMessage(error.response.data.message || 'There was an error while fetching repository tasks.')
         }
-    }
+    };
 
     useEffect(() => {
         fetchTasks()
-    }, [])
+    }, []);
     
   return {
     isLoading,

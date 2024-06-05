@@ -15,7 +15,6 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
     const [modalOpacity, setModalOpacity] = useState(0);
     const [isBackgroundReady, setIsBackgroundReady] = useState(false);      
     const [areInstructionsOpen, setAreInstructionsOpen] = useState(false)
-  
 
   
     const handleClose = () => {
@@ -34,8 +33,6 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
         return text.charAt(0).toUpperCase() + text.slice(1); // Convierte la primera letra a mayúscula y concatena el resto
     };
 
-
-
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
         preloadImage.src = formbg;
@@ -45,7 +42,6 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
         };
     }, []);
 
-
     useEffect(() => {
       if (isRepoInfoOpen) {
         const timer = setTimeout(() => setModalOpacity(1), 20);
@@ -54,7 +50,6 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
         setModalOpacity(0);
       }
     }, [isRepoInfoOpen]);
-
 
     return (
       <div className="fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50">

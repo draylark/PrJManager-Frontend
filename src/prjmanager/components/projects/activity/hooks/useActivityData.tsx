@@ -1,7 +1,6 @@
 
 import {useState, useEffect } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL
-import { Avatar } from '@mui/material'
 import axios from 'axios'
 
 export const useActivityData = ( project, uid ) => {
@@ -18,7 +17,7 @@ export const useActivityData = ( project, uid ) => {
 
     const fetchCollaborators = async ( collaborators ) => {
         try {
-          const response = await axios.post(`http://localhost:3000/api/users?limit=${collaborators.length}`, { IDS: collaborators });
+          const response = await axios.post(`${backendUrl}/users?limit=${collaborators.length}`, { IDS: collaborators });
           return response.data.users 
         } catch (error) {
           console.error("Error fetching collaborators:", error);
@@ -49,7 +48,6 @@ export const useActivityData = ( project, uid ) => {
         }
         setIsLoading(false);
     };
-
 
     const fetchTasks = async () => {
         try {

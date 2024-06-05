@@ -1,0 +1,19 @@
+#task-container-scroll {
+    max-height: 84vh;
+
+    overflow-y: auto;
+  }
+  
+  /* Media query para pantallas más pequeñas */
+  @media (max-height: 600px) {
+    #task-container-scroll {
+      max-height: 185vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+
+  @media (max-height: 400px) {
+    #task-container-scroll {
+      max-height: 785vh;  /* Ajusta según sea necesario para pantallas pequeñas */
+    }
+  }
+

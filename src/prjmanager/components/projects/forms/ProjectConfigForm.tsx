@@ -3,15 +3,13 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { RootState } from '../../../../store/store';
 import { Formik, Form, Field } from 'formik';
-import { TextField, MenuItem, FormControl, Select, InputLabel, Autocomplete, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
-import { MdOutlineDeleteSweep } from "react-icons/md";
+import { TextField, MenuItem, FormControl, Select, InputLabel, Autocomplete, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import { ImCancelCircle } from "react-icons/im";
-import LoadingCircle from '../../../../auth/helpers/Loading';
-import { AdvancedSettings } from './sub-components/AdvancedSettings';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import formbg from './assets/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigFormOpen, showOptModal, setShowOptModal }) => {
 
@@ -21,7 +19,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
     const { ID } = location.state.project;
     const project = projects.find(project => project.pid === ID);
 
-
+    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
     const [openDialog, setOpenDialog] = useState(false);
     const [tempVisibility, setTempVisibility] = useState(''); 
     const [isAdvancedSettingOpen, setisAdvancedSettingOpen] = useState(false)
@@ -32,7 +30,6 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
     const tags = project.tags.map((tag, index) => {
         return { id: index + 1, label: tag };
     });
-
 
     const renderDialogContentText = () => {
         switch (tempVisibility) {
@@ -51,6 +48,14 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
           default:
             return null; // o algún otro componente JSX por defecto
         }
+    };
+
+    const formatDate = (date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     const handleVisibilityChange = (event, setFieldValue) => {
@@ -86,8 +91,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                 setIsProjectConfigFormOpen(false);
             }, 500); // Asume que la duración de tu transición es de 500ms
         }
-    }
-
+    };
 
     const IsTheButtonDisabled = ({ values }) => {
         useEffect(() => {
@@ -96,23 +100,21 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                 && values.visibility === project.visibility
                                 && values.description === project.description 
                                 && JSON.stringify(values.tags.sort()) === JSON.stringify(allTags.sort())
-                                && values.endDate.getTime() === new Date(project.endDate).getTime() 
+                                && values.endDate === formatDate(project.endDate)
                                 && values.status === project.status 
                                 && values.priority === project.priority;
 
             setButtonDisabled(isDisabled);
         }, [ values ]);
-        
-        // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
-        return null; // Este componente no necesita renderizar nada por sí mismo
-    };
 
+        return null; 
+    };
 
     const handleSubmit = async( values, { setSubmitting, resetForm } ) => {
         setIsLoading(true);
         setSubmitting(true)
         try {
-            const response = await axios.put(`http://localhost:3000/api/projects/update-project/${ID}`, values, {
+            const response = await axios.put(`${backendUrl}/projects/update-project/${ID}`, values, {
                 params: {
                     uid
                 },
@@ -152,7 +154,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
         }
     };
 
-    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
+ 
 
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
@@ -182,7 +184,6 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
     }, [showOptModal])
     
 
-
     return (
         <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div id="projectConfigModal" 
@@ -210,7 +211,7 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                         initialValues={{
                             name: project.name,
                             description: project.description,
-                            endDate: new Date(project.endDate),
+                            endDate: formatDate(project.endDate),
                             status: project.status,
                             visibility: project.visibility,
                             priority: project.priority,
@@ -289,16 +290,15 @@ export const ProjectConfigForm = ({ isProjectConfigFormOpen, setIsProjectConfigF
                                                         </FormControl>
                     
         
-                                                        {/* <LocalizationProvider dateAdapter={AdapterDateFns}> */}
-                                                            {/* <DatePicker  
-                                                                sx={{width: '50%'}}                                     
-                                                                label="End Date"
-                                                                value={values.endDate}
-                                                                onChange={(date) => setFieldValue('endDate', date)}
-                                                                renderInput={(params) => <TextField {...params} />}
-                                                                minDate={values.startDate}
-                                                            /> */}
-                                                        {/* </LocalizationProvider> */}
+                                                        <TextField
+                                                            style={{width: '50%'}}
+                                                            name="endDate"
+                                                            label="End Date"
+                                                            type="date"
+                                                            InputLabelProps={{ shrink: true }}
+                                                            value={values.endDate}
+                                                            onChange={handleChange}
+                                                        />
                                                     </div>
                                                     <Autocomplete
                                                         multiple

@@ -7,7 +7,6 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { useSelector } from 'react-redux';
 import { ScaleLoader } from 'react-spinners';
 import { IoIosArrowForward, IoIosArrowBack  } from "react-icons/io";
-import img1 from '../../../assets/imgs/sea.jpg'
 
 export const Workspace = () => {
 
@@ -64,7 +63,7 @@ export const Workspace = () => {
       }
     })
       .then(res => {
-        console.log(res)
+        // console.log(res)
         setTasks(res.data.tasks)
         setIsLoading(false)
         setReady(true)
@@ -93,15 +92,15 @@ export const Workspace = () => {
     });
   }, [filter, tasks]);
 
-
+// min-h-[730px] max-h-[730px]  min-w-[1380px] max-w-screen
 if (taskId) {
     return ( <Outlet /> )
   }
 
   return (
-    <div className='flex flex-col w-[95%] h-[80%] rounded-2xl treechart-container bg-white/40'>
+    <div className='flex  flex-col w-[95%] h-[80%] overflow-x-auto   rounded-2xl treechart-container bg-white/40'>
       <div className="flex items-center justify-between w-full h-20  bg-white/40 rounded-t-2xl px-4">
-        <h1 className='text-2xl'>Select a task set</h1>
+        <h1 className='text-xl nav-button'>Select a task</h1>
         <TextField
           name="set"
           label="Number task Or Task Name"
@@ -130,7 +129,7 @@ if (taskId) {
             <div className="relative flex flex-grow">  {/* Contenedor externo */}
                 <div 
                   ref={scrollContainerRef} 
-                  className='flex flex-grow space-x-2 overflow-hidden rounded-b-2xl' 
+                  className='flex flex-grow space-x-2 overflow-x-auto rounded-b-2xl max-w-[81vw]' 
                   onScroll={checkScroll}  // Llamada al método para verificar el scroll
                 >
                   {filteredTasks.map(taskSet => (

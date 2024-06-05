@@ -2,17 +2,13 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Icon } from '@ricons/utils';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
-import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import { NumberSmall0, TaskComplete, TaskView } from '@ricons/carbon'
+import { Accordion, AccordionDetails } from '@mui/material';
 import { TextField, Autocomplete, Select, MenuItem } from '@mui/material';
 import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-import { Avatar, ListItemAvatar } from '@mui/material';
-import { MdLayers } from 'react-icons/md';
-import { FaGitAlt, FaExternalLinkAlt  } from 'react-icons/fa';
-import { useLocation } from 'react-router-dom';
+import { Avatar} from '@mui/material';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
 export const RenderCommits = ({ projectLayers, projectRepositories, commits, setRender, render }) => {
@@ -69,8 +65,8 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
 
           const layer = layers.filter( layer => layer._id === layerID )
           const repo = repositories.filter( repo => repo._id === repoID )
-          const repoUrl = `http://localhost:3000/api/repos/${repoID}`
-          const layerUrl = `http://localhost:3000/api/layer/get-layer/${layerID}`
+          const repoUrl = `${backendUrl}/repos/${repoID}`
+          const layerUrl = `${backendUrl}/layer/get-layer/${layerID}`
 
           if( !layer[0] && !repo[0] ) {
             axios.all([
@@ -124,8 +120,6 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
             setRepoInfo(repo[0])
             setIsLoading(false)
           }
-      
- 
     };
 
     const filteredCommits = useMemo(() => {
@@ -147,7 +141,6 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
       return filterCommits(commits);
 
     }, [commits, layerFilter, repoFilter, userFilter, hashFilter]);
-
 
     useEffect(() => {
       if( expanded ) {
@@ -244,7 +237,7 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
               </div>  
 
 
-              <div  id='container-scroll' className='flex flex-col space-y-4 pb-6 flex-grow max-h-[655px] overflow-y-auto'>
+              <div  id='container-scroll' className='flex flex-col space-y-4 pb-6 flex-grow max-h-[750px] overflow-y-auto'>
                     {
                       filteredCommits.length === 0 
                       ?

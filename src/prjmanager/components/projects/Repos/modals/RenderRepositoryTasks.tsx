@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, memo } from 'react'
+import { useState, useRef, useMemo, memo } from 'react'
 import axios from 'axios'
 import { Accordion, AccordionDetails, Avatar,  Dialog, DialogContent, DialogTitle, DialogActions, Button, 
   TextField,  List, ListItem, ListItemText, Paper, Tooltip } from '@mui/material';
@@ -11,27 +11,23 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Icon } from '@ricons/utils';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { useSelector } from 'react-redux';
-const backendUrl = import.meta.env.VITE_BACKEND_URL
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { CheckTwotone } from '@ricons/material'
 import { BeatLoader } from 'react-spinners';
-import { TaskDialog } from './TextDialog';
+import { RejectTaskDialog } from './RejectTaskDialog';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 
 export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, handleClose }) => {
 
     const accordionRefs = useRef([]);
-    const [expanded, setExpanded] = useState(false);
-    const [userFilter, setUserFilter] = useState(null);
-
     const { uid } = useSelector((state) => state.auth)
     const navigate = useNavigate();
     const location = useLocation()
-
     const { project, layer, repository } = location.state
 
-    const [infoDialogOpen, setInfoDialogOpen] = useState(false)
-
+    const [expanded, setExpanded] = useState(false);
+    const [userFilter, setUserFilter] = useState(null);
     const [openDialogs, setOpenDialogs] = useState({});
     const [response, setResponse] = useState([])
     const [taskHandled, setTaskHandled] = useState(false)
@@ -91,14 +87,13 @@ export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, han
     const onSubmit = (reasonsTextField) => {
       setOpenDialog(false)
       handleTask(taskToHandle, false, 'pending', [ reasonsTextField ])    
-    }
+    };
 
     const handleTask = async( taskId, approved, status, reasons ) => {
       const task = tasks.filter( task => task._id === taskId )[0]
       setHandlingTask(taskId)
-      console.log(task)
 
-      axios.put(`http://localhost:3000/api/tasks/update-task-status/${task.project}/${taskId}`, { approved, status, reasons }, {
+      axios.put(`${backendUrl}/tasks/update-task-status/${task.project}/${taskId}`, { approved, status, reasons }, {
         params: {
           uid,
           layerID: task.layer_related_id,
@@ -143,7 +138,6 @@ export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, han
       })
     };
 
-
     const gitInstructions = `
     
           How to contribute to this task? 🚀
@@ -156,81 +150,78 @@ export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, han
     `
   ;
 
-  const handleOpenDialog = (taskId) => {
-    setOpenDialogs({ ...openDialogs, [taskId]: true });
-  };
-  
-  const handleCloseDialog = (taskId) => {
-    const newDialogs = { ...openDialogs };
-    delete newDialogs[taskId];
-    setOpenDialogs(newDialogs);
-  };
+    const handleOpenDialog = (taskId) => {
+      setOpenDialogs({ ...openDialogs, [taskId]: true });
+    };
+    
+    const handleCloseDialog = (taskId) => {
+      const newDialogs = { ...openDialogs };
+      delete newDialogs[taskId];
+      setOpenDialogs(newDialogs);
+    };
 
-  const InfoDialog = memo(({ infoDialogOpen, setInfoDialogOpen, description, goals}) => {
-    return (
-      <Dialog
-      open={infoDialogOpen}
-      onClose={() => setInfoDialogOpen(false)}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">{"Task Information and Goals"}</DialogTitle>
-      <DialogContent>
-          <div className='flex flex-col space-y-2'>
-              <div className='flex space-x-8 py-2'>
-                  <TextField
-                    sx={{
-                      width: '600px',
-                      '& .Mui-disabled': {
-                        color: 'black',
-                        'text-fill-color': 'black',
-                      }
-                    }}
-                    label="Task Description"
-                    variant="outlined"
-                    value={description}
-                    fullWidth
-                    multiline
-                    rows={7}
-                    disabled
-                  />
-          
-                  <Paper variant="outlined" sx={{ maxHeight: '194px', overflow: 'auto', width: '400px' }}>
-                    <List dense component="ul">
-                      {goals.map((goal, index) => (
-                        <ListItem key={index} component="li">
-                          <ListItemText primary={goal} primaryTypographyProps={{ fontSize: '0.875rem' }} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Paper>  
-              </div>
+    const InfoDialog = memo(({ infoDialogOpen, setInfoDialogOpen, description, goals}) => {
+      return (
+        <Dialog
+        open={infoDialogOpen}
+        onClose={() => setInfoDialogOpen(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Task Information and Goals"}</DialogTitle>
+        <DialogContent>
+            <div className='flex flex-col space-y-2'>
+                <div className='flex space-x-8 py-2'>
+                    <TextField
+                      sx={{
+                        width: '600px',
+                        '& .Mui-disabled': {
+                          color: 'black',
+                          'text-fill-color': 'black',
+                        }
+                      }}
+                      label="Task Description"
+                      variant="outlined"
+                      value={description}
+                      fullWidth
+                      multiline
+                      rows={7}
+                      disabled
+                    />
+            
+                    <Paper variant="outlined" sx={{ maxHeight: '194px', overflow: 'auto', width: '400px' }}>
+                      <List dense component="ul">
+                        {goals.map((goal, index) => (
+                          <ListItem key={index} component="li">
+                            <ListItemText primary={goal} primaryTypographyProps={{ fontSize: '0.875rem' }} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Paper>  
+                </div>
 
-              <div className='h-[200px]'>
-                <SyntaxHighlighter  language="python" style={dracula} customStyle={{ fontSize: '12px', height: '100%', padding: '0px 0px', boxSizing: 'border-box'}}>                                                   
-                  {gitInstructions}                                            
-                </SyntaxHighlighter>
-              </div>
-          </div>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setInfoDialogOpen(false)} autoFocus>
-          Close
-        </Button>
-      </DialogActions>
-    </Dialog>
+                <div className='h-[200px]'>
+                  <SyntaxHighlighter  language="python" style={dracula} customStyle={{ fontSize: '12px', height: '100%', padding: '0px 0px', boxSizing: 'border-box'}}>                                                   
+                    {gitInstructions}                                            
+                  </SyntaxHighlighter>
+                </div>
+            </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInfoDialogOpen(false)} autoFocus>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-    )
-  })
+      )
+    })
 
 
     const filteredTasks = useMemo(() => {
-      // Implementa tu lógica de filtrado aquí, basada en los estados de filtros
-      // Por ejemplo:
       const filterTasks = (tasks) => tasks.filter(task => {
           const userPasses = userFilter ? task.collaboratorsIds.includes(userFilter) : true;
           const namePasses = nameFilter ? task.task_name.toLowerCase().includes(nameFilter.toLowerCase()) : true;
-        // Añade otras condiciones de filtrado aquí
         return userPasses && namePasses; 
       });
 
@@ -343,7 +334,7 @@ export const RenderRepositoryTasks = ({ tasks, setTasks, render, nameFilter, han
                                           </div>
 
                                           
-                                          <TaskDialog 
+                                          <RejectTaskDialog 
                                             open={openDialog} 
                                             onClose={() => setOpenDialog(false)} 
                                             onSubmit={onSubmit} 

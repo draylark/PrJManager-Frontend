@@ -1,14 +1,11 @@
 import { faPython, faJsSquare, faReact, faHtml5, faCss3Alt, faNodeJs, faPhp, faJava, faCuttlefish, faGitAlt, faDocker, faAws, faRProject } from '@fortawesome/free-brands-svg-icons';
 import { faFilePdf, faFileAlt, faFileCode, faFileImage, faDatabase, faFileCsv, faFileExcel, faFileWord, faFilePowerpoint, faFileAudio, faFileVideo, faFileArchive, faFile } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { BiLogoTypescript } from "react-icons/bi";
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 import axios from 'axios';
 
 
-
 export const loadFileContent = async (branch, repo, filePath, setSelectedFileContent, setSelectedFileName) => {
-  console.log('filePath', filePath)
   try {
     const response = await axios.get(`${backendUrl}/gitlab/loadContentFile/${repo._id}`, {       
       headers: {
@@ -34,7 +31,6 @@ export const loadFileContent = async (branch, repo, filePath, setSelectedFileCon
     }
   }
 };
-
 
 export const loadFolderContents = async (repo, folderPath, folderId, setFiles) => {
     try {
@@ -77,7 +73,6 @@ export const loadFolderContents = async (repo, folderPath, folderId, setFiles) =
       console.error('Error fetching folder contents:', error);
     }
 };
-
 
 export const fileExtensionToIconAndColor: Record<string, { icon: IconDefinition, color: string }> = {
   // Documentos
@@ -146,7 +141,6 @@ export const fileExtensionToIconAndColor: Record<string, { icon: IconDefinition,
   '7z': { icon: faFileArchive, color: '#A52A2A' },
 };
 
-
 const fileExtensionToLanguage = {
   '.py': 'python',
   '.js': 'javascript',
@@ -184,7 +178,6 @@ const fileExtensionToLanguage = {
   '.config': 'plaintext',
   '.ini': 'ini',
 };
-
 
 export const getLanguageFromFileName = (fileName) => {
   // Extrae la extensión del archivo del nombre del archivo

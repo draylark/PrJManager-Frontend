@@ -16,6 +16,7 @@ import { VscSettingsGear } from "react-icons/vsc";
 import { Tooltip } from '@mui/material';
 import { TfiWorld } from "react-icons/tfi";
 import { PuffLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
 
 
@@ -35,7 +36,6 @@ export const Layer = () => {
   const [ isRepositoryFormOpen, setIsRepositoryFormOpen ] = useState(false)
   const [ isLayerConfigFormOpen, setIsLayerConfigFormOpen ] = useState(false) 
   const [ isLayerCollaboratorsFormOpen, setIsLayerCollaboratorsFormOpen ] = useState(false)
-
   
   const [errorType, setErrorType] = useState(null) 
   const [errorMessage, seterrorMessage] = useState(null);
@@ -49,7 +49,7 @@ export const Layer = () => {
   
 
   const fetchLayerData = () => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/layer/get-layer/${layerID}`, {
+    axios.get(`${backendUrl}/layer/get-layer/${layerID}`, {
       params: {
         projectID: project._id
       },
@@ -69,7 +69,7 @@ export const Layer = () => {
       setErrorType(err.response.data.type || 'Error')
       seterrorMessage(err.response.data.message || 'An error occurred while fetching data')
     })
-  }
+  };
 
   useEffect(() => {
     isLayerConfigFormOpen ? setIsConfigOpen(false) : null
@@ -108,7 +108,7 @@ export const Layer = () => {
           ) : null
       }
     </div>
-  )
+  );
 
   return (
     <div id='layer' className='flex flex-col h-full rounded-2xl w-full '>

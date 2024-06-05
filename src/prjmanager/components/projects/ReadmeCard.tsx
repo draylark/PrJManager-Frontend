@@ -12,7 +12,7 @@ export const ReadmeCard = ({ readmeContent }: { readmeContent: string }) => {
     return (
       <div className="layout-cards rounded-extra">
           <motion.div
-            className={`flex justify-center items-center bg-blue-200/40 border-[1px] border-gray-400 ${isOpen ? 'opened-card' : 'card'}`}
+            className={`flex justify-center items-center py-6 bg-blue-200/40 border-[1px] border-gray-400 ${isOpen ? 'opened-card' : 'card'}`}
             layout
             onTap={() => setIsOpen(!isOpen)}
             initial={{ opacity: 0 }}

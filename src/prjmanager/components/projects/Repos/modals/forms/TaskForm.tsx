@@ -1,24 +1,41 @@
 import { useState, useEffect } from 'react'
-
 import axios from 'axios';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
-import { useSelector } from 'react-redux';
 import { PuffLoader  } from 'react-spinners';
 import { useLocation } from 'react-router-dom';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import LoadingCircle from '../../../../../../auth/helpers/Loading';
-import { Formik, Form, FormikHelpers, useFormikContext } from 'formik';
+import { Formik, Form } from 'formik';
 import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
 import { styled } from '@mui/system';
 import { TextField, Select, MenuItem, FormControl, InputLabel, InputAdornment , Chip, Box, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete, ListItemAvatar, Avatar, Popover, Popper } from '@mui/material';
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const CustomPopper = styled(Popper)({
     maxHeight: '200px', // Limita la altura del menú desplegable
     overflowY: 'auto', // Habilita el desplazamiento vertical
 });
   
+const TaskSchema = Yup.object().shape({
+    task_name: Yup.string().required('Task name is required'),
+    task_description: Yup.string().required('Task description is required'),
+    goals: Yup.array().min(1, 'Provide at least 1 goal for the task'),
+    priority: Yup.string().oneOf(['Low', 'Medium', 'High', 'Critical']).required('Priority is required'),
+    type: Yup.string().oneOf(['open', 'assigned']).required('Type is required'),
+    deadline: Yup.date().required('Deadline is required'),
+    additional_info: Yup.object({
+    estimated_hours: Yup.number()
+        .min(1, 'Estimated hours must be at least 1')
+        .required('Estimated hours are required'),
+    }),
+    assigned_to: Yup.string().when('type', (type, schema) => {
+    if (type.includes('assigned')) {
+        return schema.required('Assigned to is required');
+    }
+    return schema.nullable();
+    }),
+});
+
 
 export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded, isAssigned, setIsAssigned }) => {
     // Asumiendo que tienes las siguientes constantes de estado para controlar el diálogo
@@ -32,37 +49,12 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
     const { ID } = location.state.project;
     const { layerID } = location.state.layer;
     const { repoID } = location.state.repository;
-  
-    const TaskSchema = Yup.object().shape({
-      task_name: Yup.string().required('Task name is required'),
-      task_description: Yup.string().required('Task description is required'),
-      goals: Yup.array().min(1, 'Provide at least 1 goal for the task'),
-      priority: Yup.string().oneOf(['Low', 'Medium', 'High', 'Critical']).required('Priority is required'),
-      type: Yup.string().oneOf(['open', 'assigned']).required('Type is required'),
-      deadline: Yup.date().required('Deadline is required'),
-      additional_info: Yup.object({
-        estimated_hours: Yup.number()
-          .min(1, 'Estimated hours must be at least 1')
-          .required('Estimated hours are required'),
-      }),
-      assigned_to: Yup.string().when('type', (type, schema) => {
-        console.log('type:', type)
-        if (type.includes('assigned')) {
-          return schema.required('Assigned to is required');
-        }
-        return schema.nullable();
-      }),
-    });
 
-    // Límite de caracteres para la visualización en el Chip
-    const MAX_CHARACTERS = 20;
+    const MAX_CHARACTERS = 20; 
 
-
-    
     const handleTypeChange = (e, handleChange) => {
- // Lógica personalizada basada en el valor seleccionado
+        // Lógica personalizada basada en el valor seleccionado
         const selectedValue = e.target.value;
-        console.log("Valor seleccionado:", selectedValue);
 
         if (selectedValue === "open") {
             setIsAssigned(false);
@@ -75,10 +67,12 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         // Llama a handleChange de Formik para asegurarte de que el estado del formulario se actualice
         handleChange(e); 
     };
+
     const handleDeleteGoal = (goalIndex, setFieldValue, goals) => () => {
         // Elimina el objetivo basado en su índice
         setFieldValue('goals', goals.filter((_, index) => index !== goalIndex));
     };
+
     const handleKeyDown = (event, setFieldValue, goals) => {
     // Captura solo el evento de Enter y verifica que la descripción no esté vacía
     if (event.key === 'Enter' && goalDescription.trim() !== '') {
@@ -91,6 +85,7 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         setGoalDescription('');
     }
     };
+
     const IsTheButtonDisabled = ({values}) => {
 
         useEffect(() => {
@@ -101,7 +96,6 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
-
 
     const handleNameChange = (value, setFieldValue) => {
         const inputValue = value
@@ -116,8 +110,6 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         const validValue = inputValue.replace(/[^0-9.-]/g, ''); // Elimina cualquier carácter no numérico
         setFieldValue('additional_info.estimated_hours', validValue ? parseFloat(validValue) : 0);
     };
-    
-  
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         setIsLoading(true);
@@ -125,7 +117,7 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         console.log('valores del formulario',values)
 
         try {
-            const response = await axios.post(`http://localhost:3000/api/tasks/${ID}/${layerID}/${repoID}`, values, 
+            const response = await axios.post(`${backendUrl}/tasks/${ID}/${layerID}/${repoID}`, values, 
             { 
                 params: {
                      uid
@@ -165,7 +157,6 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
             }
         }
     };
-
 
     return (
         isLoading 

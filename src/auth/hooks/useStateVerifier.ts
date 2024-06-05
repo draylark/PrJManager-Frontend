@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../store/auth/authSlice';
 import { startStatePersistence, checkingAuthentication } from '../../store/auth/thunks';
-import { setGitlabAuth } from '../../store/auth/authSlice';
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 export const useStateVerifier = () => {
 
@@ -17,7 +17,7 @@ export const useStateVerifier = () => {
 
   const getUserData = async (token: string) => {
     const response = await axios.post(
-      'http://localhost:3000/api/auth/me',
+      `${backendUrl}/auth/me`,
       {},
       {
         headers: {
@@ -32,7 +32,7 @@ export const useStateVerifier = () => {
   const getData = async (userId: string) => {
 
     const urls = [
-      `http://localhost:3000/api/notis/${userId}`,
+      `${backendUrl}/notis/${userId}`,
     ];
 
     const promises = urls.map((url) => axios.get(url));

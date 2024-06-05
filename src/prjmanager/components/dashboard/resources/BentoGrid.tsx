@@ -1,20 +1,14 @@
 import { cn } from '../../../../utils/cn'
 import React from "react";
-import { IconClipboardCopy, IconFileBroken, IconSignature, IconTableColumn, IconArticle } from "@tabler/icons-react";
+import { IconArticle } from "@tabler/icons-react";
 import stars from '../../../assets/imgs/stars.jpg'
 import sea from '../../../assets/imgs/sea.jpg'
 import figures from '../../../assets/imgs/projectbg.jpg'
   
   
-
-
-
-
-
-
 export function BentoGridSecondDemo() {
   return (
-    <BentoGrid className="w-full px-7 mx-auto md:auto-rows-[20rem]">
+    <BentoGrid className="w-full px-7 md:auto-rows-[355px]">
       {items.map((item, i) => (
         <BentoGridItem
           key={i}
@@ -41,7 +35,7 @@ export const BentoGrid = ({
     return (
       <div
         className={cn(
-          "grid md:auto-rows-[18rem] grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto ",
+          "grid md:auto-rows-[18rem] grid-cols-1 md:grid-cols-3 gap-4",
           className
         )}
       >
@@ -76,7 +70,7 @@ export const BentoGridItem = ({
             backgroundPosition: "center",
         }}
         className={cn(
-          "cursor-pointer row-span-1 rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none p-4 dark:bg-black dark:border-black/[0.2] bg-white border border-transparent flex flex-col space-y-4 justify-end pb-10 pl-5",
+          "cursor-pointer row-span-1  rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none p-4 dark:bg-black dark:border-black/[0.2] bg-white  border border-transparent flex flex-col space-y-4 justify-end pb-10 pl-5",
           className
         )}
       >
@@ -111,28 +105,29 @@ const Skeleton = () => (
   <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl   dark:bg-dot-white/[0.2] bg-dot-black/[0.2] [mask-image:radial-gradient(ellipse_at_center,white,transparent)]  border border-transparent dark:border-white/[0.2] bg-neutral-100 dark:bg-black"></div>
 );
 
+
 const items = [
   {
-    title: "The Dawn of Innovation",
+    title: "PrJManager",
     textColor: 'text-neutral-600 dark:text-neutral-700',
     src: figures,
-    description: "Explore the birth of groundbreaking ideas and inventions.",
+    description: "Discover how to reduce entropy in a chaotic world.",
     header: <Skeleton />,
     className: "md:col-span-3",
   },
   {
-    title: "The Digital Revolution",
+    title: "PrJExtension",
     textColor: 'text-neutral-600 dark:text-neutral-200',
     src: sea,
-    description: "Dive into the transformative power of technology.",
+    description: "Explore the dynamic use of the PrJManager extension that mimics the Git system.",
     header: <Skeleton />,
     className: "md:col-span-2",
   },
   {
-    title: "The Art of Design",
+    title: "PrJConsole",
     textColor: 'text-neutral-600 dark:text-neutral-200',
     src: stars,
-    description: "Discover the beauty of thoughtful and functional design.",
+    description: "An introduction to the PrJManager interactive console commands.",
     header: <Skeleton />,
     className: "md:col-span-1",
   },

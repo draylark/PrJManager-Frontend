@@ -5,13 +5,12 @@ import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../app/store';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { useFetchComments } from './hooks/useFetchComments';
 import { tierS, tierA } from '../../../helpers/accessLevels-validator';
 import { PuffLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 interface Comment {
     id: string;
@@ -37,8 +36,8 @@ export const Comments = () => {
     const [newAnswer, setNewAnswer] = useState<{ [key: number]: string }>({});
     const [replyField, setReplyField] = useState<{ [key: number]: boolean }>({});
     const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
-    const { currentProject} = useSelector((state: RootState) => state.platypus );
-    const { uid, username, photoUrl } = useSelector((state: RootState) => state.auth);
+    const { currentProject} = useSelector((state) => state.platypus );
+    const { uid, username, photoUrl } = useSelector((state) => state.auth);
     
     const { setComments, fetchComments, fetchMoreReplies, handleLikeDislike, setNoCommentsToFetch,
             comments, likes, noCommentsToFetch, hasMoreComments, currentPage,  isLoading, errorMessage,
@@ -48,7 +47,7 @@ export const Comments = () => {
 
     const handleCommentSubmit = async() => {
         try {
-            const response = await axios.post('http://localhost:3000/api/comments/create-comment', { project: project.ID, content: newComment, uid, photoUrl })
+            const response = await axios.post(`${backendUrl}/comments/create-comment`, { project: project.ID, content: newComment, uid, photoUrl })
             const commentInfo = response.data.newComment
 
             const comment: Comment = {
@@ -72,7 +71,7 @@ export const Comments = () => {
     const handleAnswerSubmit = async (commentId: number) => {
         const content = newAnswer[commentId] || '';
         try {
-            const response = await axios.post('http://localhost:3000/api/comments/create-comment', { project: project.ID, content, uid, answering_to: commentId, photoUrl });
+            const response = await axios.post(`${backendUrl}/comments/create-comment`, { project: project.ID, content, uid, answering_to: commentId, photoUrl });
             const commentInfo = response.data.newComment;
 
             const c: Comment = {
@@ -119,7 +118,7 @@ export const Comments = () => {
     const handleDeleteComment = async() => {
         setOpenDialog(false)
         try {           
-            const { data: { message } } = await axios.put(`http://localhost:3000/api/comments/delete-comment/${commentToDelete}`)
+            const { data: { message } } = await axios.put(`${backendUrl}/comments/delete-comment/${commentToDelete}`)
             console.log('Mensaje de respuesta:', message)
             setComments(prev => prev.filter(comment => comment.id !== commentToDelete))
             setCommentToDelete('')
@@ -135,8 +134,6 @@ export const Comments = () => {
             fetchComments( currentPage, false );
         }
     };
-
-
 
     const getAccurateDate = (date) => {
         return (
@@ -471,7 +468,7 @@ export const Comments = () => {
     )
 
     return (
-        <div className='h-full w-full'>
+        <div className='h-full w-full overflow-hidden'>
             {
                 isLoading 
                 ? ( 
@@ -507,9 +504,9 @@ export const Comments = () => {
                                 post
                             </button>
                         </div>
-                        </div>     
+                    </div>     
 
-                    <div id='comments' ref={listRef} className='flex flex-col flex-grow max-h-[475px] overflow-y-auto px-2'>
+                    <div id='comments' ref={listRef} className='flex flex-col flex-grow max-h-[700px] overflow-y-auto px-2'>
                         {
                             noCommentsToFetch 
                             ? <div className='flex w-full h-full justify-center'>

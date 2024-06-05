@@ -3,6 +3,7 @@ import { ProfileNav, FadeInDiv } from "./ProfileTabsUI";
 import { cn } from "../../../../utils/cn";
 import { RenderOverview } from "../tabs/RenderOverview";
 import { RenderProjects } from "../tabs/RenderProjects";
+import './profile.css'
 
 type Tab = {
   title: string;
@@ -48,7 +49,7 @@ export function ProfileTabs({ firstTime, setFirstTime, usersRelation, user, proj
   };
 
   return (
-    <div className="relative h-[97%]  flex flex-col max-w-[98%] mx-auto w-full items-start justify-start">
+    <div  className="relative flex h-[97%] flex-col w-[98%] mx-auto  items-start justify-start">
       <ProfileNav 
         firstTime={firstTime} 
         setFirstTime={setFirstTime} 

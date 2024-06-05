@@ -213,7 +213,7 @@ export const PersonalArea = () => {
   };
 
   return (
-    <div className="flex h-full w-full p-6 bg-blue-50">
+    <div className="flex min-h-screen h-full w-full p-6 bg-blue-50">
 
       { isMyLinksModalOpen && <MyLinks isMyLinksModalOpen={isMyLinksModalOpen} setIsMyLinksModalOpen={setIsMyLinksModalOpen} /> }
       { isFollowersModalOpen && <Followers isFollowersModalOpen={isFollowersModalOpen} setIsFollowersModalOpen={setIsFollowersModalOpen} /> }
@@ -309,7 +309,7 @@ export const PersonalArea = () => {
           </div>
 
 
-          <div className='flex flex-grow border-gray-400 glassi rounded-2xl overflow-y-auto overflow-x-hidden'>
+          <div className='flex flex-grow border-gray-400 glassi max-h-[800px] rounded-2xl overflow-y-auto overflow-x-hidden'>
 
             {
               fetchingTimelineData 

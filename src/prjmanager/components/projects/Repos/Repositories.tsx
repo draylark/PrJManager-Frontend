@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Icon } from '@ricons/utils';
-import { FolderOpen } from '@ricons/fa';
 import { RootState } from '../../../../store/store';
-import LoadingCircle from '../../../../auth/helpers/Loading';
 import { FaGitAlt, FaExternalLinkAlt  } from 'react-icons/fa';
 import { TextField, Select, MenuItem} from '@mui/material'
 import { useDispatch } from 'react-redux';
 import { fetchLayerRepositories } from '../../../../store/platypus/thunks';
-import { TbDatabasePlus } from "react-icons/tb";
 import { PuffLoader  } from 'react-spinners';
 
 export const Repositories = ({ layer, project, uid }) => {
-
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -24,12 +19,6 @@ export const Repositories = ({ layer, project, uid }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [layerRepositories, setLayerRepositories] = useState([])
-
-  useEffect(() => {
-    const filteredRepos = repositories.filter( repo => repo.layerID === layer._id )
-    setLayerRepositories(filteredRepos)
-  }, [repositories, layer])
-
 
   const filteredRepos = layerRepositories.filter((repo) => {
     return (
@@ -42,6 +31,10 @@ export const Repositories = ({ layer, project, uid }) => {
     return name.replace(/\./g, '').replace(/\s+/g, '-');
   };
 
+  useEffect(() => {
+    const filteredRepos = repositories.filter( repo => repo.layerID === layer._id )
+    setLayerRepositories(filteredRepos)
+  }, [repositories, layer])
 
   useEffect(() => {
     if( !repositories.some(repo => repo.layerID === layer._id) ){
@@ -54,7 +47,7 @@ export const Repositories = ({ layer, project, uid }) => {
         <PuffLoader  color="#32174D" size={50} /> 
     </div>                         
   )
-  // console.log(fetchingResources)
+
   return (
       
         <div className="flex w-full h-full overflow-hidden">        
@@ -93,7 +86,7 @@ export const Repositories = ({ layer, project, uid }) => {
                   </div>
               </div>
 
-              <div className="flex-col h-full rounded-b-3xl max-h-[618px] overflow-y-auto p-4">
+              <div id='repos-scroll-container' className="flex-col h-full rounded-b-3xl overflow-y-auto p-4">
                   {filteredRepos.map((repo) => (
                     <div 
                       key={repo._id} 
@@ -134,9 +127,6 @@ export const Repositories = ({ layer, project, uid }) => {
             </div>
 
          }
-         
-         
-  
     </div>
   );
 };

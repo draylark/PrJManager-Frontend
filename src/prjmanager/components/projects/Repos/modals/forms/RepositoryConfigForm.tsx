@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { RepoNewCollaborators } from './sub-forms/RepoNewCollaborators';
+import { RepoNewCollaborators } from './RepoNewCollaborators';
 import Swal from 'sweetalert2';
 import { PuffLoader  } from 'react-spinners';
 import bgform from '../assets/formbg.jpg'
@@ -25,7 +25,6 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   const { layers } = useSelector(state => state.platypus)
 
 
-
   const [layer, setLayer] = useState(null)
   const [cSearchTerm, setCSearchTerm] = useState('')
   const [currentOrNew, setCurrentOrNew] = useState(false)
@@ -33,6 +32,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   const [editingCollaborator, setEditingCollaborator] = useState(false)
   const [currentCollaboratorForTooltip, setCurrentCollaboratorForTooltip] = useState(null);
 
+  const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
   const [tooltipOpen, setTooltipOpen] = useState('');
   const [tooltipContent, setTooltipContent] = useState('');
   const [deleteCDialog, setDeleteCDialog] = useState(false)
@@ -51,7 +51,6 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   const [selectedUser, setSelectedUser] = useState({
       id: '',
       name: '',
-      // photoUrl: '',
       accessLevel: ''
   })
 
@@ -59,120 +58,73 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
 
-
-    const handleClose = () => {
-      if( isRepoFormOpen ) {
-        setModalOpacity(0);
-        setTimeout(() => {
-            setIsRepoFormOpen(false);
-        }, 700);
-      }
-    };
-
-    const handleMouseEnter = (text, type) => {
-      setTooltipContent(text);
-      setTooltipOpen(type);
-    };
-
-    const handleMouseLeave = () => {
-      setTooltipOpen('');
-    };
-
-    const renderDialogContentText = () => {
-      switch (tempVisibility) {
-        case 'open':
-          return (
-            <DialogContentText>
-              Are you sure you want to change the visibility type? The "Open" type will allow all project collaborators to access the repository, if the project and layer are open, it will allow all users in prjmanager to access it as well.
-            </DialogContentText>
-          );
-        case 'internal':
-          return (
-            <DialogContentText>
-              Are you sure you want to change the visibility type? The "Internal" type will allow access to the repository only to the collaborators of the project.
-            </DialogContentText>
-          );
-        case 'restricted':
-          return (
-            <DialogContentText>
-              Are you sure you want to change the visibility type? The "Restricted" type will allow access to the repository only to the collaborators invited exclusively.
-            </DialogContentText>
-          );
-        default:
-          return null; // o algún otro componente JSX por defecto
-      }
-    };
-
-    const editCollaboratorAccessLevel = (collaborator, accessLevel ) => {
-      setEditingCollaborator(true);
-      setSelectedUser(collaborator);
-      setAccessLevel(accessLevel);
-      setAccessLevelDialog(true);
+  const handleClose = () => {
+    if( isRepoFormOpen ) {
+      setModalOpacity(0);
+      setTimeout(() => {
+          setIsRepoFormOpen(false);
+      }, 700);
     }
+  };
 
-    const editCollaboratorNewAccessLevel = (values, setFieldValue) => {
+  const handleMouseEnter = (text, type) => {
+    setTooltipContent(text);
+    setTooltipOpen(type);
+  };
 
-      if( selectedUser?.new ){
+  const handleMouseLeave = () => {
+    setTooltipOpen('');
+  };
 
-        const newCollaborator = { ...selectedUser, accessLevel };
-        const noDuplicates = values.newCollaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
-        const noDuplicates2 = values.collaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
-
-        // Añadir el nuevo colaborador a la lista filtrada.
-        const updatedCollaborators = [newCollaborator, ...noDuplicates];
-      
-        setFieldValue('newCollaborators', updatedCollaborators);
-        setFieldValue('collaborators', [newCollaborator, ...noDuplicates2] )
-
-      
-        setAccessLevelDialog(false);
-        setEditingCollaborator(false);
-        setAccessLevel('');
-        setSelectedUser({
-          id: '',
-          name: '',
-          // photoUrl: '',
-          accessLevel: ''
-        })
-
-      } else {
-        const newCollaborator = { ...selectedUser, accessLevel };
-      
-        // Filtrar cualquier posible duplicado basado en el 'id'.
-        const noDuplicates = values.collaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
-        const noDuplicates2 = values.modifiedCollaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
-      
-        // Añadir el nuevo colaborador a la lista filtrada.
-        const updatedCollaborators = [newCollaborator, ...noDuplicates];
-      
-        setFieldValue('collaborators', updatedCollaborators);
-        setFieldValue('modifiedCollaborators', [...noDuplicates2, newCollaborator]);
-      
-        setAccessLevelDialog(false);
-        setEditingCollaborator(false);
-        setAccessLevel('');
-        setSelectedUser({
-          id: '',
-          name: '',
-          // photoUrl: '',
-          accessLevel: ''
-        })
-
-      }
+  const renderDialogContentText = () => {
+    switch (tempVisibility) {
+      case 'open':
+        return (
+          <DialogContentText>
+            Are you sure you want to change the visibility type? The "Open" type will allow all project collaborators to access the repository, if the project and layer are open, it will allow all users in prjmanager to access it as well.
+          </DialogContentText>
+        );
+      case 'internal':
+        return (
+          <DialogContentText>
+            Are you sure you want to change the visibility type? The "Internal" type will allow access to the repository only to the collaborators of the project.
+          </DialogContentText>
+        );
+      case 'restricted':
+        return (
+          <DialogContentText>
+            Are you sure you want to change the visibility type? The "Restricted" type will allow access to the repository only to the collaborators invited exclusively.
+          </DialogContentText>
+        );
+      default:
+        return null; // o algún otro componente JSX por defecto
     }
+  };
 
-    const addUserAsCollaborator = (values,  setFieldValue) => {
+  const editCollaboratorAccessLevel = (collaborator, accessLevel ) => {
+    setEditingCollaborator(true);
+    setSelectedUser(collaborator);
+    setAccessLevel(accessLevel);
+    setAccessLevelDialog(true);
+  };
+
+  const editCollaboratorNewAccessLevel = (values, setFieldValue) => {
+
+    if( selectedUser?.new ){
+
       const newCollaborator = { ...selectedUser, accessLevel };
-    
-      // Filtrar cualquier posible duplicado basado en el 'id'.
-      const noDuplicates = values.collaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
-    
+      const noDuplicates = values.newCollaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
+      const noDuplicates2 = values.collaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
+
       // Añadir el nuevo colaborador a la lista filtrada.
       const updatedCollaborators = [newCollaborator, ...noDuplicates];
     
-      setFieldValue('collaborators', updatedCollaborators);
+      setFieldValue('newCollaborators', updatedCollaborators);
+      setFieldValue('collaborators', [newCollaborator, ...noDuplicates2] )
+
     
-      setOpenDialog(false);
+      setAccessLevelDialog(false);
+      setEditingCollaborator(false);
       setAccessLevel('');
       setSelectedUser({
         id: '',
@@ -180,168 +132,213 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
         // photoUrl: '',
         accessLevel: ''
       })
-    };
 
-    const handleCollaboratorTooltipContent = (collaborator) => {
-      // Retornar JSX en lugar de un string
-      return (
-        <Fragment>
-          <div>ID: {collaborator.id}</div>
-          <div className='flex'>
-              Access Level: 
-              <h5 className='text-green-500 ml-1'>{collaborator.accessLevel.charAt(0).toUpperCase() + collaborator.accessLevel.slice(1)}</h5>
-           </div>
-        </Fragment>
-      );
-    };
+    } else {
+      const newCollaborator = { ...selectedUser, accessLevel };
+    
+      // Filtrar cualquier posible duplicado basado en el 'id'.
+      const noDuplicates = values.collaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
+      const noDuplicates2 = values.modifiedCollaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
+    
+      // Añadir el nuevo colaborador a la lista filtrada.
+      const updatedCollaborators = [newCollaborator, ...noDuplicates];
+    
+      setFieldValue('collaborators', updatedCollaborators);
+      setFieldValue('modifiedCollaborators', [...noDuplicates2, newCollaborator]);
+    
+      setAccessLevelDialog(false);
+      setEditingCollaborator(false);
+      setAccessLevel('');
+      setSelectedUser({
+        id: '',
+        name: '',
+        // photoUrl: '',
+        accessLevel: ''
+      })
 
-    const handleCollaboratorsData = (collaborators) => {
+    }
+  };
 
-      const collaboratorsData = collaborators.map( collaborator => {
-        return {
-          name: collaborator.name,
-          photoUrl: collaborator.photoUrl,
-          id: collaborator.uid,
-          accessLevel: collaborator.repository.accessLevel
-        }
-      });
+  const addUserAsCollaborator = (values,  setFieldValue) => {
+    const newCollaborator = { ...selectedUser, accessLevel };
+  
+    // Filtrar cualquier posible duplicado basado en el 'id'.
+    const noDuplicates = values.collaborators.filter(collaborator => collaborator.id !== newCollaborator.id);
+  
+    // Añadir el nuevo colaborador a la lista filtrada.
+    const updatedCollaborators = [newCollaborator, ...noDuplicates];
+  
+    setFieldValue('collaborators', updatedCollaborators);
+  
+    setOpenDialog(false);
+    setAccessLevel('');
+    setSelectedUser({
+      id: '',
+      name: '',
+      // photoUrl: '',
+      accessLevel: ''
+    })
+  };
 
-      // console.log('Collaborators:', collaboratorsData)
-      setCurrentCollaborators(collaboratorsData)
-      setIsLoading(false)
+  const handleCollaboratorTooltipContent = (collaborator) => {
+    // Retornar JSX en lugar de un string
+    return (
+      <Fragment>
+        <div>ID: {collaborator.id}</div>
+        <div className='flex'>
+            Access Level: 
+            <h5 className='text-green-500 ml-1'>{collaborator.accessLevel.charAt(0).toUpperCase() + collaborator.accessLevel.slice(1)}</h5>
+          </div>
+      </Fragment>
+    );
+  };
 
-    };
+  const handleCollaboratorsData = (collaborators) => {
+
+    const collaboratorsData = collaborators.map( collaborator => {
+      return {
+        name: collaborator.name,
+        photoUrl: collaborator.photoUrl,
+        id: collaborator.uid,
+        accessLevel: collaborator.repository.accessLevel
+      }
+    });
+
+    // console.log('Collaborators:', collaboratorsData)
+    setCurrentCollaborators(collaboratorsData)
+    setIsLoading(false)
+
+  };
 
 
 
-    const IsTheButtonDisabled = ({ values }) => {
-      useEffect(() => {
-          const isDisabled =  values.newCollaborators.length === 0
-                              && values.modifiedCollaborators.length === 0
-                              && values.deletedCollaborators.length === 0
-                              && values.name === repo.name
-                              && values.visibility === repo.visibility   
-                              && values.description === repo.description
-                              && values.branches.every((branch, index) => branch.default === repo.branches[index].default)
-          setButtonDisabled(isDisabled);
-      }, [ values ]);
-      
-      // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
-      return null; // Este componente no necesita renderizar nada por sí mismo
-    };
+  const IsTheButtonDisabled = ({ values }) => {
+    useEffect(() => {
+        const isDisabled =  values.newCollaborators.length === 0
+                            && values.modifiedCollaborators.length === 0
+                            && values.deletedCollaborators.length === 0
+                            && values.name === repo.name
+                            && values.visibility === repo.visibility   
+                            && values.description === repo.description
+                            && values.branches.every((branch, index) => branch.default === repo.branches[index].default)
+        setButtonDisabled(isDisabled);
+    }, [ values ]);
+    
+    // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
+    return null; // Este componente no necesita renderizar nada por sí mismo
+  };
 
-    const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-      setSubmitting(true);
-      setIsLoading(true);
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    setSubmitting(true);
+    setIsLoading(true);
 
-        try {
-          const response = await axios.put(`${backendUrl}/repos/update-repository/${ID}/${layerID}/${repoID}`, values, {
-            params: {
-              uid
-            },
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': localStorage.getItem('x-token')
-              }
-          })
+      try {
+        const response = await axios.put(`${backendUrl}/repos/update-repository/${ID}/${layerID}/${repoID}`, values, {
+          params: {
+            uid
+          },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('x-token')
+            }
+        })
 
-          resetForm();
-          setSubmitting(false);
-          setIsLoading(false);
-          handleClose();
-
-          Swal.fire({
-              icon: 'success',
-              title: 'Success',
-              text: response.data.message
-          });
-
-      } catch (error) {
+        resetForm();
         setSubmitting(false);
-        setIsLoading(false);   
+        setIsLoading(false);
+        handleClose();
 
-        if( error.response.data?.type === 'collaborator-validation' ){
-          Swal.fire({
-              icon: 'warning',
-              title: 'Access Validation',
-              text: error.response.data.message,
-          });
-        } else {
-          Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: error.response.data.message,
-          });
-        }
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: response.data.message
+        });
+
+    } catch (error) {
+      setSubmitting(false);
+      setIsLoading(false);   
+
+      if( error.response.data?.type === 'collaborator-validation' ){
+        Swal.fire({
+            icon: 'warning',
+            title: 'Access Validation',
+            text: error.response.data.message,
+        });
+      } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.response.data.message,
+        });
       }
     }
+  };
 
-    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
 
-    useEffect(() => {
-        const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
-        preloadImage.src = bgform;
-    
-        preloadImage.onload = () => {
-          setIsBackgroundReady(true); // Indica que la imagen ha cargado
-        };
-    }, []);
+  useEffect(() => {
+      const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
+      preloadImage.src = bgform;
+  
+      preloadImage.onload = () => {
+        setIsBackgroundReady(true); // Indica que la imagen ha cargado
+      };
+  }, []);
 
-    useEffect(() => {
-      const url1 = `http://localhost:3000/api/repos/get-repo-collaborators/${repo._id}`
-      const url2 = `http://localhost:3000/api/layer/get-layer/${layerID}`
-      const layer = layers.find(layer => layer._id === layerID)
+  useEffect(() => {
+    const url1 = `${backendUrl}/repos/get-repo-collaborators/${repo._id}`
+    const url2 = `${backendUrl}/layer/get-layer/${layerID}`
+    const layer = layers.find(layer => layer._id === layerID)
 
-      if(!layer){
-        axios.all([
-          axios.get(url1, {
-            headers: {
-                'Authorization': localStorage.getItem('x-token')
-            }
-          }),
-          axios.get(url2, {
-            headers: {
-                'Authorization': localStorage.getItem('x-token')
-            }
-          })])
-          .then(axios.spread((response1, response2) => {
-            const { collaborators } = response1.data
-            handleCollaboratorsData(collaborators)
-            setLayer(response2.data.layer)
-          }))
-          .catch((error) => {
-            console.error('Error fetching layer collaborators:', error);
+    if(!layer){
+      axios.all([
+        axios.get(url1, {
+          headers: {
+              'Authorization': localStorage.getItem('x-token')
           }
-        )
-      } else {
-          setLayer(layer)
-          axios.get(url1, {
-            headers: {
-                'Authorization': localStorage.getItem('x-token')
-            }
-          })
-          .then((response) => {
-            const { collaborators } = response.data
-            handleCollaboratorsData(collaborators)
-          })
-          .catch((error) => {
-            console.error('Error fetching layer collaborators:', error);
-          });
-      }
-    }, [repo])
+        }),
+        axios.get(url2, {
+          headers: {
+              'Authorization': localStorage.getItem('x-token')
+          }
+        })])
+        .then(axios.spread((response1, response2) => {
+          const { collaborators } = response1.data
+          handleCollaboratorsData(collaborators)
+          setLayer(response2.data.layer)
+        }))
+        .catch((error) => {
+          console.error('Error fetching layer collaborators:', error);
+        }
+      )
+    } else {
+        setLayer(layer)
+        axios.get(url1, {
+          headers: {
+              'Authorization': localStorage.getItem('x-token')
+          }
+        })
+        .then((response) => {
+          const { collaborators } = response.data
+          handleCollaboratorsData(collaborators)
+        })
+        .catch((error) => {
+          console.error('Error fetching layer collaborators:', error);
+        });
+    }
+  }, [repo])
 
-    useEffect(() => {
-      if (isRepoFormOpen) {
-        // Retraso mínimo para iniciar la transición después de abrir el modal
-        const timer = setTimeout(() => setModalOpacity(1), 20); // Ajusta la opacidad a 1 (visible)
-        return () => clearTimeout(timer);
-      } else {
-        setModalOpacity(0); // Ajusta la opacidad a 0 (invisible) inmediatamente al cerrar
-      }
-    }, [isRepoFormOpen]);
+  useEffect(() => {
+    if (isRepoFormOpen) {
+      // Retraso mínimo para iniciar la transición después de abrir el modal
+      const timer = setTimeout(() => setModalOpacity(1), 20); // Ajusta la opacidad a 1 (visible)
+      return () => clearTimeout(timer);
+    } else {
+      setModalOpacity(0); // Ajusta la opacidad a 0 (invisible) inmediatamente al cerrar
+    }
+  }, [isRepoFormOpen]);
 
   return ( 
-    <div className='fixed flex w-screen h-full top-0 right-0 justify-center items-center bg-black/30 z-50'>
+    <div className='fixed  flex h-full w-screen top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div
           id="repositoryTaskModal"
           style={{ 

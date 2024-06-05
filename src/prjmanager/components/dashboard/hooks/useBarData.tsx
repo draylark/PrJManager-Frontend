@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const useBarData = (uid) => {
 
@@ -9,7 +10,7 @@ export const useBarData = (uid) => {
 
 
     const fetchData = () => {
-        axios.get(`http://localhost:3000/api/users/my-monthly-activity/${uid}`, {
+        axios.get(`${backendUrl}/users/my-monthly-activity/${uid}`, {
             params: {
                 currentMonth: new Date().getMonth() + 1,
                 currentYear: new Date().getFullYear()

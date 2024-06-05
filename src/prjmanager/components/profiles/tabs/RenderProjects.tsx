@@ -1,4 +1,3 @@
-import { useState, useEffect  } from "react";
 import { useNavigate } from "react-router-dom";
 import { cleanUrl } from "../../projects/helpers/helpers";
 import { Typography } from "@mui/material";
@@ -10,13 +9,10 @@ export const RenderProjects = ({ projects }) => {
 
   const navigate = useNavigate()
 
-  // console.log(projects)
-
     return (
-      <div className="flex items-end w-full overflow-hidden relative h-full rounded-2xl p-2 text-xl md:text-4xl font-bold text-black bg-blue-50 treechart-container border-[1px] border-gray-400">
+      <div className="flex items-end h-[80%] w-[95%] mx-auto overflow-hidden rounded-2xl p-2 text-xl md:text-4xl font-bold text-black bg-blue-50">
         
-        <div className="flex flex-col flex-grow max-h-[612px] min-h-[612px] w-[95%] mx-auto space-y-4 py-4 px-4">
-
+        <div className="flex flex-col flex-grow max-h-[680px] min-h-[680px] w-[95%] mx-auto space-y-4 py-2">
             {
               projects.length === 0 
               ? 

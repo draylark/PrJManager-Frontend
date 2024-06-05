@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
-
 export const useOrgChart = () => {
 
     const { layers, repositories } = useSelector((state) => state.platypus);
@@ -13,11 +12,8 @@ export const useOrgChart = () => {
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
 
-    // console.log(layers)
-    // console.log(repositories)
 
     const newTreeData = (project) => {
-        // console.log(project)
         const data = {
             name: project.name,
             children: [

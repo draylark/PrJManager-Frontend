@@ -43,7 +43,7 @@ export const useProfileData = (location) => {
             setFetchingUserData(false)
         }))
         .catch((error) => {
-            console.log(error)
+            // console.log(error)
             setErrorMessage(error?.response?.data.message || 'An error occurred while fetching user data')
             setErrorWhileFetching(true)
             setFetchingUserData(false)
@@ -53,9 +53,7 @@ export const useProfileData = (location) => {
     useEffect(() => {
         fetchUserData(location.state.user.uid)
     }, [location])
-
-    // console.log(profileProjects)
-
+    
   return {
     usersRelation,
     profile,

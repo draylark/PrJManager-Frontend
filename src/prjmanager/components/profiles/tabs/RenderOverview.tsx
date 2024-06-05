@@ -7,9 +7,6 @@ import { Typography } from '@mui/material';
 import { FaGitAlt } from 'react-icons/fa';
 import { useNavigate } from "react-router-dom";
 import { cleanUrl } from '../../projects/helpers/helpers';
-import { PersonAdd28Regular, PersonAvailable20Regular } from '@ricons/fluent'
-import Friendship from '@ricons/carbon/Friendship'
-import { PlusOutlined } from '@ricons/material'
 
 
 export const RenderOverview = ({ user, topRepos, topProjects, location }) => {
@@ -34,14 +31,13 @@ export const RenderOverview = ({ user, topRepos, topProjects, location }) => {
         return () => clearInterval(interval);
     }, []);
 
-
       return (
-        <div className="flex flex-col w-full justify-end overflow-hidden relative h-full rounded-2xl pt-8 pb-6  text-xl md:text-4xl  bg-blue-50 treechart-container border-[1px] border-gray-400">
-            <div className="flex flex-grow max-h-[360px] w-[95%] mx-auto py-4">
-                <div id="Destacados" className="w-1/2 rounded-lg ">       
+        <div className="flex flex-col h-[82%] w-[95%] mx-auto justify-end overflow-hidden relative rounded-2xl pb-6  text-xl md:text-4xl">
+            <div className="flex flex-grow min-h-[390px] max-h-[390px] w-full mx-auto">
+                <div id="Destacados" className="flex items-center w-1/2  rounded-lg">       
                     <TopReposGlowingStars topProjects={topProjects}/>          
                 </div>
-                <div id="Destacados" className="flex flex-col w-1/2 rounded-lg space-y-2 px-4">       
+                <div id="Destacados" className="flex justify-center flex-col w-1/2 rounded-lg space-y-2 px-4">       
                     {        
                         topRepos.length === 0 
                         ? 
@@ -83,7 +79,7 @@ export const RenderOverview = ({ user, topRepos, topProjects, location }) => {
                 </div>
             </div>
             
-            <div className="flex min-h-[245px]">
+            <div className="flex min-h-[280px]">
                 {
                 animationStep >= 1 && (
                     <AnimatePresence>
@@ -92,7 +88,7 @@ export const RenderOverview = ({ user, topRepos, topProjects, location }) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="w-[95%] mx-auto"
+                        className="w-full"
 
                         >
                         <ProfileHeatMap 

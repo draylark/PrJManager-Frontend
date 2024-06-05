@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
 import { ImCancelCircle } from "react-icons/im";
-import { Formik, Form, FieldArray } from 'formik';
-import { TextField, Button, List, ListItem, ListItemText, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Autocomplete, Typography, Tooltip, FormControl, InputLabel, Chip } from '@mui/material';
+import { Formik, Form } from 'formik';
+import { TextField, Select, MenuItem, Autocomplete,FormControl, InputLabel, Chip } from '@mui/material';
 import projectform from './assets/projectform.jpg'
 import { PuffLoader  } from 'react-spinners';
-import { ReadmeEditor } from '../ReadmeEditor';
+import { ReadmeEditor } from './sub-components/ReadmeEditor';
 import axios from 'axios';
-import { FaBullseye } from 'react-icons/fa';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
 export const ProjectForm = ({ uid, isProjectFormOpen, setIsProjectFormOpen }) => {
@@ -61,14 +61,13 @@ ${values.tags.length > 0 ? values.tags.join(' ') : 'No tags specified'}
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
-
     const handleSubmit = async( values, { setSubmitting, resetForm } ) => {
         setIsLoading(true)
         setSubmitting(true)
         setNextStep(false)
 
         try {
-            const res = await axios.post('http://localhost:3000/api/projects/create-project', values, {
+            const res = await axios.post(`${backendUrl}/projects/create-project`, values, {
                 params: {
                     uid
                 },
@@ -105,7 +104,7 @@ ${values.tags.length > 0 ? values.tags.join(' ') : 'No tags specified'}
                 });
             }
         }
-    }
+    };
 
     useEffect(() => {
         if (isProjectFormOpen) {
@@ -130,7 +129,7 @@ ${values.tags.length > 0 ? values.tags.join(' ') : 'No tags specified'}
 
 
   return (
-    <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
+    <div id="projectForm" className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
             <div 
                 id="projectFormModal"
                 className={`flex flex-col space-y-5 w-[70%] md:w-[50%] rounded-2xl pb-4 border-[1px] glass2 border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isProjectFormOpen ? '' : 'pointer-events-none'}`}

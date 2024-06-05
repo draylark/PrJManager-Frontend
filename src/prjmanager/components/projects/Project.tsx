@@ -6,7 +6,6 @@ import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { fetchProjectLayers, fetchProjectRepositories } from '../../../store/platypus/thunks';
 import { setCurrentProject } from '../../../store/platypus/platypusSlice';
 import { Options } from './options/Options';
 import { ProjectConfigForm } from './forms/ProjectConfigForm';
@@ -16,7 +15,6 @@ import projectbg from '../../assets/imgs/projectbg.jpg'
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { tierS } from '../../helpers/accessLevels-validator';
-import { cleanUrl } from './helpers/helpers';
 import { PuffLoader  } from 'react-spinners';
 
 export const Project = () => {
@@ -144,97 +142,97 @@ export const Project = () => {
   }, [])
 
 
-    if( errorWhileFetching ) return (
-      <div className='flex w-full h-full items-center justify-center'>
-        <h1 className='text-red-500'>{errorMessage}</h1>
-      </div>
-    )
+  if( errorWhileFetching ) return (
+    <div className='flex w-full h-full items-center justify-center'>
+      <h1 className='text-red-500'>{errorMessage}</h1>
+    </div>
+  )
 
-    if( isLoading ) return (  
-      <div className='flex w-full h-full items-center justify-center'>
-        <PuffLoader  color="#32174D" size={50} /> 
-      </div>   
-    )  
+  if( isLoading ) return (  
+    <div className='flex w-full h-full items-center justify-center'>
+      <PuffLoader  color="#32174D" size={50} /> 
+    </div>   
+  )  
 
-    return (
-      <div className='w-full h-full p-4'>
-            <div 
-                id='projectPanel' 
-                className="relative flex flex-col w-full h-full max-h-[840px] overflow-hidden shadow-lg rounded-extra"
-                style={{ 
-                  backgroundImage: isBackgroundReady ? `url(${projectbg})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}
-                >
-                
-                <Options uid={uid} project={project} showOptModal={showOptModal} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} />
-                { IsLayerFormOpen && <LayerForm isLayerFormOpen={IsLayerFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal}   /> }
-                { isProjectConfigFormOpen && <ProjectConfigForm isProjectConfigFormOpen={isProjectConfigFormOpen} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal} /> }
-                { IsProjectCollaboratorsFormOpen && <ProjectCollaboratorsForm isProjectCollaboratorsFormOpen={IsProjectCollaboratorsFormOpen} setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal} /> }
+  return (
+    <div className='flex w-full h-full max-h-full overflow-hidden items-center'>
+          <div 
+              id='projectPanel' 
+              className="flex flex-col h-full w-full overflow-hidden"
+              style={{ 
+                backgroundImage: isBackgroundReady ? `url(${projectbg})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+              >
+              
+              <Options uid={uid} project={project} showOptModal={showOptModal} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} />
+              { IsLayerFormOpen && <LayerForm isLayerFormOpen={IsLayerFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal}   /> }
+              { isProjectConfigFormOpen && <ProjectConfigForm isProjectConfigFormOpen={isProjectConfigFormOpen} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal} /> }
+              { IsProjectCollaboratorsFormOpen && <ProjectCollaboratorsForm isProjectCollaboratorsFormOpen={IsProjectCollaboratorsFormOpen} setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal} /> }
 
-                <div className={`flex ${ anotherRoute ? 'justify-between' : 'justify-end'} items-center py-4 px-5`}>
-                  {
-                    anotherRoute && (
-                      <h1 className={`${anotherRoute ? 'text-lg font-bold' : 'text-3xl font-bold'} h-[30px]`}>
-                        {project.name}   { !layer || repository ? (<span className='ml-2'>▸</span>) : ''} <span className='ml-1 font-semibold'>{repository ? `${capitalizeFirstLetter(repository.repoName)}` : !layer && `${capitalizeFirstLetter(currentLocation)}`}</span>
-                      </h1>
-                    )
-                  }
+              <div className={`flex ${ anotherRoute ? 'justify-between' : 'justify-end'} items-center py-4 px-5`}>
+                {
+                  anotherRoute && (
+                    <h1 className={`${anotherRoute ? 'text-lg font-bold' : 'text-3xl font-bold'} h-[30px]`}>
+                      {project.name}   { !layer || repository ? (<span className='ml-2'>▸</span>) : ''} <span className='ml-1 font-semibold'>{repository ? `${capitalizeFirstLetter(repository.repoName)}` : !layer && `${capitalizeFirstLetter(currentLocation)}`}</span>
+                    </h1>
+                  )
+                }
 
 
-                    <div className='flex space-x-4'>
-                      <button onClick={ () => {
-                          setRender('Info')
-                          navigate('.', { state: { project: { ID: project.pid, name } } } )
-                        } }  className={`${ render === 'Info' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
-                        Info
-                      </button>
-                      <button onClick={ () => {
-                        setRender('Tree')
-                        navigate('tree', { state: { project: { ID: project.pid, name } } } )
-                        } } className={`${ render === 'Tree' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
-                        Tree
-                      </button>
+                  <div className='flex space-x-4'>
+                    <button onClick={ () => {
+                        setRender('Info')
+                        navigate('.', { state: { project: { ID: project.pid, name } } } )
+                      } }  className={`${ render === 'Info' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                      Info
+                    </button>
+                    <button onClick={ () => {
+                      setRender('Tree')
+                      navigate('tree', { state: { project: { ID: project.pid, name } } } )
+                      } } className={`${ render === 'Tree' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                      Tree
+                    </button>
 
-                      <button 
-                          onClick={ () => {
-                              setRender('Activity')
-                              navigate('activity', { state: { project: { ID: project.pid, name } } } )
-                            }}
-                        className={`${ render === 'Activity' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
-                        Activity
-                      </button>
+                    <button 
+                        onClick={ () => {
+                            setRender('Activity')
+                            navigate('activity', { state: { project: { ID: project.pid, name } } } )
+                          }}
+                      className={`${ render === 'Activity' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                      Activity
+                    </button>
 
-                      <button 
-                          onClick={ () => {
-                              setRender('Comments')
-                              navigate('comments', { state: { project: { ID: project.pid, name } } } )
-                            }}
-                        className={`${ render === 'Comments' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
-                        Comments
-                      </button>
-                      {
-                        tierS(uid, project) 
-                        && (
-                          <button 
-                            onClick={ () => setShowOptModal(!showOptModal) }              
-                            className='glassi hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]'
-                            
-                            >    
-                            <Icon>
-                                <DonutLargeTwotone/>
-                            </Icon>
-                          </button>
-                        )
-                      }
+                    <button 
+                        onClick={ () => {
+                            setRender('Comments')
+                            navigate('comments', { state: { project: { ID: project.pid, name } } } )
+                          }}
+                      className={`${ render === 'Comments' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                      Comments
+                    </button>
+                    {
+                      tierS(uid, project) 
+                      && (
+                        <button 
+                          onClick={ () => setShowOptModal(!showOptModal) }              
+                          className='glassi hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]'
+                          
+                          >    
+                          <Icon>
+                              <DonutLargeTwotone/>
+                          </Icon>
+                        </button>
+                      )
+                    }
 
-                    </div>
-                </div>
-      
-              { renderComponent(location.state) }
+                  </div>
+              </div>
+    
+            { renderComponent(location.state) }
 
-            </div>
-      </div>
-    )
+          </div>
+    </div>
+  )
   }

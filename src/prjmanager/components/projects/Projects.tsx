@@ -4,15 +4,15 @@ import { RootState } from "../../../store/store"
 import { TextField } from "@mui/material"
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { VscNewFolder } from "react-icons/vsc";
-import { HoverEffect } from "./card-hover-effect";
+import { RenderProjects } from "./RenderProjects";
 import { startProjects } from "../../../store/projects/projectSlice";
 import { ProjectForm } from "./forms/ProjectForm";
 import { PuffLoader  } from 'react-spinners';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from "axios";
 
 
 export const Projects = () => {
-
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +26,7 @@ export const Projects = () => {
 
 
   const fetchProjects = async() => {
-    axios.get(`http://localhost:3000/api/projects/get-projects/${uid}`)
+    axios.get(`${backendUrl}/projects/get-projects/${uid}`)
     .then((res) => {
       dispatch(startProjects(res.data))
       setIsLoading(false)
@@ -35,15 +35,13 @@ export const Projects = () => {
       setIsLoading(false)
       console.log(err)
     })
-  }
-
+  };
 
   const filteredProjects = useMemo(() => {
     if (!searchTerm) return projects;
     return projects.filter((project) => project.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [projects, searchTerm])
+  }, [projects, searchTerm]);
   
-
   useEffect(() => {
     fetchProjects()
   }, []);
@@ -56,7 +54,9 @@ export const Projects = () => {
   )
 
   return (
-        <div id="projects" className="flex flex-col flex-grow w-full overflow-y-auto">
+        <div id="projects" className="flex flex-col flex-grow overflow-y-auto">            
+        
+        { isProjectFormOpen && <ProjectForm uid={uid} isProjectFormOpen={isProjectFormOpen} setIsProjectFormOpen={setIsProjectFormOpen} /> }
             {
               projectID 
               ?  <Outlet/> 
@@ -102,15 +102,12 @@ export const Projects = () => {
                               <h1 className="text-sky-950 font-bold text-2xl">You do not own or are part of any project yet</h1>
                               <p className="text-sky-950 ">Start Creating a new project or join an existing one!</p>
                             </div> 
-                        : <HoverEffect items={filteredProjects} navigate={navigate} />
+                        : <RenderProjects items={filteredProjects} navigate={navigate} />
                       }
-
                   </div>
 
                 )
             }
-
-            { isProjectFormOpen && <ProjectForm uid={uid} isProjectFormOpen={isProjectFormOpen} setIsProjectFormOpen={setIsProjectFormOpen} /> }
         </div>
 
   )

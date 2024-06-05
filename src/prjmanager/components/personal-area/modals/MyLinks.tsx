@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Box, Typography, TextField, Button, IconButton, Stack } from '@mui/material';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useState, useEffect } from 'react';
+import { TextField, Stack } from '@mui/material';
+import { Formik, Form, Field } from 'formik';
 import { ImCancelCircle } from 'react-icons/im';
 import { IosLink, LogoLinkedin } from '@ricons/ionicons4';
 import Github from '@ricons/fa/Github';
@@ -10,8 +10,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { ScaleLoader } from 'react-spinners';
 import * as Yup from 'yup';
-
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 const validationSchema = Yup.object().shape({
     website: Yup.string().url('Invalid URL').matches(
@@ -30,12 +29,11 @@ const validationSchema = Yup.object().shape({
       /^(https?:\/\/)?(www\.)?twitter\.com\/[A-Za-z0-9_-]+\/?/,
       'Invalid Twitter URL'
     )
-  });
+});
 
 export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
 
   const { website, github, linkedin, twitter, uid } = useSelector( selector => selector.auth)
-
   const [isLoading, setIsLoading] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(true)
   const [links, setLinks] = useState({
@@ -56,7 +54,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
             setIsMyLinksModalOpen(false);
         }, 500); // Asume que la duración de tu transición es de 500ms
     }
-}
+  };
 
   const IsTheButtonDisabled = ({ values }) => {
 
@@ -77,7 +75,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
   const handleSubmit = (values, { setSubmitting, resetForm }) => {
     setIsLoading(true);
     setSubmitting(true);
-    axios.put(`http://localhost:3000/api/users/update-my-links/${uid}`, values, {
+    axios.put(`${backendUrl}/users/update-my-links/${uid}`, values, {
         headers: {
             'Content-Type': 'application/json',
             'Authorization':  localStorage.getItem('x-token') 

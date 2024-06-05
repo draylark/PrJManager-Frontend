@@ -1,12 +1,12 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import { setLayers, setRepositories, setFetchingResources, setError, setErrorMessage } from './platypusSlice';
+import { setLayers, setRepositories, setFetchingResources, setError } from './platypusSlice';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
 
 
 
 export const fetchProjectLayers = ( projectID, accessLevel, uid ) => {
     return async ( dispatch ) => {
-       axios.get(`http://localhost:3000/api/layer/get-layers/${ projectID }`,
+       axios.get(`${backendUrl}/layer/get-layers/${ projectID }`,
         {
             params: {
                 uid,
@@ -37,7 +37,7 @@ export const fetchProjectLayers = ( projectID, accessLevel, uid ) => {
 
 export const fetchProjectRepositories = ( payload, accessLevel, uid ) => {
     return async ( dispatch ) => {
-       axios.get(`http://localhost:3000/api/repos/get-repos/${ payload }`,
+       axios.get(`${backendUrl}/repos/get-repos/${ payload }`,
         {
             params: {
                 uid,
@@ -66,11 +66,10 @@ export const fetchProjectRepositories = ( payload, accessLevel, uid ) => {
     };
 };
 
-
 export const fetchProjectReposAndLayers = ( projectID, accessLevel, uid ) => {
 
-    const repoUrl = `http://localhost:3000/api/repos/get-repos/${ projectID }`
-    const layerUrl = `http://localhost:3000/api/layer/get-layers/${ projectID }`
+    const repoUrl = `${backendUrl}/repos/get-repos/${ projectID }`
+    const layerUrl = `${backendUrl}/layer/get-layers/${ projectID }`
 
     return async ( dispatch ) => {
         dispatch( setFetchingResources( true ) )
@@ -113,14 +112,12 @@ export const fetchProjectReposAndLayers = ( projectID, accessLevel, uid ) => {
             );
         })   
     };  
-}
-
-
+};
 
 export const fetchLayerRepositories = ( projectID: string, layerID: string, uid: string ) => {
     return async ( dispatch ) => {
         dispatch( setFetchingResources( true ) )
-        axios.get(`http://localhost:3000/api/repos/get-layer-repos/${ projectID }/${layerID}`,
+        axios.get(`${backendUrl}/repos/get-layer-repos/${ projectID }/${layerID}`,
         {
             params: {
                 uid
@@ -139,4 +136,4 @@ export const fetchLayerRepositories = ( projectID: string, layerID: string, uid:
             console.log( error )
         })   
     };
-}
+};

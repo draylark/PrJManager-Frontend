@@ -2,21 +2,17 @@
 import { ThunkDispatch } from "@reduxjs/toolkit";
 import { AnyAction } from "@reduxjs/toolkit";
 import { RootState } from '../../store/store';
-// import useForm from '../../hooks/useForm';
-
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-
 import axios from 'axios'
 import { FaGoogle } from 'react-icons/fa';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Link } from 'react-router-dom'
-
 import '../styles/buttonNew.css'
 import { startGoogleLoginWEmailPassword, startLoginWEmailPassword } from '../../store/auth/thunks';
 import { useDispatch } from 'react-redux';
 import '../styles/validations.css'
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 interface ResponseM {
   data: {
@@ -27,7 +23,6 @@ interface ResponseM {
 }
 
 const RegisterForm = () => {
-
 
   const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>()
 
@@ -50,8 +45,7 @@ const RegisterForm = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        console.log(values)
-        const response = await axios.post('http://localhost:3000/api/auth/register', values);
+        const response = await axios.post(`${backendUrl}/auth/register`, values);
 
         localStorage.setItem('x-token', response.data.token);
         dispatch(startLoginWEmailPassword(response.data));
@@ -62,45 +56,29 @@ const RegisterForm = () => {
     },
   });
 
-
-
   const googleRegistration = useGoogleLogin({
     flow: 'auth-code',
     onSuccess: async ({ code }) => {
+      const { data } = await axios.post(`${backendUrl}/auth/google`, { code});
+      try {      
+        const { data: userData }: ResponseM = await axios.post(
+            `${backendUrl}/auth/gregister`, {
+              email: data.payload.email,
+              username: data.payload.name,
+              photoUrl: data.payload.picture,
+              status: true,
+              google: true
+        });
 
-        const { data } = await axios.post(
-            'http://localhost:3000/api/auth/google', {
-               code
-            });
-
-
-            try {      
-
-              const { data: userData }: ResponseM = await axios.post(
-                 'http://localhost:3000/api/auth/gregister', {
-                   email: data.payload.email,
-                   username: data.payload.name,
-                   photoUrl: data.payload.picture,
-                   status: true,
-                   google: true
-              });
-
-
-
-              console.log(userData)
-              localStorage.setItem('x-token', userData.token )
-              dispatch( startGoogleLoginWEmailPassword( userData ) )
-
-            } catch (error: any) {
-              console.error(error.response)
-            }     
+        localStorage.setItem('x-token', userData.token )
+        dispatch( startGoogleLoginWEmailPassword( userData ) )
+      } catch (error: any) {
+        console.error(error.response)
+      }     
     },
     onError: errorResponse => console.log(errorResponse),
-});
-
-
-
-
+  });
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md space-y-8">
