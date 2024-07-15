@@ -17,8 +17,7 @@ export const useStateVerifier = () => {
 
   const getUserData = async (token: string) => {
     const response = await axios.post(
-      `${backendUrl}/auth/me`,
-      {},
+      `${backendUrl}/auth/me`, {},
       {
         headers: {
           Authorization: token,
@@ -29,17 +28,6 @@ export const useStateVerifier = () => {
     return response.data;
   };
 
-  const getData = async (userId: string) => {
-
-    const urls = [
-      `${backendUrl}/notis/${userId}`,
-    ];
-
-    const promises = urls.map((url) => axios.get(url));
-    const results = await Promise.all(promises);
-
-    return results.map((result) => result.data);
-  };
 
   const verifyUserState = async () => {
       if (!token) {
@@ -68,6 +56,7 @@ export const useStateVerifier = () => {
   useEffect(() => {
     dispatch(checkingAuthentication());
     verifyUserState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, token]);
 
   return {

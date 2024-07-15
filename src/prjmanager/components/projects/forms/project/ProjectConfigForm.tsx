@@ -7,7 +7,7 @@ import { TextField, MenuItem, FormControl, Select, InputLabel, Autocomplete, Dia
 import { ImCancelCircle } from "react-icons/im";
 import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
-import formbg from '../assets/formbg.jpg'
+import formbg from '../../../../assets/imgs/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 

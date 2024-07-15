@@ -1,73 +1,15 @@
 import { setLayers, setRepositories, setFetchingResources, setError } from './platypusSlice';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-import axios from 'axios';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action, UnknownAction } from 'redux';
+import axios, { AxiosError } from 'axios';
+import { Action } from 'redux';
 import { RootState } from '../store';
-import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ThunkAction } from 'redux-thunk';
 
-export const fetchProjectLayers = ( projectID, accessLevel, uid ) => {
-    return async ( dispatch ) => {
-       axios.get(`${backendUrl}/layer/get-layers/${ projectID }`,
-        {
-            params: {
-                uid,
-                accessLevel
-            },
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('x-token')
-            }
-        }
-       )
-        .then( ( response ) => {
-            console.log('Respuesta desde el thunk L', response)
-            dispatch( setLayers( response.data.layers ) )
-        })
-        .catch( ( error ) => {
-            dispatch(
-                setError({
-                  fetchingResources: false,
-                  errorWhileFetching: true,
-                  errorMessage: error.response.data.message || 'An error occurred while fetching data',
-                  errorType: error.response.data.type || 'Error',
-                })
-              );
-        })   
-    };
-};
+interface ApiResponse {
+  message: string;
+  type: string;
+}
 
-export const fetchProjectRepositories = ( payload, accessLevel, uid ) => {
-    return async ( dispatch ) => {
-       axios.get(`${backendUrl}/repos/get-repos/${ payload }`,
-        {
-            params: {
-                uid,
-                accessLevel
-            },
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('x-token')
-            }
-        }
-       )
-        .then( ( response ) => {
-            console.log('Respuesta desde el thunk R:', response)
-            dispatch( setRepositories( response.data.repos ) )
-        })
-        .catch( ( error ) => {
-            dispatch(
-                setError({
-                  fetchingResources: false,
-                  errorWhileFetching: true,
-                  errorMessage: error.response.data.message || 'An error occurred while fetching data',
-                  errorType: error.response.data.type || 'Error',
-                })
-              );
-        })   
-    };
-};
 
 export const fetchProjectReposAndLayers = (
     projectID: string,
@@ -97,22 +39,36 @@ export const fetchProjectReposAndLayers = (
             }
           })
         ]);
-  
+
         dispatch(setRepositories(repoResponse.data.repos));
         dispatch(setLayers(layerResponse.data.layers));
         dispatch(setFetchingResources(false));
       } catch (error) {
-        dispatch(setError({
-          fetchingResources: false,
-          errorWhileFetching: true,
-          errorMessage: error.response?.data.message || 'An error occurred while fetching data',
-          errorType: error.response?.data.type || 'Error',
-        }));
+        const axiosError = error as AxiosError<ApiResponse>;
+        if (axiosError.response) {
+          dispatch(setError({
+            fetchingResources: false,
+            errorWhileFetching: true,
+            errorMessage: axiosError.response?.data.message || 'An error occurred while fetching data',
+            errorType: axiosError.response?.data.type || 'Error',
+          }));
+        } else {
+          dispatch(setError({
+            fetchingResources: false,
+            errorWhileFetching: true,
+            errorMessage: 'An error occurred while fetching data',
+            errorType: 'Error',
+          }));
+        }
       }
     };
   };
 
-export const fetchLayerRepositories = ( projectID: string, layerID: string, uid: string ) => {
+export const fetchLayerRepositories = ( 
+    projectID: string, 
+    layerID: string, 
+    uid: string 
+  ): ThunkAction<void, RootState, unknown, Action<string>> => {
     return async ( dispatch ) => {
         dispatch( setFetchingResources( true ) )
         axios.get(`${backendUrl}/repos/get-layer-repos/${ projectID }/${layerID}`,

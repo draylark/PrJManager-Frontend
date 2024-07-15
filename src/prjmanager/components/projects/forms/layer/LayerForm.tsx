@@ -1,12 +1,10 @@
 import { FC, useEffect, useState } from 'react';
 import { Formik, Form } from 'formik';
 import { TextField, FormControl, Select, InputLabel, MenuItem, Tooltip, Typography } from '@mui/material'
-// import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../store/store';
-import { loadNewLayer } from '../../../../../store/gitlab/thunks';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
-import bgform from '../assets/formbg.jpg'
+import bgform from '../../../../assets/imgs/formbg.jpg'
 import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { ImCancelCircle } from "react-icons/im";
@@ -14,7 +12,6 @@ import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
-import { usePrJDispatch } from '../../../../../store/dispatch';
 
 
 const LayerSchema = Yup.object().shape({
@@ -39,7 +36,6 @@ interface ApiResponse {
 
 export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen }) => {
 
-    const dispatch = usePrJDispatch();
     const location = useLocation();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
     const [IsLoading, setIsLoading] = useState(false);
@@ -111,9 +107,6 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen 
                 title: 'Success',
                 text: response.data.message
             });
-            
-            dispatch( loadNewLayer( response.data.newLayer ) )
-
         } catch (error) {
 
             const axiosError = error as AxiosError<ApiResponse>;

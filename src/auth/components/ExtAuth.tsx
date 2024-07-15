@@ -1,24 +1,43 @@
 import { useLocation, Navigate } from "react-router-dom"
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Swal from "sweetalert2";
 import LoadingCircle from "../helpers/Loading";
 import { decodeParams } from "../helpers/decodeParams";
 const backendUrl = import.meta.env.VITE_BACKEND_URL
+import { Socket } from "socket.io-client";
+
+
+
+interface IRespStatus {
+    success: boolean;
+    message: string;
+}
+
+
+interface ApiResponse {
+    status: boolean;
+    msg: string;
+    user: string;
+    pat: string;
+    token: string;
+}
+
 
 const ExtAuth = () => {
 
-    const timeoutRef = useRef(null); // Referencia para el temporizador
     const [isLoading, setIsLoading] = useState(true)
-    const [socket, setSocket] = useState(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [socket, setSocket] = useState<Socket | null>(null);
+        
     const [isConnected, setIsConnected] = useState(false);
-    const [respStatus, setRespStatus] = useState({});
+    const [respStatus, setRespStatus] = useState<IRespStatus | null>(null);
     const location = useLocation();
 
     const { authCode, npmsocketid, type, port } = decodeParams(location.search);
 
-    const sendCodeToExtension = async (code) => {
+    const sendCodeToExtension = async (code: string) => {
         if (!socket || !isConnected) {
             console.log('Socket no está conectado');
             return;
@@ -30,7 +49,7 @@ const ExtAuth = () => {
                 console.log(data)
                 setRespStatus( data.status.authStatus || data.status );
                 setIsLoading(false);
-                clearTimeout(timeoutRef.current); // Limpia el temporizador
+                clearTimeout(timeoutRef.current as NodeJS.Timeout); // Limpia el temporizador
                 socket.close()
             });
 
@@ -60,17 +79,17 @@ const ExtAuth = () => {
             const { data } = response;
 
             if( data.status === true ) {
-                socket.emit('onPrJCUPersistance', { type: 'NPM', success: true, npmsocketid, user: data.user, pat: data.pat, token: data.token }, (response) => {                                   
+                socket.emit('onPrJCUPersistance', { type: 'NPM', success: true, npmsocketid, user: data.user, pat: data.pat, token: data.token }, (response: IRespStatus) => {                                   
                     setRespStatus(response);
                     setIsLoading(false);
-                    clearTimeout(timeoutRef.current); // Limpia el temporizador
+                    clearTimeout(timeoutRef.current as NodeJS.Timeout); // Limpia el temporizador
                     socket.close();
                 });
             } else {
                 socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: data.msg } );
                 setRespStatus({ success: false, message: data.msg || 'There was an error during authentication' });
                 setIsLoading(false);
-                clearTimeout(timeoutRef.current); // Limpia el temporizador
+                clearTimeout(timeoutRef.current as NodeJS.Timeout); // Limpia el temporizador
                 socket.close();              
             }
             // // Iniciar el temporizador
@@ -84,14 +103,24 @@ const ExtAuth = () => {
 
         } catch (error) {
             // console.error('Error al enviar al autenticarse', error);
-            socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: error.response.data.msg || 'There was an error during authentication' } );
-            setRespStatus({ success: false, message: error.response.data.msg || 'There was an error during authentication' });          
-            setIsLoading(false);
-            socket.close();   
+
+            const axiosError = error as AxiosError<ApiResponse>;
+
+            if(axiosError.response){
+                socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: axiosError.response.data.msg || 'There was an error during authentication' } );
+                setRespStatus({ success: false, message: axiosError.response.data.msg || 'There was an error during authentication' });
+                setIsLoading(false);
+                socket.close();
+            } else {
+                socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: 'There was an error during authentication' } );
+                setRespStatus({ success: false, message: 'There was an error during authentication' });
+                setIsLoading(false);
+                socket.close();
+            }
         }
     };
 
-    useEffect(() => {
+    useEffect( () => {
         const newSocket = io('http://localhost:8081');
         setSocket(newSocket);
 
@@ -99,7 +128,10 @@ const ExtAuth = () => {
             setIsConnected(true);
         });
 
-        return () => newSocket.close();
+        return () => {
+            newSocket.close();
+            return; 
+        };
     }, []);
 
     useEffect(() => { 
@@ -137,6 +169,7 @@ const ExtAuth = () => {
             default:
                 break;
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authCode, isConnected]);
 
     if (!authCode) return <Navigate to='/register'/>;
@@ -149,7 +182,7 @@ const ExtAuth = () => {
                     : <>
                     
                         {
-                            respStatus.success ? 
+                            respStatus?.success ? 
                             <div className="flex flex-col justify-center items-center">
                                 <h1 className="text-4xl font-bold text-gray-700">Successful authentication</h1>
                                 <p className="text-lg font-semibold text-gray-700">You can now close this window</p>

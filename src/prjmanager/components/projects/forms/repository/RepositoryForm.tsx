@@ -10,7 +10,7 @@ import { LiaQuestionCircleSolid } from "react-icons/lia";
 import Swal from 'sweetalert2';
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
-import bgform from '../assets/formbg.jpg'
+import bgform from '../../../../assets/imgs/formbg.jpg'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const RepositorySchema = Yup.object().shape({

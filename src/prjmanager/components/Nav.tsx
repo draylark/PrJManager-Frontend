@@ -4,7 +4,6 @@ import Dashboard  from '@ricons/carbon/DashboardReference'
 import Folder from '@ricons/fluent/FolderOpen24Filled'
 import GlobeSearch20Filled from '@ricons/fluent/GlobeSearch20Filled'
 import platy from '../assets/imgs/platy.jpg'
-import idk from '../assets/imgs/abstract.jpeg'
 import Noti from '@ricons/material/NotificationsNoneOutlined'
 import { Link, useLocation } from 'react-router-dom';
 import './styles/fonts.css'
@@ -68,7 +67,7 @@ export const Nav = () => {
                 </button>
                 <div className='flex space-x-2 items-center'>
                     <Link to={`personal-area/${username}`}>
-                        <img src={idk}  alt="User" className="cursor-pointer h-[65px] w-[65px] rounded-full mr-3 border-[2px] border-transparent hover:border-blue-50 transition-colors duration-200"/>
+                        <img src={platy}  alt="User" className="cursor-pointer h-[65px] w-[65px] rounded-full mr-3 border-[2px] border-transparent hover:border-blue-50 transition-colors duration-200"/>
                     </Link>
                     
                     <span className="flex-grow text-[13px] nav-button2">{username}</span>

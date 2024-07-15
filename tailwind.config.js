@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 import plugin from 'tailwindcss/plugin';
-import defaultTheme from 'tailwindcss/defaultTheme';
-import colors from 'tailwindcss/colors';
+// import colors from 'tailwindcss/colors';
 import { default as flattenColorPalette }from 'tailwindcss/lib/util/flattenColorPalette'
 
 // This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
@@ -38,7 +37,6 @@ export default {
         xl: '80px',
       },
       colors: {
-        ...colors, // Asegúrate de extender con todos los colores de Tailwind
         'glass-blue': 'rgba(41, 155, 255, 0.1)',
       },
       borderColor: {

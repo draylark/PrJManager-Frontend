@@ -19,7 +19,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Source Maps */
+    "sourceMap": true,
   },
   "include": ["src", "manager/routes/ManagerRoutes.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }],

@@ -12,7 +12,7 @@ import { useGlobalUsersSearcher } from '../hooks/useGlobalUsersSearcher';
 import Partnership from '@ricons/carbon/Partnership';
 import RemoveCircleOutlineOutlined from '@ricons/material/RemoveCircleOutlineOutlined'
 import Swal from 'sweetalert2';
-import modalbg from '../assets/formbg.jpg'
+import modalbg from '../../../../assets/imgs/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { NewCollaborators } from './NewCollaborators';

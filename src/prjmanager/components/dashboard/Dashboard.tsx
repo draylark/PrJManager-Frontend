@@ -10,7 +10,6 @@ export const Dashboard = () => {
   const currentLocation = location.pathname.split('/').pop();  
   const [render, setRender] = useState(currentLocation || 'general')
 
-
   const renderComponent = () => {
     switch (render) {
       case 'general':

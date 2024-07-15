@@ -52,12 +52,10 @@ export const Layer = () => {
       }
     })
     .then(res => {
-      console.log(res)
       setLayer(res.data.layer)
       setIsLoading(false)
     })
     .catch(err => {
-      console.log(err)
       setIsLoading(false)
       setErrorWhileFetching(true)
       setErrorType(err.response.data.type || 'Error')

@@ -88,7 +88,6 @@ export const Repository = () => {
         }
       })
       .then( res => {
-        console.log('ARCHIVOS',res)
         setFiles(res.data.files)
         setCurrentBranch(res.data.branch)
         setLoadingFiles(false)

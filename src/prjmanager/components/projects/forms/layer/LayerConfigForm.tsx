@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../store/store';
 import { ImCancelCircle } from "react-icons/im";
 import axios, { AxiosError } from 'axios';
-import bgform from '../assets/formbg.jpg'
+import bgform from '../../../../assets/imgs/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { LayerBase } from '../../../../../interfaces/models';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { ImCancelCircle } from "react-icons/im";
-import formbg from './assets/formbg.jpg'
+import formbg from '../../../../assets/imgs/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
 import { TaskComplete, TaskView, TaskRemove,} from '@ricons/carbon'
 import GitCompare from '@ricons/tabler/GitCompare';

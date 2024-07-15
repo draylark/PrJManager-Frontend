@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { MdLayers } from 'react-icons/md';
 import { FaGitAlt } from 'react-icons/fa';
 import { TaskHeatmap } from './heatmap/TaskHeatmap';
-import { AnimatedTooltip } from './animated=tooltip';
+import { AnimatedTooltip } from './animated-tooltip';
 import { AiOutlineDiff } from "react-icons/ai";
 import { DiffModal } from './modals/DiffModal';
 import { Copy20Regular, CommentCheckmark28Regular, Warning24Regular } from '@ricons/fluent'
@@ -347,7 +347,7 @@ export const TaskSetDetails = () => {
                                             <TaskRemove  
                                                 onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                                                 className='w-[26px] h-[26px] text-[#FF0800]'/>
-                                            <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task?.status)}</p>
+                                            <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task?.status as string)}</p>
                                           </>
                                         )
                                     }

@@ -181,7 +181,7 @@ export const Followers: React.FC<FollowersProps> = ({ isFollowersModalOpen, setI
         })
     };
 
-    const renderLength = ( type: string ) => {
+    const renderLength = ( type: string ): number => {
         switch (type) {
             case 'followers':
                 return followersLength
@@ -190,7 +190,7 @@ export const Followers: React.FC<FollowersProps> = ({ isFollowersModalOpen, setI
             case 'friends':
                 return friendsLength
             default:
-                break;
+                return 0
         }
     };
 

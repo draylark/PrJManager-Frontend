@@ -38,14 +38,14 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
     } = useProfileFollowersData(profileUID);
 
     
-    const renderLength = ( type: string ) => {
+    const renderLength = ( type: string ): number => {
         switch (type) {
             case 'followers':
                 return followersLength
             case 'following':
                 return followingLength
             default:
-                break;
+                return 0;
         }
     }
 

@@ -1,5 +1,5 @@
+import { Location } from "react-router-dom";
 
-export const isOauthCallback = (location) => {
-    // Puedes ajustar esta lógica según tus necesidades
+export const isOauthCallback = (location: Location) => {
     return location.pathname.startsWith('/callback') && location.search.includes('code=');
 }

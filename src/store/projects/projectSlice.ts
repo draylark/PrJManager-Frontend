@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Project } from '../types/stateInterfaces';
-import { ProjectType } from '../types/stateTypes';
+import { ProjectBase } from '../../interfaces/models';
 
 const initialState: Project = {
   projects: [],
@@ -17,7 +17,7 @@ export const projectSlice = createSlice({
     initialState,
     reducers: {
 
-        startProjects: ( state, { payload: projects } : PayloadAction<ProjectType[]>  ) => {
+        startProjects: ( state, { payload: projects } : PayloadAction<ProjectBase[]>  ) => {
             state.projects = projects
             state.loading = false
         },

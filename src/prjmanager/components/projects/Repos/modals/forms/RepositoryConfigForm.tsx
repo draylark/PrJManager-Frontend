@@ -11,7 +11,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { RepoNewCollaborators } from './RepoNewCollaborators';
 import Swal from 'sweetalert2';
 import { PuffLoader  } from 'react-spinners';
-import bgform from '../assets/formbg.jpg'
+import bgform from '../../../../../assets/imgs/formbg.jpg'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { RootState } from '../../../../../../store/store';
 import { RepositoryBase, LayerBase, CollaboratorBase } from '../../../../../../interfaces/models';
@@ -423,7 +423,6 @@ export const RepositoryConfigForm: React.FC<RepositoryConfigFormProps> = ({ isRe
                             // validationSchema={RepositorySchema}              
                       >        
                             {({ isSubmitting, values, setFieldValue, handleChange, handleBlur }) => {
-                              {console.log(values)}
                               const filteredCollaborators = values.collaborators.filter(collaborator => {
                                 return collaborator.name.toLowerCase().includes(cSearchTerm.toLowerCase()) || collaborator.id.toString().includes(cSearchTerm)
                               });

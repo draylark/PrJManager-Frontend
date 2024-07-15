@@ -81,7 +81,6 @@ export const Workspace = () => {
       }
     })
       .then(res => {
-        console.log(res)
         setTasks(res.data.tasks)
         setIsLoading(false)
         setReady(true)

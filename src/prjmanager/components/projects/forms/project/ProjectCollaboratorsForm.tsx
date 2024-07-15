@@ -12,7 +12,7 @@ import axios, { AxiosError } from 'axios';
 import { useGlobalUsersSearcher } from '../hooks/useGlobalUsersSearcher';
 import RemoveCircleOutlineOutlined from '@ricons/material/RemoveCircleOutlineOutlined'
 import Swal from 'sweetalert2';
-import formbg from '../assets/formbg.jpg'
+import formbg from '../../../../assets/imgs/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { NewCollaborators } from './NewCollaborators';

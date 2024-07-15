@@ -1,4 +1,4 @@
-export const decodeParams = (search) => {
+export const decodeParams = (search: string) => {
 
     const queryParams = new URLSearchParams(search);
     const authCode = queryParams.get('code');

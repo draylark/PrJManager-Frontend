@@ -1,6 +1,6 @@
 // import { FormEvent } from 'react';
 import { ThunkDispatch } from "@reduxjs/toolkit";
-import { AnyAction } from "@reduxjs/toolkit";
+import { UnknownAction } from "@reduxjs/toolkit";
 import { RootState } from '../../store/store';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -24,14 +24,14 @@ interface ResponseM {
 
 const RegisterForm = () => {
 
-  const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>()
+  const dispatch = useDispatch<ThunkDispatch<RootState, unknown, UnknownAction>>()
 
   const validationSchema = Yup.object({
     username: Yup.string().required('Required'),
     email: Yup.string().email('Invalid email').required('Required'),
     password: Yup.string().required('Required'),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], 'Passwords must match')
+      .oneOf([Yup.ref('password')], 'Passwords must match')
       .required('Required'),
   });
 
@@ -50,8 +50,8 @@ const RegisterForm = () => {
         localStorage.setItem('x-token', response.data.token);
         dispatch(startLoginWEmailPassword(response.data));
 
-      } catch (error: any) {
-        console.error(error.response);
+      } catch (error) {
+        console.error(error);
       }
     },
   });
@@ -72,8 +72,8 @@ const RegisterForm = () => {
 
         localStorage.setItem('x-token', userData.token )
         dispatch( startGoogleLoginWEmailPassword( userData ) )
-      } catch (error: any) {
-        console.error(error.response)
+      } catch (error) {
+        console.error(error)
       }     
     },
     onError: errorResponse => console.log(errorResponse),

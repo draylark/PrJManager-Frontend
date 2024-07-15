@@ -7,7 +7,7 @@ import { Select, MenuItem, TextField  } from '@mui/material';
 import { TaskAdd } from '@ricons/carbon'
 import { Icon } from '@ricons/utils';
 import { TaskForm } from './forms/TaskForm';
-import formbg from './assets/formbg.jpg'
+import formbg from '../../../../assets/imgs/formbg.jpg'
 import { useSelector } from 'react-redux';
 import { tierS, tierA } from '../../../../helpers/accessLevels-validator';
 import { RenderRepositoryTasks } from './RenderRepositoryTasks';

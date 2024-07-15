@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { ImCancelCircle } from "react-icons/im";
 import { Formik, Form } from 'formik';
 import { TextField, Select, MenuItem, Autocomplete,FormControl, InputLabel, Chip } from '@mui/material';
-import projectform from '../assets/projectform.jpg'
+import projectform from '../../../../assets/imgs/projectform.jpg'
 import { PuffLoader  } from 'react-spinners';
 import { ReadmeEditor } from '../sub-components/ReadmeEditor';
 import axios, { AxiosError} from 'axios';
