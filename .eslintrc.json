@@ -7,6 +7,11 @@
     "plugins": ["@typescript-eslint"], 
     "rules": {
       // ... tus reglas personalizadas
+    },
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2021": true
     }
   }
   
