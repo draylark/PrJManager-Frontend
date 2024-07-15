@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "set NODE_OPTIONS=--max-old-space-size=8192 && npx tsc && vite build",
     "start": "node server.js",
-    "tsc:watch": "set NODE_OPTIONS=--max-old-space-size=8192 && npx tsc --watch",
-    "heroku-postbuild": "npm run build"
+    "tsc:watch": "set NODE_OPTIONS=--max-old-space-size=8192 && npx tsc --watch"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
