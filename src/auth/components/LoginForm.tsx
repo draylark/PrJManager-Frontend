@@ -33,7 +33,7 @@ const LoginForm = () => {
 
   const handleSubmit = async( event: FormEvent<HTMLFormElement> ) => {
     event.preventDefault();
-
+    console.log('backendUrl', backendUrl)
     try {
       const response = await axios.post(`${backendUrl}/auth/login`, {
         email,
@@ -59,6 +59,7 @@ const LoginForm = () => {
             });
         
             try {      
+              console.log('backendUrl', backendUrl)
 
               const mongoResponse = await axios.post(
                   `${backendUrl}/auth/glogin`, {
@@ -68,6 +69,7 @@ const LoginForm = () => {
               localStorage.setItem('x-token', mongoResponse.data.token )
               dispatch( startGoogleLoginWEmailPassword( mongoResponse.data ) )
             } catch (error: any) {
+              console.log('backendUrl', backendUrl)
                   console.error('LoginForm Error message:', error.response.data.msg);
                   dispatch( logout({ msg: error.response.data.msg, b: false }) )
             }     
