@@ -1,19 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
+import { CommitWithATPopulated, TaskBase } from '../../../../interfaces/models';
 
-export const useHeatMapData = ( projectID: string, uid ) => {
+type HeatMapData = { 
+    date: string; 
+    count: number; 
+    details?: { commits: number, tasks: number } 
+}
 
-    const [data, setData] = useState([]);
+interface ApiResponse {
+    message: string;
+}
+  
+export const useHeatMapData = ( projectID: string, uid: string ) => {
+
+    const [data, setData] = useState<HeatMapData[]>([]);
     const [detailsByDay, setDetailsByDay] = useState(new Map());
     const [year, setYear] = useState(new Date().getFullYear().toString());
 
-    const [errorMessage, seterrorMessage] = useState(null)
+    const [errorMessage, seterrorMessage] = useState<string | null>(null)
     const [errorWhileFetching, setErrorWhileFetching] = useState(false)
 
 
-
-    const formatDate = (date: Date) => {
+    const formatDate = (date: string) => {
         const d = new Date(date);
         // Convertir a UTC
         const year = d.getUTCFullYear();
@@ -22,7 +32,7 @@ export const useHeatMapData = ( projectID: string, uid ) => {
         return `${year}/${month}/${day}`;
     };
 
-    const formatDateFromHeatMap = (date: Date) => {
+    const formatDateFromHeatMap = (date: string): string => {
         // Asumiendo que date es una cadena en formato "YY/M/D"
         const parts = date.split("/"); // Separar la cadena por '/'
         const year = parts[0]; // Año ya está en formato YY
@@ -32,13 +42,19 @@ export const useHeatMapData = ( projectID: string, uid ) => {
         return `${year}/${month}/${day}`;
     };
 
-    const handleHeatMapData = (commits, tasks) => {
-        const combinedData = {};
-        const details = {};
+    const handleHeatMapData = useCallback((
+        commits: CommitWithATPopulated[], 
+        tasks: TaskBase[]
+    ) => {
+
+        const combinedData : { [key: string]: { count: number, commits: number, tasks: number } }
+        = {};
+        const details : { [key: string]: { commits: number, tasks: number } }
+        = {};
 
         // Procesar commits
         commits.forEach(commit => {
-            const date = formatDate(commit.createdAt);
+            const date = formatDate(commit.createdAt) 
             if (!combinedData[date]) {
                 combinedData[date] = { count: 0, commits: 0, tasks: 0 };
                 details[date] = { commits: 0, tasks: 0 }; // Inicializa los arrays de detalles
@@ -70,10 +86,10 @@ export const useHeatMapData = ( projectID: string, uid ) => {
         setData(heatmapData);
         // Actualiza el estado con los detalles por día
         setDetailsByDay(new Map(Object.entries(details)));
-    };
+    }, []);
+
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const tasksData = await axios.get(`${backendUrl}/tasks/activity/${projectID}`, { 
@@ -88,13 +104,20 @@ export const useHeatMapData = ( projectID: string, uid ) => {
 
                 handleHeatMapData(commitsData.data.commits, tasksData.data.tasks);
             } catch (error) {
-                console.error('Error fetching heatmap data:', error);
-                seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-                setErrorWhileFetching(true)
+                // console.error('Error fetching heatmap data:', error);
+                const axiosError = error as AxiosError<ApiResponse>
+                if (axiosError.response) {
+                    seterrorMessage(axiosError.response.data.message || 'An error occurred while fetching data');
+                    setErrorWhileFetching(true)
+
+                } else {
+                    seterrorMessage('An error occurred while fetching data');
+                    setErrorWhileFetching(true)
+                }
             }
         };
         fetchData();
-    }, [projectID, year]);
+    }, [projectID, year, handleHeatMapData, uid]);
 
     return {
         data,

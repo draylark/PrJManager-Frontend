@@ -8,14 +8,14 @@ import { RootState } from '../../../store/store';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { setCurrentProject } from '../../../store/platypus/platypusSlice';
 import { Options } from './options/Options';
-import { ProjectConfigForm } from './forms/ProjectConfigForm';
-import { LayerForm } from './forms/LayerForm';
-import { ProjectCollaboratorsForm } from './forms/ProjectCollaboratorsForm';
+import { ProjectConfigForm } from './forms/project/ProjectConfigForm';
+import { ProjectCollaboratorsForm } from './forms/project/ProjectCollaboratorsForm';
 import projectbg from '../../assets/imgs/projectbg.jpg'
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { tierS } from '../../helpers/accessLevels-validator';
 import { PuffLoader  } from 'react-spinners';
+import { ProjectBase } from '../../../interfaces/models/project';
 
 export const Project = () => {
 
@@ -26,64 +26,97 @@ export const Project = () => {
   const { ID, name } = location.state.project;
   const { uid } = useSelector((state: RootState) => state.auth );
   const { projects } = useSelector((state: RootState) => state.projects );  
-  const { project: projectRoute, layer, repository } = location.state || {}; // Asegurándonos de que state exista
+  const { layer, repository } = location.state || {}; // Asegurándonos de que state exista
 
-  const [errorType, setErrorType] = useState(null)    
   const [errorMessage, setErrorMessage] = useState(null)
   const [errorWhileFetching, setErrorWhileFetching] = useState(false)
 
 
   const [render, setRender] = useState('');
-  const [project, setProject] = useState(null);
+  const [project, setProject] = useState<ProjectBase | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [firstTime, setFirstTime] = useState(true);
   const [anotherRoute, setAnotherRoute] = useState(false);
   const [showOptModal, setShowOptModal] = useState(false);
-  const [IsLayerFormOpen, setIsLayerFormOpen] = useState(false);  
   const [isBackgroundReady, setIsBackgroundReady] = useState(false); 
   const [isProjectConfigFormOpen, setIsProjectConfigFormOpen] = useState(false);
   const [IsProjectCollaboratorsFormOpen, setIsProjectCollaboratorsFormOpen] = useState(false);
-  const currentLocation = location.pathname.split('/').pop();
+  const currentLocation = location.pathname.split('/').pop() as string; // Obtiene la última parte de la URL
 
-  const capitalizeFirstLetter = (text) => {
+  const locationState = location.state;
+
+  const capitalizeFirstLetter = (text: string) => {
     if (typeof text !== 'string' || text.length === 0) {
       return ''; // Si el texto está vacío o no es una cadena, retorna una cadena vacía
     }
     return text.charAt(0).toUpperCase() + text.slice(1); // Convierte la primera letra a mayúscula y concatena el resto
   };
 
-  const renderComponent = (locationState) => {
+  const renderComponent = () => {
     switch (render) {
       case 'hash':
-        return <Outlet/>
       case 'commits':
-        return <Outlet/>
       case 'repository': 
-        return <Outlet/>
       case 'layer': 
-        return <Outlet/>
-      case 'Info':
-        return <ProjectInfo project={project} projectID={ID} firstTime={firstTime} setFirstTime={setFirstTime} />
       case 'Tree':
-        return <Outlet/>
       case 'Activity':
-        return <Outlet/>
       case 'Comments':
-        return <Outlet/>
       case 'Configurations':
-        return <Outlet/>
+        return <Outlet />;
+      case 'Info':
+        return <ProjectInfo project={project as ProjectBase} projectID={ID} firstTime={firstTime}/>;
       default:
-          if( locationState?.commitHash ) return setRender('hash')
-          else if ( locationState?.commits ) return setRender('commits')
-          else if ( locationState?.repository ) return setRender('repository')
-          else if ( locationState?.layer ) return setRender('layer')
-          else if( currentLocation === 'comments' ) return setRender('Comments')
-          else if( currentLocation === 'activity' ) return setRender('Activity')
-          else if( currentLocation === 'tree' ) return setRender('Tree')
-          else return <ProjectInfo project={project} projectID={ID} firstTime={firstTime} setFirstTime={setFirstTime} />
+        return <ProjectInfo project={project as ProjectBase} projectID={ID} firstTime={firstTime}/>;
     }
   };
 
+  const handleNavButton = (type: string) => {
+    switch (type) {
+
+      case 'Info': {
+        if( firstTime ) { setFirstTime(false) }
+        setRender('Info');
+        navigate('.', { state: { project: { ID: project?.pid, name } } })
+      }
+      break;
+
+      case 'Tree': {
+        if( firstTime ) { setFirstTime(false) }
+        setRender('Tree');
+        navigate('tree', { state: { project: { ID: project?.pid, name } } })
+      }
+      break;
+
+      case 'Activity': {
+        if( firstTime ) { setFirstTime(false) }
+        setRender('Activity');
+        navigate('activity', { state: { project: { ID: project?.pid, name } } })
+      }
+      break;
+
+      case 'Comments': {
+        if( firstTime ) { setFirstTime(false) }
+        setRender('Comments');
+        navigate('comments', { state: { project: { ID: project?.pid, name } } })
+      }
+      break;
+
+      default:  
+        setRender('Info');
+        navigate('.', { state: { project: { ID: project?.pid, name } } });
+        break;
+    }
+  };
+
+  useEffect(() => {
+    if (locationState?.commitHash) setRender('hash');
+    else if (locationState?.commits) setRender('commits');
+    else if (locationState?.repository) setRender('repository');
+    else if (locationState?.layer) setRender('layer');
+    else if (currentLocation === 'comments') setRender('Comments');
+    else if (currentLocation === 'activity') setRender('Activity');
+    else if (currentLocation === 'tree') setRender('Tree');
+  }, [locationState, currentLocation]);
 
   useEffect(() => {
     const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
@@ -133,13 +166,13 @@ export const Project = () => {
         })
         .catch( ( error ) => {   
           setErrorWhileFetching(true)
-          setErrorType(error.response.data.type || 'Error')
+          // setErrorType(error.response.data.type || 'Error')
           setErrorMessage(error.response.data.message)
           setIsLoading(false)   
         })
       }
     }
-  }, [])
+  }, [ID, projects, uid, dispatch])
 
 
   if( errorWhileFetching ) return (
@@ -166,8 +199,7 @@ export const Project = () => {
               }}
               >
               
-              <Options uid={uid} project={project} showOptModal={showOptModal} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} />
-              { IsLayerFormOpen && <LayerForm isLayerFormOpen={IsLayerFormOpen} setIsLayerFormOpen={setIsLayerFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal}   /> }
+              <Options uid={uid as string} project={project as ProjectBase} showOptModal={showOptModal} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen}  setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} />
               { isProjectConfigFormOpen && <ProjectConfigForm isProjectConfigFormOpen={isProjectConfigFormOpen} setIsProjectConfigFormOpen={setIsProjectConfigFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal} /> }
               { IsProjectCollaboratorsFormOpen && <ProjectCollaboratorsForm isProjectCollaboratorsFormOpen={IsProjectCollaboratorsFormOpen} setIsProjectCollaboratorsFormOpen={setIsProjectCollaboratorsFormOpen} showOptModal={showOptModal} setShowOptModal={setShowOptModal} /> }
 
@@ -175,45 +207,33 @@ export const Project = () => {
                 {
                   anotherRoute && (
                     <h1 className={`${anotherRoute ? 'text-lg font-bold' : 'text-3xl font-bold'} h-[30px]`}>
-                      {project.name}   { !layer || repository ? (<span className='ml-2'>▸</span>) : ''} <span className='ml-1 font-semibold'>{repository ? `${capitalizeFirstLetter(repository.repoName)}` : !layer && `${capitalizeFirstLetter(currentLocation)}`}</span>
+                      {project?.name}   { !layer || repository ? (<span className='ml-2'>▸</span>) : ''} <span className='ml-1 font-semibold'>{repository ? `${capitalizeFirstLetter(repository?.repoName)}` : !layer && `${capitalizeFirstLetter(currentLocation)}`}</span>
                     </h1>
                   )
                 }
 
 
                   <div className='flex space-x-4'>
-                    <button onClick={ () => {
-                        setRender('Info')
-                        navigate('.', { state: { project: { ID: project.pid, name } } } )
-                      } }  className={`${ render === 'Info' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                    <button onClick={ () => handleNavButton('Info')}  
+                            className={`${ render === 'Info' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
                       Info
                     </button>
-                    <button onClick={ () => {
-                      setRender('Tree')
-                      navigate('tree', { state: { project: { ID: project.pid, name } } } )
-                      } } className={`${ render === 'Tree' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                    <button onClick={ () => handleNavButton('Tree')} 
+                            className={`${ render === 'Tree' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
                       Tree
                     </button>
 
-                    <button 
-                        onClick={ () => {
-                            setRender('Activity')
-                            navigate('activity', { state: { project: { ID: project.pid, name } } } )
-                          }}
-                      className={`${ render === 'Activity' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                    <button onClick={ () => handleNavButton('Activity')}       
+                            className={`${ render === 'Activity' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
                       Activity
                     </button>
 
-                    <button 
-                        onClick={ () => {
-                            setRender('Comments')
-                            navigate('comments', { state: { project: { ID: project.pid, name } } } )
-                          }}
-                      className={`${ render === 'Comments' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                    <button onClick={ () => handleNavButton('Comments')}                     
+                            className={`${ render === 'Comments' ? 'glassi-hover' : 'glassi' } hover:glassi-hover text-black border-1 border-gray-400 py-1 px-4 rounded transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}>
                       Comments
                     </button>
                     {
-                      tierS(uid, project) 
+                      tierS(uid as string, project) 
                       && (
                         <button 
                           onClick={ () => setShowOptModal(!showOptModal) }              
@@ -221,7 +241,7 @@ export const Project = () => {
                           
                           >    
                           <Icon>
-                              <DonutLargeTwotone/>
+                              <DonutLargeTwotone onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                           </Icon>
                         </button>
                       )
@@ -230,8 +250,7 @@ export const Project = () => {
                   </div>
               </div>
     
-            { renderComponent(location.state) }
-
+            { renderComponent() }
           </div>
     </div>
   )

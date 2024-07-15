@@ -1,17 +1,16 @@
 import { useState, FC, Fragment, useEffect  } from 'react';
-import { Formik, Form, FormikHelpers } from 'formik';
+import { Formik, Form } from 'formik';
 import { TextField, Autocomplete, ListItemAvatar, Avatar, Typography, Chip,  Dialog, DialogTitle, DialogContent, DialogActions, InputLabel, Tooltip, MenuItem, Select, Button, FormControl  } from '@mui/material'
-import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../store/store';
+import { RootState } from '../../../../../store/store';
 import { PuffLoader  } from 'react-spinners';
-import axios from 'axios';
+import axios,  { AxiosError } from 'axios';
 import { ImCancelCircle } from "react-icons/im";
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import Swal from 'sweetalert2';
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
-import bgform from './assets/formbg.jpg'
+import bgform from '../assets/formbg.jpg'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const RepositorySchema = Yup.object().shape({
@@ -22,31 +21,34 @@ const RepositorySchema = Yup.object().shape({
     uid: Yup.string().required('User ID is required')
 });
   
-interface RepositoryValues {
+type Collab = {
+  id: string;
+  name: string;
+  photoUrl: string
+  accessLevel: string
+}
+
+interface FormValues {
   name: string;
   description: string;
   visibility: string;
-  collaborators: Array<{
-    id: string;
-    name: string;
-    accessLevel: string;
-    photoUrl?: string;
-  }>;
-  projectID: string;
-  layerID: string;
   uid: string;
+  collaborators: Collab[]
 }
   
 interface RepositoryProps {
       setIsRepositoryFormOpen: (value: boolean) => void;
       isRepositoryFormOpen: boolean;
 }
-  
+
+interface ApiResponse {
+  message: string;
+  type: string;
+} 
 
 export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, isRepositoryFormOpen }) => {
 
     const location = useLocation();
-    const dispatch = useDispatch();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
     const [IsLoading, setIsLoading] = useState(false);
 
@@ -61,7 +63,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
     const [buttonDisabled, setButtonDisabled] = useState(false)
 
     const [isBackgroundReady, setIsBackgroundReady] = useState(false);
-    const [currentCollaboratorForTooltip, setCurrentCollaboratorForTooltip] = useState(null);
+    const [currentCollaboratorForTooltip, setCurrentCollaboratorForTooltip] = useState<Collab | null>(null);
     const [selectedFriend, setSelectedFriend] = useState({
         id: '',
         name: '',
@@ -69,45 +71,52 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
         accessLevel: ''
     });
 
-    const [friends, setFriends] = useState([
-        {
-            id: '1',
-            name: 'Juan Perez',
-            accessLevel: ''
-        },
-        {
-            id: '2',
-            name: 'Maria Lopez',
-            accessLevel: ''
-        },
-        {
-            id: '3',
-            name: 'Maria Lopez3',
-            accessLevel: ''
-        },
-        {
-            id: '489',
-            name: 'Maria',
-            accessLevel: ''
-        },
-        {
-            id: '5',
-            name: 'Maria Lopez5',
-            accessLevel: ''
-        },
-        {
-            id: '6',
-            name: 'Maria Lopez6',
-            accessLevel: ''
-        },
-        {
-            id: '7',
-            name: 'Maria Lopez7',
-            accessLevel: ''
-        }
-    ]);
+    const friends = [
+      {
+          id: '1',
+          name: 'Juan Perez',
+          accessLevel: '',
+          photoUrl: ''
+      },
+      {
+          id: '2',
+          name: 'Maria Lopez',
+          accessLevel: '',
+          photoUrl: ''
+      },
+      {
+          id: '3',
+          name: 'Maria Lopez3',
+          accessLevel: '',
+          photoUrl: ''
+      },
+      {
+          id: '489',
+          name: 'Maria',
+          accessLevel: '',
+          photoUrl: ''
+      },
+      {
+          id: '5',
+          name: 'Maria Lopez5',
+          accessLevel: '',
+          photoUrl: ''
+      },
+      {
+          id: '6',
+          name: 'Maria Lopez6',
+          accessLevel: '',
+          photoUrl: ''
+      },
+      {
+          id: '7',
+          name: 'Maria Lopez7',
+          accessLevel: '',
+          photoUrl: ''
+      }
+  ]
 
-    const handleCollaboratorTooltipContent = (collaborator) => {
+    const handleCollaboratorTooltipContent = (collaborator: Collab) => {
       // Retornar JSX en lugar de un string
       return (
         <Fragment>
@@ -120,7 +129,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
       );
     };
 
-    const handleMouseEnter = (text, type) => {
+    const handleMouseEnter = (text: string, type: string) => {
         setTooltipContent(text);
         setTooltipOpen(type);
     };
@@ -129,7 +138,10 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
       setTooltipOpen('');
     };
 
-    const addFriendAsCollaborator = (values,  setFieldValue) => {
+    const addFriendAsCollaborator = (
+      values: FormValues,  
+      setFieldValue: (field: string, value: unknown, shouldValidate?: boolean) => void  
+    ) => {
       const newCollaborator = { ...selectedFriend, accessLevel };
     
       // Filtrar cualquier posible duplicado basado en el 'id'.
@@ -157,7 +169,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
       }
     };
 
-    const IsTheButtonDisabled = ({ values }) => {
+    const IsTheButtonDisabled = ({ values } : { values: FormValues }) => {
       useEffect(() => {
           const isDisabled =  values.collaborators.length === 0
                               && values.name === ""
@@ -169,7 +181,10 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
       return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
-    const handleSubmit = async(values: RepositoryValues, { setSubmitting, resetForm }: FormikHelpers<RepositoryValues>) => {
+    const handleSubmit = async(
+      values: FormValues, 
+      { setSubmitting, resetForm }: { setSubmitting: (isSubmitting: boolean) => void, resetForm: () => void } 
+    ) => {
         setIsLoading(true);
         setSubmitting(true); 
 
@@ -196,21 +211,29 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
             });
 
         } catch (error) {
+          const axiosError = error as AxiosError<ApiResponse>
           setSubmitting(false);
-          setIsLoading(false);   
-
-          if( error.response.data?.type === 'repos-limit' ){
-            handleClose();
-            Swal.fire({
-              icon: 'info',
-              title: 'Layer repositories limit reached\n ( 3 repositories )',
-              text: error.response.data.message
-            });
+          setIsLoading(false);
+  
+          if (axiosError.response) {
+            if( axiosError?.response.data?.type === 'repos-limit' ){
+              Swal.fire({
+                  icon: 'info',
+                  title: 'Layer repositories limit reached\n ( 3 repositories )',
+                  text: axiosError.response.data.message
+              });
+            } else {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Oops...',
+                  text: axiosError.response.data.message,
+              });
+            }
           } else {
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.response.data.message
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'An unexpected error occurred'
             });
           }
         }
@@ -231,8 +254,8 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
         // Asegúrate de que el modal existe antes de intentar acceder a él
         // Luego, después de un breve retraso, inicia la transición de opacidad
         const timer = setTimeout(() => {
-          document.getElementById('layerRepositoryModal').classList.remove('opacity-0');
-          document.getElementById('layerRepositoryModal').classList.add('opacity-100');
+          document.getElementById('layerRepositoryModal')?.classList.remove('opacity-0');
+          document.getElementById('layerRepositoryModal')?.classList.add('opacity-100');
         }, 20); // Un retraso de 20ms suele ser suficiente
         return () => clearTimeout(timer);
       }
@@ -271,7 +294,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                   visibility: '',
                                   collaborators: [],
                                   uid,                                 
-                              } as RepositoryValues }
+                              } as FormValues }
                               validationSchema={RepositorySchema}
                               onSubmit={handleSubmit}
                           >
@@ -284,7 +307,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
 
                                       <div className='flex space-x-4 w-full'>
                                           <TextField                
-                                              InputLabelProps={{ shrink: errors.name && touched.name }}                        
+                                              InputLabelProps={{ shrink: errors.name && touched.name ? true : false }}                        
                                               name="name"
                                               label={ errors.name && touched.name ? errors.name : 'Repository Name' }                        
                                               fullWidth
@@ -329,7 +352,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                                   option.id.toString().includes(inputValue)
                                                 );
                                               }}
-                                              renderTags={(value, getTagProps) =>
+                                              renderTags={(_, getTagProps) =>
                                                 <div className=" overflow-y-auto  max-h-[41px] w-[90%] ">
                                                   {values.collaborators.map((option, index) => (
                                                     <Tooltip                             
@@ -493,7 +516,7 @@ export const RepositoryForm: FC<RepositoryProps> = ({ setIsRepositoryFormOpen, i
                                           </Dialog>
 
                                           <TextField         
-                                              InputLabelProps={{ shrink: errors.description && touched.description }}                             
+                                              InputLabelProps={{ shrink: errors.description && touched.description ? true : false }}                             
                                               name="description"
                                               label={ errors.description && touched.description ? errors.description : 'Description' }
                                               multiline

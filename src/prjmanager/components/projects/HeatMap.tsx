@@ -1,23 +1,35 @@
+import React from 'react'
 import { useHeatMapData } from './hooks/useHeatMapData'
 import HeatMap from '@uiw/react-heat-map';
 import { TextField, MenuItem, Tooltip } from '@mui/material';
 import { useSelector } from 'react-redux';
+import { ProjectBase } from '../../../interfaces/models';
+import { RootState } from '../../../store/store';
 
+interface HeatMapComponentProps {
+    project: ProjectBase;
+    projectID: string;
+}
 
-export const HeatMapComponent = ({ project, projectID }) => {
+interface TooltipContentProps {
+    formattedDate: string;
+    details: { commits: number, tasks: number };
+}
 
-    const { uid } = useSelector((state) => state.auth);
-    const { data, year, setYear, detailsMap, formatDateFromHeatMap, errorMessage, errorWhileFetching } = useHeatMapData(projectID, uid);
+export const HeatMapComponent: React.FC<HeatMapComponentProps> = ({ project, projectID }) => {
+
+    const { uid } = useSelector((state: RootState) => state.auth);
+    const { data, year, setYear, detailsMap, formatDateFromHeatMap, errorMessage, errorWhileFetching } = useHeatMapData(projectID, uid as string);
 
    const projectYear = new Date(project.startDate).getFullYear();
    const currentYear = new Date().getFullYear();
-   const yearsRange = Array.from({ length: currentYear - projectYear + 1 }, (v, k) => projectYear + k);
+   const yearsRange = Array.from({ length: currentYear - projectYear + 1 }, (_, k) => projectYear + k);
 
    const startDate = new Date(`${year}/01/01`);
    const endDate = new Date(`${year}/12/31`);
 
 
-   const TooltipContent = ({ formattedDate, details }) => {
+   const TooltipContent: React.FC<TooltipContentProps> = ({ formattedDate, details }) => {
         return (
             <div className='flex space-x-2'>
                 <h3>{formattedDate} |</h3>

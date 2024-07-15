@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { cleanUrl, getInitialsAvatar } from '../projects/helpers/helpers';
+import { UserResult } from './Searcher';
 
-export const RenderUsers = ({ users }) => {
+export const RenderUsers = ({ users } : { users: UserResult[] }) => {
   const navigate = useNavigate()
   return (
     <>
         {
-            users.map( ( user) => (                       
+            users.map( (user) => (                       
                 <div 
                     key={user.uid} 
                     className='flex justify-between items-center hover:bg-slate-300 transition-all duration-150 ease-in-out cursor-pointer py-4 px-4   border-b-[1px] border-black'  

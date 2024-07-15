@@ -9,7 +9,7 @@ export const RenderProjects = ({ items, className, navigate }: {
     name: string;
     description: string;
     pid: string;
-    accessLevel: string | null;
+    accessLevel?: string | undefined;
   }[];
   className?: string;
   navigate: (url: string, options: { state: { project: { ID: string; name: string; accessLevel: string | null } } }) => void;

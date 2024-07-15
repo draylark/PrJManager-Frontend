@@ -3,18 +3,28 @@ import projectimg from '../../assets/imgs/projectbg.jpg';
 import { HandshakeFilled } from '@ricons/material'; 
 import { useNavigate } from 'react-router-dom';
 import { cleanUrl } from '../projects/helpers/helpers';
+import { ProjectBase } from '../../../interfaces/models';
 
+type Selected = {
+  pid: string,
+  name: string
+}
 
+interface RenderProjectsProps {
+  projects: ProjectBase[];
+  selected: Selected | null;
+  setSelected: (selected: Selected) => void;
+}
 
-export const RenderProjects = ({ projects, selected, setSelected }) => {
+export const RenderProjects = ({ projects, selected, setSelected }: RenderProjectsProps) => {
   const navigate = useNavigate();
 
-  const limitTags = (tags, limit = 2) => {
+  const limitTags = (tags: string[], limit = 2) => {
     if (tags.length <= limit) return tags;
     return [...tags.slice(0, limit), `+${tags.length - limit}`];
   };
 
-  const RenderProjectName = ({ projectName, projectID }) => (
+  const RenderProjectName = ({ projectName, projectID }: { projectName: string, projectID: string}) => (
     <div className='flex items-center space-x-2'>
       <h1
         className='text-lg font-semibold hover:underline cursor-pointer'
@@ -76,7 +86,7 @@ export const RenderProjects = ({ projects, selected, setSelected }) => {
           </div>
 
           <p className='flex text-[12px]'>
-            {project.praises || 0} <HandshakeFilled className='ml-2 w-4 h-4' />
+            {project.praises || 0} <HandshakeFilled className='ml-2 w-4 h-4' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
           </p>
         </div>
       ))}

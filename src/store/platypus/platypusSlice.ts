@@ -2,6 +2,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Project } from '../types/stateInterfaces';
 import { ProjectType } from '../types/stateTypes';
 import { platypusSlice } from '../gitlab/gitlabSlice';
+import { ProjectBase } from '../../interfaces/models/project';
 
 const initialState = {    
     currentProject: null,   
@@ -20,7 +21,7 @@ export const platypusSlice = createSlice({
     initialState,
     reducers: {
 
-        setCurrentProject: ( state, { payload } : PayloadAction<ProjectType> ) => {
+        setCurrentProject: ( state, { payload } : PayloadAction<ProjectBase> ) => {
             state.currentProject = payload
         },
 

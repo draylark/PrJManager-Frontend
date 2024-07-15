@@ -1,24 +1,32 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/store';
 import { FaGitAlt, FaExternalLinkAlt  } from 'react-icons/fa';
 import { TextField, Select, MenuItem} from '@mui/material'
-import { useDispatch } from 'react-redux';
 import { fetchLayerRepositories } from '../../../../store/platypus/thunks';
 import { PuffLoader  } from 'react-spinners';
+import { LayerBase, ProjectBase, RepositoryBase } from '../../../../interfaces/models';
+import { usePrJDispatch } from '../../../../store/dispatch';
 
-export const Repositories = ({ layer, project, uid }) => {
+interface RepositoriesProps {
+  layer: LayerBase;
+  project: ProjectBase;
+  uid: string;
+}
+
+
+export const Repositories: React.FC<RepositoriesProps> = ({ layer, project, uid }) => {
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = usePrJDispatch();
   const location = useLocation();
   const { ID, name } = location.state.project;
   const { repositories, fetchingResources } = useSelector((state: RootState) => state.platypus);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
-  const [layerRepositories, setLayerRepositories] = useState([])
+  const [layerRepositories, setLayerRepositories] = useState<RepositoryBase[] | []>([])
 
   const filteredRepos = layerRepositories.filter((repo) => {
     return (
@@ -40,7 +48,7 @@ export const Repositories = ({ layer, project, uid }) => {
     if( !repositories.some(repo => repo.layerID === layer._id) ){
       dispatch(fetchLayerRepositories( project?.pid, layer._id, uid))
     }  
-  }, [])
+  }, [dispatch, layer, project, uid, repositories])
   
   if(fetchingResources) return  ( 
     <div className='flex h-full w-full items-center justify-center'>
@@ -118,7 +126,7 @@ export const Repositories = ({ layer, project, uid }) => {
                       </div>
 
                       <div className="text-sm text-gray-500">
-                        <span>Last Update: {new Date(repo.updatedAt).toLocaleDateString()}</span>               
+                        <span>Last Update: {new Date(repo.updatedAt as string).toLocaleDateString()}</span>               
                       </div>
 
                     </div>

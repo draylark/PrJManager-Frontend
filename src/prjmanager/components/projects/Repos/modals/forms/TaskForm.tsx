@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios';
+import React, { useState, useEffect } from 'react'
+import axios, { AxiosError } from 'axios';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
 import { PuffLoader  } from 'react-spinners';
@@ -8,7 +8,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Formik, Form } from 'formik';
 import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
 import { styled } from '@mui/system';
-import { TextField, Select, MenuItem, FormControl, InputLabel, InputAdornment , Chip, Box, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete, ListItemAvatar, Avatar, Popover, Popper } from '@mui/material';
+import { TextField, Select, MenuItem, FormControl, InputLabel, InputAdornment , Chip, Box, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete, ListItemAvatar, Avatar, Popper } from '@mui/material';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const CustomPopper = styled(Popper)({
@@ -36,11 +36,41 @@ const TaskSchema = Yup.object().shape({
     }),
 });
 
+interface TaskFormProps {
+    uid: string;
+    setGoalsExpanded: (value: boolean) => void;
+    goalsExpanded: boolean;
+}
 
-export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded, isAssigned, setIsAssigned }) => {
-    // Asumiendo que tienes las siguientes constantes de estado para controlar el diálogo
+interface FormValues {
+    project: string;
+    layer_related_id: string;
+    repository_related_id: string;
+    task_name: string;
+    task_description: string;
+    goals: string[];
+    additional_info: {
+        estimated_hours: number;
+        actual_hours: number;
+        notes: string[];
+    };
+    priority: string;
+    type: string;
+    deadline: string | null;
+    assigned_to: string | null;
+    creator: string;
+
+}
+
+interface ApiResponse {
+    message: string;
+    type: string;
+}
+  
+
+export const TaskForm: React.FC<TaskFormProps> = ({ uid, setGoalsExpanded, goalsExpanded }) => {
+
     const location = useLocation()
-
     const [isLoading, setIsLoading] = useState(false)
     const [buttonDisabled, setButtonDisabled] = useState(true)
     const [goalDescription, setGoalDescription] = useState('')
@@ -52,28 +82,20 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
 
     const MAX_CHARACTERS = 20; 
 
-    const handleTypeChange = (e, handleChange) => {
-        // Lógica personalizada basada en el valor seleccionado
-        const selectedValue = e.target.value;
-
-        if (selectedValue === "open") {
-            setIsAssigned(false);
-        // Ejecuta cualquier lógica específica aquí
-        } else if (selectedValue === "assigned") {
-            setIsAssigned(true);
-        // Ejecuta cualquier lógica específica aquí
-        }
-
-        // Llama a handleChange de Formik para asegurarte de que el estado del formulario se actualice
-        handleChange(e); 
-    };
-
-    const handleDeleteGoal = (goalIndex, setFieldValue, goals) => () => {
+    const handleDeleteGoal = (
+    goalIndex: number, 
+    setFieldValue: (field: string, value: unknown, shouldValidate?: boolean) => void,
+    goals: string[]
+    ) => () => {
         // Elimina el objetivo basado en su índice
         setFieldValue('goals', goals.filter((_, index) => index !== goalIndex));
     };
 
-    const handleKeyDown = (event, setFieldValue, goals) => {
+    const handleKeyDown = (
+        event: React.KeyboardEvent<HTMLDivElement>, 
+        setFieldValue: (field: string, value: unknown, shouldValidate?: boolean) => void,
+        goals: string[]
+    ) => {
     // Captura solo el evento de Enter y verifica que la descripción no esté vacía
     if (event.key === 'Enter' && goalDescription.trim() !== '') {
         event.preventDefault(); // Previene la acción por defecto para no enviar el formulario
@@ -86,7 +108,7 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
     }
     };
 
-    const IsTheButtonDisabled = ({values}) => {
+    const IsTheButtonDisabled = ({ values }: { values: FormValues }) => {
 
         useEffect(() => {
             const isDisabled = values.goals.length === 0 && values.task_name === '' && values.task_description === '' && values.priority === '' && values.type === '';
@@ -97,13 +119,19 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
-    const handleNameChange = (value, setFieldValue) => {
+    const handleNameChange = (
+        value: string, 
+        setFieldValue: (field: string, value: unknown, shouldValidate?: boolean) => void
+    ) => {
         const inputValue = value
         const formattedValue = inputValue.replace(/\s+/g, '-'); // Reemplaza espacios por guiones
         setFieldValue('task_name', formattedValue);
     };
 
-    const handleEstimatedHoursChange = (value, setFieldValue) => {
+    const handleEstimatedHoursChange = (
+        value: string, 
+        setFieldValue: (field: string, value: unknown, shouldValidate?: boolean) => void
+    ) => {
         const inputValue = value;
 
         // Permitir solo números, puntos decimales y signo negativo (para valores negativos)
@@ -111,7 +139,10 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
         setFieldValue('additional_info.estimated_hours', validValue ? parseFloat(validValue) : 0);
     };
 
-    const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const handleSubmit = async (
+        values: FormValues, 
+        { setSubmitting } : { setSubmitting: (isSubmitting: boolean) => void }
+    ) => {
         setIsLoading(true);
         setSubmitting(true);
         console.log('valores del formulario',values)
@@ -138,22 +169,30 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
             });
 
         } catch (error) {
-            console.log(error)
+            const axiosError = error as AxiosError<ApiResponse>; // Asumir que es un error de Axios
             setSubmitting(false);
-            setIsLoading(false);
-            
-            if(  error.response.data?.type === 'collaborator-validation' ){
+            setIsLoading(false); 
+      
+            if (axiosError.response) {
+              if( axiosError.response.data?.type === 'collaborator-validation' ){
                 Swal.fire({
                     icon: 'warning',
                     title: 'Access Validation',
-                    text: error.response.data.message,
+                    text: axiosError.response.data.message,
                 });
-            } else {
+              } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: error.response.data.message,
+                    text: axiosError.response.data.message,
                 });
+              }
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'There was an unexpected error.',
+              });
             }
         }
     };
@@ -185,26 +224,26 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                 deadline: null,
                 assigned_to: null,
                 creator: uid
-                }}
+                } as FormValues}
                 validationSchema={TaskSchema}
                 onSubmit={handleSubmit}
             >
                 {({ values, setFieldValue, handleChange, handleBlur, isSubmitting, errors, touched }) => (
                 <Form 
                     className="flex flex-col h-full space-y-7 mx-auto w-[95%] pt-5 pb-4 overflow-y-auto">
-                    {console.log(values)}
+
                     <IsTheButtonDisabled values={values} />
                     
                     <div className='flex space-x-2'>
                         <TextField       
-                            InputLabelProps={{ shrink: errors.task_name && touched.task_name }}
+                            InputLabelProps={{ shrink: true }}
                             name="task_name"
+                            placeholder="Type a Name"
                             label={ errors.task_name && touched.task_name ? 'Task name is required' : 'Task Name' }
                             fullWidth
                             value={values.task_name}
                             onChange={(e) => handleNameChange(e.target.value, setFieldValue)}
-                            onBlur={handleBlur}
-                            
+                            onBlur={handleBlur}                      
                             error={!!errors.task_name && touched.task_name} // Muestra error si hay error y el campo fue tocado
                         />            
 
@@ -255,7 +294,7 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                                 id="type"
                                 name="type"
                                 value={values.type}
-                                onChange={(e) => handleTypeChange(e, handleChange)}
+                                onChange={handleChange}
                                 onBlur={handleBlur}
                                 label={errors.type && touched.type ? 'Type is required' : 'Type'}
                             >
@@ -272,40 +311,56 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                             <Autocomplete
                                 options={users}
                                 value={values.assigned_to ? users.find((collaborator) => collaborator.id === values.assigned_to) : null}
-                                onChange={(e, newValue) => setFieldValue('assigned_to', newValue.id)}                
-                                id="collaborator-select"   
-                                PopperComponent={CustomPopper}                   
+                                onChange={(_, newValue) => setFieldValue('assigned_to', newValue?.id)}
+                                id="collaborator-select"
+                                PopperComponent={CustomPopper}
                                 getOptionLabel={(option) => option.name}
                                 renderInput={(params) => (
-                                    <TextField 
-                                        {...params} 
-                                        InputLabelProps={{ shrink: errors.assigned_to && touched.assigned_to }}
-                                        label={ errors.assigned_to && touched.assigned_to ? 'Assigned to is required' : 'Assigned to' } 
+                                    <TextField
+                                        {...params}
+                                        InputLabelProps={{ shrink: true }}
+                                        label={errors.assigned_to && touched.assigned_to ? 'Assigned to is required' : 'Assigned to'}
                                         name="assigned_to"
-                                        placeholder="Search by name" 
+                                        placeholder="Search by name"
                                         error={!!errors.assigned_to && touched.assigned_to} // Muestra error si hay error y el campo fue tocado
                                         onChange={(e) => setSearch(e.target.value)}
+                                        value={values.assigned_to ? users.find((collaborator) => collaborator.id === values.assigned_to)?.name : ''}
                                     />
                                 )}
                                 renderOption={(props, option) => (
-                                    <li {...props} key={option.id} className='flex py-3 px-5 cursor-pointer hover:bg-gray-200 transition-colors duration-100'>                                       
+                                    <li {...props} key={option.id} className='flex py-3 px-5 cursor-pointer hover:bg-gray-200 transition-colors duration-100'>
                                         <ListItemAvatar>
                                             <Avatar
-                                            alt={option.name}
-                                            src={option.photoUrl || option.name} // Aquí deberías poner el enlace a la imagen del usuario
+                                                alt={option.name}
+                                                src={option.photoUrl || option.name} // Aquí deberías poner el enlace a la imagen del usuario
                                             />
                                         </ListItemAvatar>
                                         <div className='flex flex-col ml-1'>
                                             <Typography variant="body2">{option.name}</Typography>
                                             <span className='text-[11px]'>
-                                            {option.id}
+                                                {option.id}
                                             </span>
-                                        </div>                                   
+                                        </div>
                                     </li>
                                 )}
-                                renderTags={(value, getTagProps) =>
-                                    value ? <Chip label={value.name} {...getTagProps()} /> : null
-                                }
+                                renderTags={(value, getTagProps) => {
+                                    console.log('TAG', value);
+                                    if (value.length === 0) {
+                                        return null;
+                                    }
+                                    return value.map((option, index) => (
+                                        <Chip
+                                            variant='outlined'
+                                            label={option.name}
+                                            {...getTagProps({ index })}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                m: 1,
+                                                border: '1px solid black',
+                                            }}
+                                        />
+                                    ));
+                                }}
                                 isOptionEqualToValue={(option, value) => option.id === value.id}
                                 fullWidth
                             />
@@ -378,8 +433,9 @@ export const TaskForm = ({ uid, setTaskFormOpen, setGoalsExpanded, goalsExpanded
                     </Accordion>
 
                     <TextField           
-                        InputLabelProps={{ shrink: errors.task_description && touched.task_description }}
+                        InputLabelProps={{ shrink: true }}
                         name="task_description"
+                        placeholder="Type a description for the task"
                         label={ errors.task_description && touched.task_description ? 'Task description is required' : 'Task Description' }
                         multiline
                         rows={4}

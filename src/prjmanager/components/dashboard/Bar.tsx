@@ -1,3 +1,4 @@
+import React from 'react'
 import { useSelector } from 'react-redux'
 import { TabDesktopClock20Regular } from '@ricons/fluent'
 import { BrandSentry } from '@ricons/tabler'
@@ -6,12 +7,18 @@ import { Icon } from '@ricons/utils';
 import './styles.css'
 import { useBarData } from './hooks/useBarData'
 import { useNavigate } from 'react-router-dom'
+import { RootState } from '../../../store/store';
 
-export const Bar = ({ setRender, render }) => {
+interface BarProps {
+    setRender: (render: string) => void
+    render: string
+}
+
+export const Bar: React.FC<BarProps> = ({ setRender, render }) => {
 
     const navigate = useNavigate()
-    const { uid } = useSelector((state) => state.auth)
-    const { totalProjects, totalCommits, totalCompletedTasks } = useBarData(uid)
+    const { uid } = useSelector((state: RootState) => state.auth)
+    const { totalProjects, totalCommits, totalCompletedTasks } = useBarData(uid as string)
 
   return (
     <div className='flex w-full h-36 rounded-extra'>
@@ -58,7 +65,6 @@ export const Bar = ({ setRender, render }) => {
 
 
         <div className='flex h-full w-[60%] justify-end rounded-extra space-x-2 pr-[10px] max-h-[120px] min-h-[120px]'>
-
             <div className='flex h-full w-40'>
                 <div className='mt-7 mr-3'>
                     <p className='text-2xl font-bold text-sky-950 text-end'>
@@ -70,7 +76,7 @@ export const Bar = ({ setRender, render }) => {
 
                 <div className='flex justify-center items-center w-10 h-16 rounded-extra border-[1px] border-gray-400 bg-green-500/50 glassi my-auto'>
                         <Icon size={24}>
-                            <Task/>
+                            <Task onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                         </Icon>
                 </div>
             </div>
@@ -86,11 +92,10 @@ export const Bar = ({ setRender, render }) => {
 
                 <div className='flex w-10 h-16 justify-center items-center rounded-extra border-[1px] border-gray-400 bg-yellow-500/50 glassi my-auto '>
                         <Icon size={24}>
-                            <BrandSentry/>
+                            <BrandSentry onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                         </Icon>
                 </div>
             </div>
-
 
             <div className='flex h-full w-40'>
                 <div className='mt-7 mr-3'>
@@ -102,7 +107,7 @@ export const Bar = ({ setRender, render }) => {
                 </div>
                 <div className='flex justify-center items-center w-10 h-16 rounded-extra my-auto border-[1px] border-gray-400 glassi'>
                     <Icon size={24}>
-                        <TabDesktopClock20Regular/>
+                        <TabDesktopClock20Regular onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                     </Icon>
                 </div>
             </div>

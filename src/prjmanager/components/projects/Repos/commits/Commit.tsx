@@ -15,6 +15,20 @@ import FileSearchOutlined from '@ricons/antd/FileSearchOutlined'
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 
+interface Diff {
+    a_mode: string;
+    b_mode: string;
+    deleted_file: boolean;
+    diff: string;
+    generated_file: null | string;
+    new_file: boolean;
+    new_path: string;
+    old_path: string;
+    renamed_file: boolean;
+}
+
+
+
 export const Commit = () => {
 
     const location = useLocation()
@@ -31,14 +45,14 @@ export const Commit = () => {
     const [isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [commitBranches, setCommitBranches] = useState([])
-    const [commitsDiff, setCommitsDiff] = useState(null)
-    const [expanded, setExpanded] = useState(null);
+    const [commitsDiff, setCommitsDiff] = useState<Diff[] | null>(null)
+    const [expanded, setExpanded] = useState<number | null>(null);
 
     const [showFileSelector, setShowFileSelector] = useState(false);
     const [filterText, setFilterText] = useState('');
     const [diffFilter, setDiffFilter] = useState('')
 
-    const getExtension = (fileName) => {
+    const getExtension = (fileName: string) => {
         const extension = fileName.split('.').pop()?.toLowerCase() || '';
         return extension === 'md' ? true : false
     };
@@ -51,7 +65,7 @@ export const Commit = () => {
                     'Authorization': localStorage.getItem('x-token')
                 }
             })
-
+            console.log('DIFF',diff)
             setCommitsDiff(diff)
             setCommitBranches(branches)
             setIsLoading(false)
@@ -60,7 +74,7 @@ export const Commit = () => {
         } 
     }
 
-    const countChanges = (diffText) => {
+    const countChanges = (diffText: string) => {
         let additions = 0;
         let deletions = 0;
       
@@ -73,10 +87,10 @@ export const Commit = () => {
         });
       
         return { additions, deletions };
-      };
+    };
 
 
-    const parseAndStyleDiff = (diffText) => {
+    const parseAndStyleDiff = (diffText: string) => {
         return diffText.split('\n').filter(line => !line.startsWith('@@')).map((line, index) => {
             let bgColor = '#f6f8fa'; // Fondo para líneas neutras
             let textColor = '#24292e'; // Texto para líneas neutras
@@ -96,11 +110,11 @@ export const Commit = () => {
 
     };
 
-    const cleanDiffContent = (diffText) => {
+    const cleanDiffContent = (diffText: string) => {
         return diffText
             .split('\n')
             // Filtrar líneas no deseadas
-            .filter(line => !line.startsWith('@@') && !line.endsWith('\ No newline at end of file'))
+            .filter(line => !line.startsWith('@@') && !line.endsWith('\n No newline at end of file'))
             .map(line => {
                 // Eliminar los símbolos "+" y "-" de las líneas modificadas, pero mantener el texto
                 if (line.startsWith('+') || line.startsWith('-')) {
@@ -129,6 +143,7 @@ export const Commit = () => {
 
     useEffect(() => {
         fetchCommitDiff()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [commitHash, repository.repoID])
 
     useEffect(() => {
@@ -154,7 +169,7 @@ export const Commit = () => {
         
         <div className='flex w-full justify-between px-5'>
             <div className='flex items-center pb-3'>
-                <ArrowHookUpLeft16Regular className='w-5 h-5  cursor-pointer' onClick={() => navigate(-1)} />    
+                <ArrowHookUpLeft16Regular className='w-5 h-5  cursor-pointer' onClick={() => navigate(-1)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />    
 
                 <Breadcrumbs sx={{marginLeft: 1}} aria-label="breadcrumb">               
                     <button
@@ -182,7 +197,7 @@ export const Commit = () => {
                     </span>
                 </Breadcrumbs>
 
-                <ArrowRightCircle className='w-5 h-5 ml-3' />
+                <ArrowRightCircle className='w-5 h-5 ml-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
 
                 <span className='text-[13px] ml-3 mb-[2px] font-semibold'>
                     {commitBranches[0]}
@@ -220,7 +235,7 @@ export const Commit = () => {
                         setShowFileSelector(!showFileSelector)
                     }}
                 >
-                    Changed Files <ArrowDropDownOutlined className='w-5 h-5 ml-2' />
+                    Changed Files <ArrowDropDownOutlined className='w-5 h-5 ml-2' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                 </button>
                 
                     <div id='files-searcher' className={`absolute flex flex-col space-y-3 bg-white border-[1px] border-black z-10 ${ showFileSelector ? 'right-6' : '-right-[350px]'} transition-all duration-300 top-10 p-4 rounded-bl-2xl`}>    
@@ -233,7 +248,7 @@ export const Commit = () => {
                         <div className="flex flex-col filesList max-h-[300px] overflow-y-auto">
                             {
                                 commitsDiff === null 
-                                ? <Typography variant="h7">No files found</Typography>
+                                ? <Typography>No files found</Typography>
                                 : commitsDiff 
                                     .filter((diff) => diff.new_path.includes(filterText))                     
                                     .map((diff, index) => {                                
@@ -249,7 +264,7 @@ export const Commit = () => {
                                             > 
 
                                                 <div className='flex items-center'>
-                                                    <FileCodeRegular className='w-4 h-4 mr-2' />               
+                                                    <FileCodeRegular className='w-4 h-4 mr-2' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />               
                                                     <span className='text-[13px]'>{diff.new_path}</span>               
                                                 </div> 
 
@@ -303,28 +318,26 @@ export const Commit = () => {
                                             glyphColor="rgba(255,255,255,0.6)"
                                         />
                                     </div>
-                                    <Typography variant="h7" >{diff.new_path}</Typography>
+                                    <Typography>{diff.new_path}</Typography>
                                 </div>
 
                                 <div className='flex space-x-5 items-center'>                          
                                     <div className='flex space-x-4'>
                                         <span className='text-green-600'>+{additions}</span> 
-                                        <spann className='text-red-600'>-{deletions}</spann>
+                                        <span className='text-red-600'>-{deletions}</span>
                                     </div>
                               
                                         <FileSearchOutlined 
-                                            className='w-6 h-6 cursor-pointer hover:text-blue-600 transition-colors duration-500' 
+                                            className='w-6 h-6 cursor-pointer hover:text-blue-600 transition-colors duration-500'
                                             onClick={() => {
                                                 const cleanedContent = cleanDiffContent(diff.diff);
                                                 setSelectedFileContent(cleanedContent);
                                                 setIsCodeOnBigScreenOpen(true); // Asegúrate de que la pantalla de código esté abierta
                                                 setSelectedFileName(diff.new_path);
-                                            }}
-                                        />
+                                            } } onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                        />
                                         <ArrowCircleDown48Regular 
-                                            className='w-6 h-6 cursor-pointer hover:text-blue-600 transition-colors duration-500' 
-                                            onClick={() => setExpanded(expanded === index ? -1 : index)} 
-                                        />
+                                            className='w-6 h-6 cursor-pointer hover:text-blue-600 transition-colors duration-500'
+                                            onClick={() => setExpanded(expanded === index ? -1 : index)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                        />
                                     
                                 </div>
 

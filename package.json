@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "start": "serve -s build -l 3000",
+    "tsc:watch": "tsc --watch",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -31,6 +32,9 @@
     "@tabler/icons-react": "^3.3.0",
     "@types/cal-heatmap": "^3.5.39",
     "@types/react-icons": "^3.0.0",
+    "@types/react-redux": "^7.1.33",
+    "@types/redux": "^3.6.0",
+    "@types/redux-thunk": "^2.1.0",
     "@uiw/react-heat-map": "^2.2.2",
     "@uiw/react-tooltip": "^4.22.3",
     "animate.css": "^4.1.1",
@@ -107,10 +111,10 @@
     "@types/react-vertical-timeline-component": "^3.3.6",
     "@types/redux-persist": "^4.3.1",
     "@types/three": "^0.164.0",
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "typescript": "^5.4.5",

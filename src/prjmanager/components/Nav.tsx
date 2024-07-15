@@ -10,13 +10,14 @@ import { Link, useLocation } from 'react-router-dom';
 import './styles/fonts.css'
 import { NotificationsModal } from './modals/NotificationsModal'
 import { useSelector } from 'react-redux'
+import { RootState } from '../../store/store'
 
 export const Nav = () => {
 
     const location = useLocation();
     const pathName = location.pathname
     const [isNotisModalOpen, setIsNotisModalOpen] = useState(false)
-    const { username } = useSelector( state => state.auth )
+    const { username } = useSelector( (state: RootState) => state.auth )
     
     return (
       <div id='Nav' className="flex flex-col items-center bg-[#0a1128] text-white min-h-screen w-64">
@@ -35,7 +36,7 @@ export const Nav = () => {
                 <button
                     className={`${pathName.startsWith('/dashboard') ? 'bg-blue-50 rounded-2xl text-[#0c4a6e]' : 'text-white'} hover:text-[#0c4a6e] nav-button minimal-button hover:rounded-2xl flex items-center mb-4 mt-2 px-8 w-full  hover:bg-blue-50`}
                 >  
-                    <Dashboard className='w-9 h-9 mr-3' />
+                    <Dashboard className='w-9 h-9 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     Dashboard
                 </button>
             </Link>
@@ -43,7 +44,7 @@ export const Nav = () => {
                 <button
                     className={`${pathName.startsWith('/projects') ? 'bg-blue-50 rounded-2xl text-[#0c4a6e]' : 'text-white'} hover:text-[#0c4a6e] nav-button minimal-button hover:rounded-2xl flex items-center mb-4 mt-2 px-8 w-full  hover:bg-blue-50`}
                 >
-                    <Folder  className='w-9 h-9 mr-3'/>
+                    <Folder  className='w-9 h-9 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                     Projects
                 </button>
             </Link>
@@ -51,7 +52,7 @@ export const Nav = () => {
                 <button
                     className={`${pathName.startsWith('/searcher') ? 'bg-blue-50 rounded-2xl text-[#0c4a6e]' : 'text-white'} hover:text-[#0c4a6e] nav-button minimal-button hover:rounded-2xl flex items-center mb-4 mt-2 px-8 w-full  hover:bg-blue-50`}
                 >
-                    <GlobeSearch20Filled className='w-9 h-9 mr-3' />
+                    <GlobeSearch20Filled className='w-9 h-9 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     Searcher
                 </button>
             </Link>
@@ -63,7 +64,7 @@ export const Nav = () => {
                     className={`ml-[16px] flex items-center justify-center ${isNotisModalOpen ? 'bg-blue-50 text-sky-950' : ''} glassi w-8 h-8 rounded-full transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}
                     onClick={() => setIsNotisModalOpen(!isNotisModalOpen)} // Modificado aquí
                 >   
-                    <Noti className='w-5 h-5'/>            
+                    <Noti className='w-5 h-5' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>            
                 </button>
                 <div className='flex space-x-2 items-center'>
                     <Link to={`personal-area/${username}`}>

@@ -1,0 +1,12 @@
+{
+    "parser": "@typescript-eslint/parser", // Usar el parser de TypeScript
+    "extends": [
+      "plugin:react/recommended",
+      "plugin:@typescript-eslint/recommended" // Usar las reglas recomendadas de TypeScript
+    ],
+    "plugins": ["@typescript-eslint"], 
+    "rules": {
+      // ... tus reglas personalizadas
+    }
+  }
+  

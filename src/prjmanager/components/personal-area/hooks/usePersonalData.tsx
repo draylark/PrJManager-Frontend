@@ -1,12 +1,26 @@
 import { useEffect, useState  } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
+import { ProjectBase } from '../../../../interfaces/models';
+import { ProjectCreated, LayerCreated, RepositoryCreated, NewCommit, NewCommitWTask, TaskCreated, TaskCompleted, TaskContributorCompleted, TaskContributorMarkedReady,
+    TaskContributorReviewSubmission, TaskReviewSubmission } from '../../../../interfaces/others/timeline';
 
-export const usePersonalData = ( uid ) => {
+type Selected = {
+    pid: string,
+    name: string
+}
 
-    const [selected, setSelected] = useState(null)    
-    const [projects, setProjets] = useState([]);
-    const [timelineData, setTimelineData] = useState([])
+interface TimelineData {
+    date: Date;
+    type: string;
+    data: ProjectCreated | LayerCreated | RepositoryCreated | TaskCreated | TaskReviewSubmission | TaskCompleted | TaskContributorReviewSubmission | TaskContributorCompleted | TaskContributorMarkedReady | NewCommit | NewCommitWTask;
+}
+
+export const usePersonalData = ( uid: string ) => {
+
+    const [selected, setSelected] = useState<Selected | null>(null)    
+    const [projects, setProjets] = useState<ProjectBase[]>([]);
+    const [timelineData, setTimelineData] = useState<TimelineData[]>([])
 
     const [fetchingProjects, setFetchingProjects] = useState(true)
     const [fetchingTimelineData, setFetchingTimelineData] = useState(true)
@@ -54,7 +68,7 @@ export const usePersonalData = ( uid ) => {
 
     const fetchProjectTimeline = () => {
         setFetchingTimelineData(true)
-        const url = `${backendUrl}/users/project-timeline-activity/${selected.pid}`;
+        const url = `${backendUrl}/users/project-timeline-activity/${selected?.pid}`;
         axios.get(url, {
             params: {
                 uid,
@@ -79,6 +93,7 @@ export const usePersonalData = ( uid ) => {
 
         axios.get(url1)
         .then(res => {
+            console.log(res)
             setProjets(res.data);
             setFetchingProjects(false);
         })
@@ -123,18 +138,21 @@ export const usePersonalData = ( uid ) => {
     useEffect(() => {   
         fetchProjects()
         fetchFollowersLength()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
         if( !selected ){
             fetchTimelineData()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startDate, endDate, selected])
 
     useEffect(() => {
         if( selected ){
             fetchProjectTimeline()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startDate, endDate, selected])
 
 

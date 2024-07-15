@@ -1,29 +1,25 @@
 import { useEffect, useRef, useState, Dispatch, SetStateAction} from "react";
 import * as d3 from "d3";
 import { TreeNodeToolTip } from "./TreeNodeToolTip";
+import { TreeNode } from "../../hooks/useTreeChartData";
 
-type TreeNodeData = {
-  name: string;
-  type: "user" | "project" | "task" | "commit";
-  id?: string;
-  children?: TreeNodeData[];
-};
-
+interface TreeNodeData extends TreeNode {}
 
 type TooltipState = {
-  id: string | undefined;
-  type?: "user" | "project" | "task" | "commit";
+  id: string;
+  type: "user" | "project" | "task" | "commit" | "layer" | "repo" | '';
   top: number;
   left: number;
   visible: boolean;
 };
 
-export const TreeChart = ({ data, isLoading }) => {
+export const TreeChart = ({ data } : { data: TreeNodeData }) => {
 
   const ref = useRef<HTMLDivElement>(null);
   const [pinnedNode, setPinnedNode] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState>({
     id: '',
+    type: '',
     top: 0,
     left: 0,
     visible: false
@@ -31,7 +27,6 @@ export const TreeChart = ({ data, isLoading }) => {
 
 
   useEffect(() => {
-    
     // Manejador del evento "click" en el cuerpo
     const handleBodyClick = () => {
       if (pinnedNode) {
@@ -180,6 +175,7 @@ const renderChart = (
       if (!pinnedNode) {
         setTooltip({
           id: '',
+          type: '',
           top: 0,
           left: 0,
           visible: false

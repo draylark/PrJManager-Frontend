@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Icon } from '@ricons/utils';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { Accordion, AccordionDetails } from '@mui/material';
@@ -9,33 +9,40 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { Avatar} from '@mui/material';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { RootState } from '../../../../store/store';
+import { DedicatedCommit } from './hooks/useActivityData';
+import { LayerBase, RepositoryBase } from '../../../../interfaces/models';
+
+interface RenderCommitsProps {
+  projectLayers: { label: string; value: string }[];
+  projectRepositories: { label: string; value: string }[];
+  commits: DedicatedCommit[];
+  setRender: (value: React.SetStateAction<string>) => void;
+  render: string;
+}
 
 
-export const RenderCommits = ({ projectLayers, projectRepositories, commits, setRender, render }) => {
+export const RenderCommits = ({ projectLayers, projectRepositories, commits, setRender, render }: RenderCommitsProps) => {
 
-    const accordionRefs = useRef([]);
+    const accordionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-    const { layers, repositories } = useSelector((state) => state.platypus );  
-
-    const [expanded, setExpanded] = useState(null);
-    const [layerID, setLayerID] = useState(null)
-    const [repoID, setRepoID] = useState(null)
-
-    const [layerInfo, setLayerInfo] = useState({});
-    const [repoInfo, setRepoInfo] = useState({});
-
-
+    const { layers, repositories } = useSelector((state: RootState) => state.platypus );
+     
     const [isLoading, setIsLoading] = useState(true)
+    const [expanded, setExpanded] = useState<string | null>(null);
+    const [layerID, setLayerID] = useState<string | null>(null)
+    const [repoID, setRepoID] = useState<string | null>(null)
+    const [layerInfo, setLayerInfo] = useState<LayerBase | null>(null);
+    const [repoInfo, setRepoInfo] = useState<RepositoryBase | null>(null);
+    const [repoTerm, setRepoTerm] = useState<string | null>(null)
+    const [layerTerm, setLayerTerm] = useState<string | null>(null) 
+    const [repoFilter, setRepoFilter] = useState<string | null>(null)   
+    const [userFilter, setUserFilter] = useState<string | null>(null)
+    const [hashFilter, setHashFilter] = useState<string | null>(null)
+    const [layerFilter, setLayerFilter] = useState<string | null>(null)
 
-    const [repoTerm, setRepoTerm] = useState(null)
-    const [layerTerm, setLayerTerm] = useState(null) 
-    const [repoFilter, setRepoFilter] = useState('')   
-    const [userFilter, setUserFilter] = useState(null)
-    const [hashFilter, setHashFilter] = useState(null)
-    const [layerFilter, setLayerFilter] = useState(null)
 
-
-    const handleExpandClick = (commitHash, layerID, repoID) => {
+    const handleExpandClick = (commitHash: string, layerID: string, repoID: string) => {
       const isExpanded = expanded === commitHash; // Verificar si el acordeón ya está expandido
       setExpanded(isExpanded ? null : commitHash); // 'null' para representar que se está cerrando
       setLayerID(isExpanded ? null : layerID)
@@ -45,8 +52,9 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
         // Esperar al próximo ciclo del evento para asegurar que la expansión se ha completado antes de desplazarse
         setTimeout(() => {
           const accordionElement = accordionRefs.current[commitHash]
-          if (accordionElement) {
-            const container = document.querySelector('#container-scroll') // Asegúrate de que este selector coincida con tu contenedor
+          const container = document.querySelector('#container-scroll') // Asegúrate de que este selector coincida con tu contenedor          
+          if (accordionElement && container) {
+
             const containerRect = container.getBoundingClientRect()
             const accordionRect = accordionElement.getBoundingClientRect()
     
@@ -60,7 +68,7 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
 
     };
 
-    const handleLayerAndRepoInformation = ( layerID, repoID ) => {
+    const handleLayerAndRepoInformation = useCallback(( layerID: string, repoID: string ) => {
           setIsLoading(true)
 
           const layer = layers.filter( layer => layer._id === layerID )
@@ -120,13 +128,13 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
             setRepoInfo(repo[0])
             setIsLoading(false)
           }
-    };
+    }, [layers, repositories])
 
     const filteredCommits = useMemo(() => {
 
       if (!commits) return [];
 
-      const filterCommits = (commits) => commits.filter(commit => {
+      const filterCommits = (commits: DedicatedCommit[]) => commits.filter(commit => {
         // Verificar filtro de capa
         const layerPasses = layerFilter ? commit.layer === layerFilter : true;
         // Verificar filtro de repositorio
@@ -143,10 +151,10 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
     }, [commits, layerFilter, repoFilter, userFilter, hashFilter]);
 
     useEffect(() => {
-      if( expanded ) {
+      if( expanded && layerID && repoID) {
         handleLayerAndRepoInformation( layerID, repoID )
       }
-    }, [expanded, layerID, repoID])
+    }, [expanded, layerID, repoID, handleLayerAndRepoInformation])
 
     return (
           <div className="flex flex-col  flex-grow px-7 h-full overflow-y-auto">
@@ -157,12 +165,12 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
                         size="small" // Ajusta el tamaño
                         options={projectLayers}
                         getOptionLabel={(option) => option.label}
-                        onChange={(event, value) => {
-                          setLayerFilter(value?.value || value)
-                          setLayerTerm(value?.label || value)
+                        onChange={(_, value) => {
+                          setLayerFilter(value?.value as string)
+                          setLayerTerm(value?.label as string)
                         }}
                         renderInput={(params) => <TextField {...params} label="Layer" />}
-                        onInputChange={(event, newInputValue, reason) => {
+                        onInputChange={(_, newInputValue, reason) => {
                           if (reason !== 'reset') {
                             setLayerFilter(newInputValue);
                             setLayerTerm(newInputValue);
@@ -177,12 +185,12 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
                         size="small" // Ajusta el tamaño
                         options={projectRepositories}
                         getOptionLabel={(option) => option.label}
-                        onChange={(event, value) => {
-                          setRepoFilter(value?.value || value)
-                          setRepoTerm(value?.label || value)
+                        onChange={(_, value) => {
+                          setRepoFilter(value?.value as string)
+                          setRepoTerm(value?.label as string)
                         
                         }}
-                        onInputChange={(event, newInputValue, reason) => {
+                        onInputChange={(_, newInputValue, reason) => {
                           if (reason !== 'reset') {
                             setRepoFilter(newInputValue);
                             setRepoTerm(newInputValue);
@@ -227,7 +235,6 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
                             vertical: 'top', // Puede ser 'top' o 'bottom'
                             horizontal: 'left', // Puede ser 'left', 'center' o 'right'
                           },
-                          getContentAnchorEl: null, // Evita que MUI establezca la posición basándose en el contenido seleccionado
                         }}
                       >
                         <MenuItem value="tasks">Tasks</MenuItem>
@@ -245,11 +252,11 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
                             <h1 className="text-xl mt-[22%] text-gray-400">No Data Available</h1>                  
                         </div>
                       :
-                        filteredCommits.map((commit, index) => (
+                        filteredCommits.map((commit) => (
                             <Accordion 
                                 key={commit.uuid} 
                                 expanded={expanded === commit.uuid}
-                                onChange={() => setExpanded(expanded === commit.uuid ? false : commit.uuid)}
+                                onChange={() => setExpanded(expanded === commit.uuid ? null : commit.uuid)}
                                 ref={(el) => accordionRefs.current[commit.uuid] = el}
                             >
                                 <div className="flex w-full p-4 rounded shadow-lg  bg-white hover:bg-gray-100 transition-colors border-[1px] border-yellow-300">
@@ -272,9 +279,9 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
                                         </div>
 
                                         <button 
-                                            onClick={() => handleExpandClick(commit.uuid, commit.layer, commit.repository)}                                         
+                                            onClick={() => handleExpandClick(commit.uuid, commit.layer, commit.repository as string)}                                         
                                             className="mr-3">
-                                            <Icon size={24}><ArrowCircleDown48Regular /></Icon>
+                                            <Icon size={24}><ArrowCircleDown48Regular onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} /></Icon>
                                         </button>
 
                                         </div>
@@ -313,11 +320,21 @@ export const RenderCommits = ({ projectLayers, projectRepositories, commits, set
                                                   <p className="text-xs text-gray-600">{repoInfo?._id || 'ID not available'}</p>
                                                 </div>
 
-                                                <div className="flex flex-col ">
-                                                  <h5 className="text-md font-semibold ">Associated Task</h5>
-                                                  <p className="text-sm truncate w-[150px] text-blue-500 ">{commit?.associated_task?.task_name || 'No associated Task'}</p>
-                                                  <p className="text-xs text-gray-600">{commit?.associated_task?._id || null }</p>                                   
-                                                </div>   
+                                                <div className="flex flex-col">
+                                                    <h5 className="text-md font-semibold">Associated Task</h5>
+                                                    <p className="text-sm truncate w-[150px] text-blue-500">
+                                                        {typeof commit?.associated_task === 'object' && commit?.associated_task !== null
+                                                            ? commit.associated_task.task_name
+                                                            : 'No associated Task'
+                                                        }
+                                                    </p>
+                                                    <p className="text-xs text-gray-600">
+                                                        {typeof commit?.associated_task === 'object' && commit?.associated_task !== null
+                                                            ? commit.associated_task._id
+                                                            : null
+                                                        }
+                                                    </p>
+                                                </div>  
                                     
                                                 <div className="flex flex-col space-y-2 ">
                                                     <h5 className="text-md font-semibold">Committed By</h5>

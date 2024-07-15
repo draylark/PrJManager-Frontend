@@ -1,12 +1,11 @@
-import { useState, useEffect, Fragment } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
 import { useLocation } from 'react-router-dom';
 import { ImCancelCircle } from "react-icons/im";
 import { Formik, Form } from 'formik';
 import { TextField, Autocomplete,  ListItem, ListItemText,  Typography, Chip,  Dialog, DialogContentText, DialogTitle, DialogContent, DialogActions, InputLabel, Tooltip, MenuItem, Select, Button, FormControl, Accordion, AccordionSummary, AccordionDetails,  } from '@mui/material'
 import { Branch } from '@ricons/carbon'
-import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { RepoNewCollaborators } from './RepoNewCollaborators';
@@ -14,23 +13,69 @@ import Swal from 'sweetalert2';
 import { PuffLoader  } from 'react-spinners';
 import bgform from '../assets/formbg.jpg'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { RootState } from '../../../../../../store/store';
+import { RepositoryBase, LayerBase, CollaboratorBase } from '../../../../../../interfaces/models';
 
-export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }) => {
+
+interface RepositoryConfigFormProps {
+  isRepoFormOpen: boolean;
+  setIsRepoFormOpen: (value: boolean) => void;
+  repo: RepositoryBase;
+}
+
+export interface Collaborator {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+  accessLevel: string;
+  new?: boolean
+}
+
+interface FormValues {
+  name: string;
+  description: string;
+  visibility: string;
+  collaborators: Collaborator[];
+  newCollaborators: Collaborator[];
+  modifiedCollaborators: Collaborator[];
+  deletedCollaborators: string[];
+  branches: {
+    _id: string;
+    name: string;
+    default: boolean;
+  }[];
+  newDefaultBranch: string | null;
+}
+
+interface CollabFromServer extends Pick<CollaboratorBase, 'uid' | 'name' | 'photoUrl'> {
+  repository: {
+    _id: string;
+    accessLevel: 'reader' | 'editor' | 'manager' | 'administrator';
+    layer: string;
+  }
+}
+
+interface ApiResponse {
+  message: string;
+  type: string;
+}
+
+export const RepositoryConfigForm: React.FC<RepositoryConfigFormProps> = ({ isRepoFormOpen, setIsRepoFormOpen, repo }) => {
 
   const location = useLocation()
   const { ID } = location.state.project
   const { layerID } = location.state.layer
   const { repoID } = location.state.repository;
-  const { uid } = useSelector(state => state.auth)
-  const { layers } = useSelector(state => state.platypus)
+  const { uid } = useSelector((state: RootState) => state.auth)
+  const { layers } = useSelector((state: RootState) => state.platypus)
 
 
-  const [layer, setLayer] = useState(null)
+  const [layer, setLayer] = useState<LayerBase | null>(null)
   const [cSearchTerm, setCSearchTerm] = useState('')
   const [currentOrNew, setCurrentOrNew] = useState(false)
   const [branchesExpanded, setBranchesExpanded] = useState(false) 
   const [editingCollaborator, setEditingCollaborator] = useState(false)
-  const [currentCollaboratorForTooltip, setCurrentCollaboratorForTooltip] = useState(null);
+  const [currentCollaboratorForTooltip, setCurrentCollaboratorForTooltip] = useState<Collaborator | null>(null);
 
   const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
   const [tooltipOpen, setTooltipOpen] = useState('');
@@ -42,17 +87,13 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
 
   const [tempVisibility, setTempVisibility] = useState('')  
   const [branchTypeDialog, setBranchTypeDialog] = useState(false)
-  const [pendingDefaultBranchIndex, setPendingDefaultBranchIndex] = useState(null);
+  const [pendingDefaultBranchIndex, setPendingDefaultBranchIndex] = useState<number | null>(null);
 
   const [modalOpacity, setModalOpacity] = useState(0);  
-  const [currentCollaborators, setCurrentCollaborators] = useState([])
+  const [currentCollaborators, setCurrentCollaborators] = useState<Collaborator[]>([])
 
   const [accessLevel, setAccessLevel] = useState('');
-  const [selectedUser, setSelectedUser] = useState({
-      id: '',
-      name: '',
-      accessLevel: ''
-  })
+  const [selectedUser, setSelectedUser] = useState<Collaborator | null>(null)
 
   const [isLoading, setIsLoading] = useState(true)
   const [buttonDisabled, setButtonDisabled] = useState(false)
@@ -67,7 +108,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     }
   };
 
-  const handleMouseEnter = (text, type) => {
+  const handleMouseEnter = (text: string, type: string) => {
     setTooltipContent(text);
     setTooltipOpen(type);
   };
@@ -101,14 +142,17 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     }
   };
 
-  const editCollaboratorAccessLevel = (collaborator, accessLevel ) => {
+  const editCollaboratorAccessLevel = (collaborator: Collaborator, accessLevel: string ) => {
     setEditingCollaborator(true);
     setSelectedUser(collaborator);
     setAccessLevel(accessLevel);
     setAccessLevelDialog(true);
   };
 
-  const editCollaboratorNewAccessLevel = (values, setFieldValue) => {
+  const editCollaboratorNewAccessLevel = (
+    values: FormValues, 
+    setFieldValue: (field: string, value: unknown) => void
+  ) => {
 
     if( selectedUser?.new ){
 
@@ -126,12 +170,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
       setAccessLevelDialog(false);
       setEditingCollaborator(false);
       setAccessLevel('');
-      setSelectedUser({
-        id: '',
-        name: '',
-        // photoUrl: '',
-        accessLevel: ''
-      })
+      setSelectedUser(null)
 
     } else {
       const newCollaborator = { ...selectedUser, accessLevel };
@@ -149,17 +188,15 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
       setAccessLevelDialog(false);
       setEditingCollaborator(false);
       setAccessLevel('');
-      setSelectedUser({
-        id: '',
-        name: '',
-        // photoUrl: '',
-        accessLevel: ''
-      })
+      setSelectedUser(null)
 
     }
   };
 
-  const addUserAsCollaborator = (values,  setFieldValue) => {
+  const addUserAsCollaborator = (
+    values: FormValues,  
+    setFieldValue: (field: string, value: unknown) => void 
+  ) => {
     const newCollaborator = { ...selectedUser, accessLevel };
   
     // Filtrar cualquier posible duplicado basado en el 'id'.
@@ -170,17 +207,11 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
   
     setFieldValue('collaborators', updatedCollaborators);
   
-    setOpenDialog(false);
     setAccessLevel('');
-    setSelectedUser({
-      id: '',
-      name: '',
-      // photoUrl: '',
-      accessLevel: ''
-    })
+    setSelectedUser(null)
   };
 
-  const handleCollaboratorTooltipContent = (collaborator) => {
+  const handleCollaboratorTooltipContent = (collaborator: Collaborator) => {
     // Retornar JSX en lugar de un string
     return (
       <Fragment>
@@ -193,7 +224,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     );
   };
 
-  const handleCollaboratorsData = (collaborators) => {
+  const handleCollaboratorsData = (collaborators: CollabFromServer[]) => {
 
     const collaboratorsData = collaborators.map( collaborator => {
       return {
@@ -207,12 +238,9 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     // console.log('Collaborators:', collaboratorsData)
     setCurrentCollaborators(collaboratorsData)
     setIsLoading(false)
-
   };
 
-
-
-  const IsTheButtonDisabled = ({ values }) => {
+  const IsTheButtonDisabled = ({ values }: { values: FormValues }) => {
     useEffect(() => {
         const isDisabled =  values.newCollaborators.length === 0
                             && values.modifiedCollaborators.length === 0
@@ -228,7 +256,10 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
     return null; // Este componente no necesita renderizar nada por sí mismo
   };
 
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+  const handleSubmit = async (
+    values: FormValues, 
+    { setSubmitting, resetForm }: { setSubmitting: (value: boolean) => void; resetForm: () => void }
+  ) => {
     setSubmitting(true);
     setIsLoading(true);
 
@@ -255,20 +286,30 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
         });
 
     } catch (error) {
-      setSubmitting(false);
-      setIsLoading(false);   
+      const axiosError = error as AxiosError<ApiResponse>; // Asumir que es un error de Axios
 
-      if( error.response.data?.type === 'collaborator-validation' ){
-        Swal.fire({
-            icon: 'warning',
-            title: 'Access Validation',
-            text: error.response.data.message,
-        });
+      setSubmitting(false);
+      setIsLoading(false); 
+
+      if (axiosError.response) {
+        if( axiosError.response.data?.type === 'collaborator-validation' ){
+          Swal.fire({
+              icon: 'warning',
+              title: 'Access Validation',
+              text: axiosError.response.data.message,
+          });
+        } else {
+          Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: axiosError.response.data.message,
+          });
+        }
       } else {
         Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: error.response.data.message,
+          icon: 'error',
+          title: 'Oops...',
+          text: 'There was an unexpected error.',
         });
       }
     }
@@ -325,7 +366,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
           console.error('Error fetching layer collaborators:', error);
         });
     }
-  }, [repo])
+  }, [repo, layerID, layers])
 
   useEffect(() => {
     if (isRepoFormOpen) {
@@ -367,24 +408,22 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                   )
                 : (
                       <Formik
-                            initialValues={{
-
-                                name: repo.name,
-                                description: repo.description,
-                                visibility: repo.visibility,
-                                collaborators: currentCollaborators,
-                                newCollaborators: [],
-                                modifiedCollaborators: [],
-                                deletedCollaborators: [],
-
-                                branches: repo.branches,
-                                newDefaultBranch: null                                
-                            }  }
-                            // validationSchema={RepositorySchema}
-                            onSubmit={handleSubmit}
-                        >        
+                          onSubmit={handleSubmit}
+                          initialValues={{
+                              name: repo.name,
+                              description: repo.description,
+                              visibility: repo.visibility,
+                              collaborators: currentCollaborators,
+                              newCollaborators: [],
+                              modifiedCollaborators: [],
+                              deletedCollaborators: [],
+                              branches: repo.branches,
+                              newDefaultBranch: null                                
+                          } as FormValues}
+                            // validationSchema={RepositorySchema}              
+                      >        
                             {({ isSubmitting, values, setFieldValue, handleChange, handleBlur }) => {
-                              // {console.log(values)}
+                              {console.log(values)}
                               const filteredCollaborators = values.collaborators.filter(collaborator => {
                                 return collaborator.name.toLowerCase().includes(cSearchTerm.toLowerCase()) || collaborator.id.toString().includes(cSearchTerm)
                               });
@@ -409,7 +448,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
 
                                   {
                                     currentOrNew 
-                                    ?   <RepoNewCollaborators  setFieldValue={setFieldValue} values={values} setCurrentOrNew={setCurrentOrNew} currentOrNew={currentOrNew} />
+                                    ?   <RepoNewCollaborators  setFieldValue={setFieldValue} values={values} setCurrentOrNew={setCurrentOrNew} />
                                     : 
                                       <div className='flex flex-col flex-grow space-y-4'>
                                       
@@ -438,7 +477,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                         label="Visibility" // Esto establece la etiqueta para el Select
                                                     >
                                                         <MenuItem
-                                                          disabled={layer.visibility === 'restricted'}
+                                                          disabled={layer?.visibility === 'restricted'}
                                                           value="open"
                                                         >
                                                           Open
@@ -483,7 +522,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                     <div className='flex-grow space-y-4 px-4 py-4 overflow-y-auto  max-h-[180px]'>
                                                         {values.branches.map((branch, index) => (                                             
                                                           <ListItem className='flex space-x-4 justify-between border-b-[1px] border-gray-400' key={index}>
-                                                                  <Branch className='w-5 h-5' />
+                                                                  <Branch className='w-5 h-5' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                                                   <ListItemText 
                                                                     primary={branch.name} 
                                                                   />
@@ -560,7 +599,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                   options={[]}
                                                   isOptionEqualToValue={(option, value) => option.id === value.id}
                                                   getOptionLabel={(option) => option.name} 
-                                                  renderTags={(value, getTagProps) =>
+                                                  renderTags={(_, getTagProps) =>
                                                     <div className=" overflow-y-auto  max-h-[41px] w-[90%] ">
                                                       {filteredCollaborators.map((option, index) => (
                                                         <Tooltip                             
@@ -572,7 +611,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                               variant="outlined"
                                                               label={option.name}
                                                               {...getTagProps({ index })}
-                                                              onClick={() => editCollaboratorAccessLevel(option, option.accessLevel, setFieldValue)}
+                                                              onClick={() => editCollaboratorAccessLevel(option, option.accessLevel)}
                                                               onDelete={() => {
                                                                 setSelectedUser(option)
                                                                 setDeleteCDialog(true)
@@ -586,7 +625,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                       ))}
                                                     </div>
                                                   }       
-                                                  onInputChange={(event, newInputValue) => {
+                                                  onInputChange={(_, newInputValue) => {
                                                     setCSearchTerm(newInputValue);
                                                   }}                                 
                                                   renderInput={(params) => (
@@ -630,28 +669,16 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                       <Button 
                                                         onClick={() => {
                                                         setDeleteCDialog(false)
-                                                        setSelectedUser(
-                                                          {
-                                                            id: '',
-                                                            name: '',
-                                                            accessLevel: ''                                                  
-                                                          }
-                                                        )}}                            
+                                                        setSelectedUser(null)}}                            
                                                         >
                                                           Cancel
                                                         </Button>
                                                         <Button                                                        
                                                           onClick={() =>{
-                                                              const newCollaborators = values.collaborators.filter((collaborator) => collaborator.id !== selectedUser.id);
+                                                              const newCollaborators = values.collaborators.filter((collaborator) => collaborator.id !== selectedUser?.id);
                                                               setFieldValue('collaborators', newCollaborators);
-                                                              setFieldValue('deletedCollaborators', [...values.deletedCollaborators, selectedUser.id]);                                     
-                                                              setSelectedUser(
-                                                                {
-                                                                  id: '',
-                                                                  name: '',
-                                                                  accessLevel: ''                                                  
-                                                                }
-                                                              ) 
+                                                              setFieldValue('deletedCollaborators', [...values.deletedCollaborators, selectedUser?.id]);                                     
+                                                              setSelectedUser(null) 
                                                               setDeleteCDialog(false);                                               
                                                             }}
                                                         >
@@ -659,6 +686,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                         </Button>            
                                                     </DialogActions>
                                               </Dialog> 
+
                                               <Dialog open={accessLevelDialog} onClose={() => setAccessLevelDialog(false)}>
                                                     <DialogTitle>Set Access Level</DialogTitle>
                                                     <DialogContent>
@@ -742,13 +770,7 @@ export const RepositoryConfigForm = ({ isRepoFormOpen, setIsRepoFormOpen, repo }
                                                         onClick={() => {
                                                         setAccessLevelDialog(false)
                                                         setEditingCollaborator(false)
-                                                        setSelectedUser(
-                                                          {
-                                                            id: '',
-                                                            name: '',
-                                                            accessLevel: ''                                                  
-                                                          }
-                                                        )}}                            
+                                                        setSelectedUser(null)}}                            
                                                         >
                                                           Cancel
                                                         </Button>

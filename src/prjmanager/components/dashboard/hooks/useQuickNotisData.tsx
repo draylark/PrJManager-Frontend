@@ -1,12 +1,42 @@
-import { useState, useEffect} from 'react'
+import { useState, useEffect } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
-export const useQuickNotisData = (uid) => {
+interface Notification {
+    _id: string;
+    type: string;
+    description: string;
+    additionalData: {
+      username?: string;
+      taskName?: string;
+      repositoryName?: string;
+      projectName?: string;
+      layerName?: string;
+      repoName?: string;
+      projectID?: string;
+      layerId?: string;
+      repoId?: string;
+      accessLevel?: string;
+      taskId?: string;
+      date?: string;
+    };
+    from: {
+      name: string
+      ID: string;
+  
+    }
+    createdAt: string;
+}
+
+interface ApiResponse {
+    message: string;
+}
+
+export const useQuickNotisData = (uid: string) => {
   
     const [isLoading, setIsLoading] = useState(true)
-    const [notifications, setNotifications] = useState([])
-    const [errorMessage, seterrorMessage] = useState(null)
+    const [notifications, setNotifications] = useState<Notification[]>([])
+    const [errorMessage, seterrorMessage] = useState<string | null>(null)
     const [errorWhileFetching, setErrorWhileFetching] = useState(false)
 
   
@@ -19,10 +49,18 @@ export const useQuickNotisData = (uid) => {
             setNotifications(notis)
             setIsLoading(false) 
         } catch (error) {
-            console.error('Error fetching notifications:', error);
-            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-            setErrorWhileFetching(true)
-            setIsLoading(false)
+            const axiosError = error as AxiosError<ApiResponse>
+
+            if (axiosError.response) {
+                console.error('Error fetching notifications:', error);
+                seterrorMessage(axiosError.response.data.message); 
+                setErrorWhileFetching(true)
+                setIsLoading(false);
+            } else {
+                seterrorMessage('An error occurred while fetching data');
+                setErrorWhileFetching(true)
+                setIsLoading(false);
+            }
         }
     };
 
@@ -30,6 +68,8 @@ export const useQuickNotisData = (uid) => {
     useEffect(() => {
         setIsLoading(true)
         fetchNotis()
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // console.log('notifications:', notifications)

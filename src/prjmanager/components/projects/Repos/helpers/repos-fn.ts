@@ -1,11 +1,61 @@
-import { faPython, faJsSquare, faReact, faHtml5, faCss3Alt, faNodeJs, faPhp, faJava, faCuttlefish, faGitAlt, faDocker, faAws, faRProject } from '@fortawesome/free-brands-svg-icons';
-import { faFilePdf, faFileAlt, faFileCode, faFileImage, faDatabase, faFileCsv, faFileExcel, faFileWord, faFilePowerpoint, faFileAudio, faFileVideo, faFileArchive, faFile } from '@fortawesome/free-solid-svg-icons';
+import { faPython, faJsSquare, faReact, faHtml5, faCss3Alt, faPhp, faJava, faGitAlt, faDocker, faRProject } from '@fortawesome/free-brands-svg-icons';
+import { faFilePdf, faFileAlt, faFileCode, faFileImage, faDatabase, faFileCsv, faFileExcel, faFileWord, faFilePowerpoint, faFileAudio, faFileVideo, faFileArchive } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 const backendUrl = import.meta.env.VITE_BACKEND_URL
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { RepositoryBase } from '../../../../../interfaces/models';
+import { File } from '../Repository';
+
+interface LanguageMapping {
+  '.py': string;
+  '.js': string;
+  '.jsx': string;
+  '.ts': string;
+  '.tsx': string;
+  '.java': string;
+  '.html': string;
+  '.css': string;
+  '.scss': string;
+  '.sass': string;
+  '.less': string;
+  '.c': string;
+  '.cpp': string;
+  '.cs': string;
+  '.php': string;
+  '.sql': string;
+  '.json': string;
+  '.xml': string;
+  '.md': string;
+  '.r': string;
+  '.sh': string;
+  '.bat': string;
+  '.go': string;
+  '.rs': string;
+  '.dart': string;
+  '.lua': string;
+  '.pl': string;
+  '.rb': string;
+  '.ipynb': string;
+  '.yml': string;
+  '.yaml': string;
+  '.dockerfile': string;
+  '.gitignore': string;
+  '.config': string;
+  '.ini': string;
+}
+interface ApiResponse {
+  status: number;
+}
 
 
-export const loadFileContent = async (branch, repo, filePath, setSelectedFileContent, setSelectedFileName) => {
+
+export const loadFileContent = async (
+  branch: string, 
+  repo: RepositoryBase, 
+  filePath: string, 
+  setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>, 
+  setSelectedFileName: React.Dispatch<React.SetStateAction<string>>
+) => {
   try {
     const response = await axios.get(`${backendUrl}/gitlab/loadContentFile/${repo._id}`, {       
       headers: {
@@ -22,17 +72,43 @@ export const loadFileContent = async (branch, repo, filePath, setSelectedFileCon
     setSelectedFileName(filePath);
 
   } catch (error) {
-    if (error.response && error.response.status === 404) {
+    const axiosError = error as AxiosError<ApiResponse>
+    if (axiosError.response && axiosError.response.status === 404) {
       // Manejar archivos vacíos
       setSelectedFileContent('This file is empty.');
       setSelectedFileName(filePath);
     } else {
-      console.error('Error fetching file content:', error);
+        console.error('Error fetching file content:', error);
     }
   }
 };
 
-export const loadFolderContents = async (repo, folderPath, folderId, setFiles) => {
+const updateFilesRecursively = (files: File[], path: string, newFiles: File[]): File[] => {
+  return files.map(file => {
+    if (file.path === path && file.type === 'tree') {
+      // Se encontró la carpeta, actualizar su contenido
+      const updatedFiles = file.files || [];
+      newFiles.forEach(newFile => {
+        if (!updatedFiles.some(f => f.path === newFile.path)) {
+          updatedFiles.push({ ...newFile });
+        }
+      });
+      return { ...file, files: updatedFiles };
+    } else if (file.type === 'tree' && file.files) {
+      // Si es una subcarpeta, buscar en ella recursivamente
+      return { ...file, files: updateFilesRecursively(file.files, path, newFiles) };
+    } else {
+      return file;
+    }
+  });
+};
+
+export const loadFolderContents = async (
+  repo: RepositoryBase, 
+  folderPath: string, 
+  _: string, 
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+) => {
     try {
       const response = await axios.get(`${backendUrl}/gitlab/loadFolderContents/${repo._id}`, {        
         headers: {
@@ -43,35 +119,61 @@ export const loadFolderContents = async (repo, folderPath, folderId, setFiles) =
           folderPath: folderPath
         }
       });
+      console.log('CARPETA',response)
       const newFiles = response.data.files;
   
-      setFiles(currentFiles => {
-        // Función para actualizar los archivos de manera recursiva
-        const updateFilesRecursively = (files, path, newFiles) => {
-          return files.map(file => {
-            if (file.path === path && file.type === 'tree') {
-              // Se encontró la carpeta, actualizar su contenido
-              const updatedFiles = file.files || [];
-              newFiles.forEach(newFile => {
-                if (!updatedFiles.some(f => f.path === newFile.path)) {
-                  updatedFiles.push({ ...newFile });
-                }
-              });
-              return { ...file, files: updatedFiles };
-            } else if (file.type === 'tree' && file.files) {
-              // Si es una subcarpeta, buscar en ella recursivamente
-              return { ...file, files: updateFilesRecursively(file.files, path, newFiles) };
-            } else {
-              return file;
-            }
-          });
-        };
-  
-        return updateFilesRecursively(currentFiles, folderPath, newFiles);
-      });
+      setFiles(currentFiles => updateFilesRecursively(currentFiles, folderPath, newFiles));
     } catch (error) {
       console.error('Error fetching folder contents:', error);
     }
+};
+
+
+export const getLanguageFromFileName = (fileName: string) => {
+  // Extrae la extensión del archivo del nombre del archivo
+  const extension = fileName.slice(fileName.lastIndexOf('.'))
+  
+  // Usa el mapeo para encontrar el lenguaje correspondiente a la extensión del archivo
+  // Si la extensión no está en el mapeo, devuelve null o un valor predeterminado
+  return fileExtensionToLanguage[extension as keyof LanguageMapping] || 'javascript';
+};
+
+const fileExtensionToLanguage: LanguageMapping = {
+  '.py': 'python',
+  '.js': 'javascript',
+  '.jsx': 'jsx', // O 'javascript' dependiendo del resaltador
+  '.ts': 'typescript',
+  '.tsx': 'tsx', // O 'typescript' dependiendo del resaltador
+  '.java': 'java',
+  '.html': 'html',
+  '.css': 'css',
+  '.scss': 'scss',
+  '.sass': 'sass',
+  '.less': 'less',
+  '.c': 'c',
+  '.cpp': 'cpp', // C++
+  '.cs': 'csharp', // C#
+  '.php': 'php',
+  '.sql': 'sql',
+  '.json': 'json',
+  '.xml': 'xml',
+  '.md': 'markdown',
+  '.r': 'r',
+  '.sh': 'bash',
+  '.bat': 'batch',
+  '.go': 'go',
+  '.rs': 'rust',
+  '.dart': 'dart',
+  '.lua': 'lua',
+  '.pl': 'perl',
+  '.rb': 'ruby',
+  '.ipynb': 'json', 
+  '.yml': 'yaml',
+  '.yaml': 'yaml',
+  '.dockerfile': 'dockerfile',
+  '.gitignore': 'plaintext',
+  '.config': 'plaintext',
+  '.ini': 'ini',
 };
 
 export const fileExtensionToIconAndColor: Record<string, { icon: IconDefinition, color: string }> = {
@@ -139,57 +241,4 @@ export const fileExtensionToIconAndColor: Record<string, { icon: IconDefinition,
   'gz': { icon: faFileArchive, color: '#A52A2A' },
   'rar': { icon: faFileArchive, color: '#A52A2A' },
   '7z': { icon: faFileArchive, color: '#A52A2A' },
-};
-
-const fileExtensionToLanguage = {
-  '.py': 'python',
-  '.js': 'javascript',
-  '.jsx': 'jsx', // O 'javascript' dependiendo del resaltador
-  '.ts': 'typescript',
-  '.tsx': 'tsx', // O 'typescript' dependiendo del resaltador
-  '.java': 'java',
-  '.html': 'html',
-  '.css': 'css',
-  '.scss': 'scss',
-  '.sass': 'sass',
-  '.less': 'less',
-  '.c': 'c',
-  '.cpp': 'cpp', // C++
-  '.cs': 'csharp', // C#
-  '.php': 'php',
-  '.sql': 'sql',
-  '.json': 'json',
-  '.xml': 'xml',
-  '.md': 'markdown',
-  '.r': 'r',
-  '.sh': 'bash',
-  '.bat': 'batch',
-  '.go': 'go',
-  '.rs': 'rust',
-  '.dart': 'dart',
-  '.lua': 'lua',
-  '.pl': 'perl',
-  '.rb': 'ruby',
-  '.ipynb': 'json', 
-  '.yml': 'yaml',
-  '.yaml': 'yaml',
-  '.dockerfile': 'dockerfile',
-  '.gitignore': 'plaintext',
-  '.config': 'plaintext',
-  '.ini': 'ini',
-};
-
-export const getLanguageFromFileName = (fileName) => {
-  // Extrae la extensión del archivo del nombre del archivo
-  const extension = fileName.slice(fileName.lastIndexOf('.'));
-  
-  // Usa el mapeo para encontrar el lenguaje correspondiente a la extensión del archivo
-  // Si la extensión no está en el mapeo, devuelve null o un valor predeterminado
-  return fileExtensionToLanguage[extension] || null;
-};
-
-export const getExtension = (fileName) => {
-  const nameToSplit = fileName !== undefined ? fileName : selectedFileName;
-  const extension = nameToSplit.split('.').pop()?.toLowerCase() || '';
-  return extension === 'md' ? true : false
 };

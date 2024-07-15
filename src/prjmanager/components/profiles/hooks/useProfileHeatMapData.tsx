@@ -1,19 +1,40 @@
 import {useState, useEffect, useCallback, useMemo  } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
+import { Location } from 'react-router-dom';
+import { CommitBase, TaskBase, LayerBase, ProjectBase, RepositoryBase } from '../../../../interfaces/models';
+import { AxiosError } from 'axios';
+
+interface Task extends Pick<TaskBase, '_id' | 'task_name' | 'assigned_to' |  'completed_at' > {
+    projectID: Pick<ProjectBase, 'name' | 'visibility'> & { _id: string };
+    layerID: Pick<LayerBase, '_id' | 'name' | 'visibility'>;
+    repositoryID: Pick<RepositoryBase, '_id' | 'name' | 'visibility'>;
+}
+
+interface Commit extends Pick<CommitBase, '_id' | 'uuid' | 'createdAt'> {
+  author: { uid: string, name: string; photoUrl: string | null };
+  projectID: Pick<ProjectBase, 'name' | 'visibility'> & { _id: string };
+  layerID: Pick<LayerBase, '_id' | 'name' | 'visibility'>;
+  repositoryID: Pick<RepositoryBase, '_id' | 'name' | 'visibility'>;
+  associated_task: Pick<TaskBase, '_id' | 'task_name'>
+}
+
+interface ApiResponse {
+    message: string;
+}
 
 
+export const useProfileHeatMapData = (location: Location, year: string) => {
 
-export const useProfileHeatMapData = (location, year) => {
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<{ date: string; count: number }[]>([]);
     const [detailsByDay, setDetailsByDay] = useState(new Map());
-    const [errorMessage, setErrorMessage] = useState(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [errorWhileFetching, setErrorWhileFetching] = useState(false);
     const [fetchingUserActivity, setFetchingUserActivity] = useState(true);
   
     const uid = useMemo(() => location.state.user.uid, [location.state.user.uid]);
   
-    const formatDate = useCallback((date) => {
+    const formatDate = useCallback((date: string) => {
       const d = new Date(date);
       const year = d.getUTCFullYear();
       const month = String(d.getUTCMonth() + 1).padStart(2, '0');
@@ -21,7 +42,7 @@ export const useProfileHeatMapData = (location, year) => {
       return `${year}/${month}/${day}`;
     }, []);
   
-    const formatDateFromHeatMap = useCallback((date) => {
+    const formatDateFromHeatMap = useCallback((date: string) => {
       const parts = date.split('/');
       const year = parts[0];
       const month = parts[1].padStart(2, '0');
@@ -29,9 +50,10 @@ export const useProfileHeatMapData = (location, year) => {
       return `${year}/${month}/${day}`;
     }, []);
   
-    const handleHeatMapData = useCallback((commits, tasks) => {
-      const combinedData = {};
-      const details = {};
+    const handleHeatMapData = useCallback((commits: Commit[], tasks: Task[]) => {
+      const combinedData: { [key: string]: { count: number; commits: number; tasks: number } } = {};
+      const details: { [key: string]: { commits: number; tasks: number } } = {};
+      
   
       commits.forEach(commit => {
         const date = formatDate(commit.createdAt);
@@ -45,7 +67,7 @@ export const useProfileHeatMapData = (location, year) => {
       });
   
       tasks.forEach(task => {
-        const date = formatDate(task.completed_at);
+        const date = formatDate(task.completed_at as string);
         if (!combinedData[date]) {
           combinedData[date] = { count: 0, commits: 0, tasks: 0 };
           details[date] = { commits: 0, tasks: 0 };
@@ -65,7 +87,7 @@ export const useProfileHeatMapData = (location, year) => {
       setFetchingUserActivity(false);
     }, [formatDate]);
   
-    const fetchProfileActivity = useCallback(async (uid) => {
+    const fetchProfileActivity = useCallback(async (uid: string) => {
       setFetchingUserActivity(true);
       try {
         const tasksResponse = await axios.get(`${backendUrl}/tasks/get-profile-tasks/${uid}`, { 
@@ -79,9 +101,19 @@ export const useProfileHeatMapData = (location, year) => {
   
         handleHeatMapData(commitsResponse.data.commits, tasksResponse.data.tasks);
       } catch (error) {
-        setErrorMessage(error.response?.data.message || 'An error occurred while fetching data');
-        setErrorWhileFetching(true);
-        setFetchingUserActivity(false);
+
+        const axiosError = error as AxiosError<ApiResponse>
+
+        if (axiosError.response) {
+            console.error('Error fetching notifications:', error);
+            setErrorMessage(axiosError.response.data.message || 'An error occurred while fetching data'); 
+            setErrorWhileFetching(true)
+            setFetchingUserActivity(false);
+        } else {
+            setErrorMessage('An error occurred while fetching data');
+            setErrorWhileFetching(true)
+            setFetchingUserActivity(false);
+        }
       }
     }, [year, handleHeatMapData]);
   

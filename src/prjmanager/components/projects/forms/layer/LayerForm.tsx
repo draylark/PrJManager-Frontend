@@ -1,53 +1,92 @@
 import { FC, useEffect, useState } from 'react';
-import { Formik, Form, FormikHelpers,  } from 'formik';
+import { Formik, Form } from 'formik';
 import { TextField, FormControl, Select, InputLabel, MenuItem, Tooltip, Typography } from '@mui/material'
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../store/store';
-import { loadNewLayer } from '../../../../store/gitlab/thunks';
+import { RootState } from '../../../../../store/store';
+import { loadNewLayer } from '../../../../../store/gitlab/thunks';
 import { LiaQuestionCircleSolid } from "react-icons/lia";
-import bgform from './assets/formbg.jpg'
-import axios from 'axios';
+import bgform from '../assets/formbg.jpg'
+import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { ImCancelCircle } from "react-icons/im";
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
+import { usePrJDispatch } from '../../../../../store/dispatch';
 
-// Validation schema
+
 const LayerSchema = Yup.object().shape({
   name: Yup.string().required('Layer name is required'),
   description: Yup.string().required('Description is required'),
   visibility: Yup.string().required('Visibility is required'),
 });
-
-interface LayerValues {
+interface LayerProps {
+    isLayerFormOpen: boolean;
+    setIsLayerFormOpen: (value: boolean) => void;
+}
+interface FormValues {
     name: string,
     description: string,
     visibility: string,
     creator: string
-
+}
+interface ApiResponse {
+    message: string;
+    type: string;
 }
 
-interface LayerProps {
-    setIsLayerModalOpen: (value: boolean) => void;
-}
+export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen }) => {
 
-export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen, showOptModal, setShowOptModal }) => {
-
-    const dispatch = useDispatch();
+    const dispatch = usePrJDispatch();
     const location = useLocation();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
     const [IsLoading, setIsLoading] = useState(false);
-    const { ID } = location.state?.project;
+    const { ID } = location.state.project;
 
    const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
     const [buttonDisabled, setButtonDisabled] = useState(false)
     const [tooltipOpen, setTooltipOpen] = useState('');
     const [tooltipContent, setTooltipContent] = useState('');
 
-    const handleSubmit = async(values: LayerValues, { setSubmitting, resetForm }: FormikHelpers<LayerValues>) => {
+
+    const handleClose = () => {
+        const modal = document.getElementById('layerFormModal');
+        if (modal) {
+            // Inicia la transición de opacidad a 0
+            modal.classList.replace('opacity-100', 'opacity-0');
+  
+            // Espera a que la animación termine antes de ocultar el modal completamente
+            setTimeout(() => {
+                setIsLayerFormOpen(false);
+            }, 500); // Asume que la duración de tu transición es de 500ms
+        }
+    };
+
+    const IsTheButtonDisabled = ({ values }: { values: FormValues}) => {
+        useEffect(() => {
+            const isDisabled = values.name === '' && values.description === '' && values.visibility === '';
+            setButtonDisabled(isDisabled);
+        }, [values]);
+        
+        // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
+        return null; // Este componente no necesita renderizar nada por sí mismo
+    };
+
+    const handleMouseEnter = (text: string, type: string) => {
+        setTooltipContent(text);
+        setTooltipOpen(type);
+    };
+
+    const handleMouseLeave = () => {
+        setTooltipOpen('');
+    };
+
+    const handleSubmit = async(
+        values: FormValues, 
+        { setSubmitting, resetForm }: { setSubmitting: (isSubmitting: boolean) => void, resetForm: () => void }
+    ) => {
         setIsLoading(true);
         setSubmitting(true);  
 
@@ -63,7 +102,6 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                 }
             });
 
-
             resetForm();
             setSubmitting(false);         
             setIsLoading(false);
@@ -77,59 +115,36 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
             dispatch( loadNewLayer( response.data.newLayer ) )
 
         } catch (error) {
+
+            const axiosError = error as AxiosError<ApiResponse>;
+
             setSubmitting(false);
             setIsLoading(false);
 
-            if(  error.response.data?.type === 'layers-limit' ){
-                handleClose();
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Project layers limit reached\n ( 3 layers )',
-                    text: error.response.data.message,
-                });
+            if (axiosError.response) {
+                if( axiosError?.response.data?.type === 'layers-limit' ){
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Project layers limit reached\n ( 3 layers )',
+                        text: axiosError.response.data.message,
+                    });
+                } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Oops...',
+                      text: axiosError.response.data.message || 'An unexpected error occurred',
+                  });
+                }
             } else {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: error.response.data.message,
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An unexpected error occurred'
                 });
             }
         }
     };
-
-    const handleClose = () => {
-        const modal = document.getElementById('layerFormModal');
-        if (modal) {
-            // Inicia la transición de opacidad a 0
-            modal.classList.replace('opacity-100', 'opacity-0');
-  
-            // Espera a que la animación termine antes de ocultar el modal completamente
-            setTimeout(() => {
-                setIsLayerFormOpen(false);
-            }, 500); // Asume que la duración de tu transición es de 500ms
-        }
-    };
-
-    const IsTheButtonDisabled = ({ values }) => {
-        useEffect(() => {
-            const isDisabled = values.name === '' && values.description === '' && values.visibility === '';
-            setButtonDisabled(isDisabled);
-        }, [values]);
-        
-        // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
-        return null; // Este componente no necesita renderizar nada por sí mismo
-    };
-
-    const handleMouseEnter = (text, type) => {
-        setTooltipContent(text);
-        setTooltipOpen(type);
-    };
-
-    const handleMouseLeave = () => {
-        setTooltipOpen('');
-    };
-
-
+    
     useEffect(() => {
         const preloadImage = new Image(); // Crea una nueva instancia para cargar la imagen
         preloadImage.src = bgform;
@@ -144,18 +159,12 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
           // Asegúrate de que el modal existe antes de intentar acceder a él
           // Luego, después de un breve retraso, inicia la transición de opacidad
           const timer = setTimeout(() => {
-            document.getElementById('layerFormModal').classList.remove('opacity-0');
-            document.getElementById('layerFormModal').classList.add('opacity-100');
+            document.getElementById('layerFormModal')?.classList.remove('opacity-0');
+            document.getElementById('layerFormModal')?.classList.add('opacity-100');
           }, 20); // Un retraso de 20ms suele ser suficiente
           return () => clearTimeout(timer);
         }
     }, [isLayerFormOpen]);
-
-    useEffect(() => {
-    if(showOptModal){
-        setShowOptModal(false);
-    }
-    }, [showOptModal]);
 
 
     return (
@@ -188,9 +197,8 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                                 name: '',
                                 description: '',
                                 visibility: '',
-                                parent_id: '80502948',
                                 creator: uid                                   
-                            } as LayerValues }
+                            } as FormValues }
                             validationSchema={LayerSchema}
                             onSubmit={handleSubmit}
                         >
@@ -202,7 +210,7 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
 
                                     <div className='flex flex-col pt-2 space-y-4 w-full h-[300px] '>
                                         <TextField        
-                                            InputLabelProps={{ shrink: errors.name && touched.name }}                              
+                                            InputLabelProps={{ shrink: errors.name && touched.name ? true : false  }}                              
                                             name="name"
                                             label={ errors.name && touched.name ? errors.name : 'Layer Name' }
                                             fullWidth
@@ -213,7 +221,7 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen,
                                         />
 
                                         <TextField                          
-                                            InputLabelProps={{ shrink: errors.description && touched.description }}            
+                                            InputLabelProps={{ shrink: errors.description && touched.description ? true : false}}            
                                             name="description"
                                             label={ errors.description && touched.description ? errors.description : 'Description' }
                                             multiline

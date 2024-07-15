@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ImCancelCircle } from 'react-icons/im';
 import { ScaleLoader } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -11,17 +11,39 @@ import UserX from '@ricons/tabler/UserX'
 import UserFollow from '@ricons/carbon/UserFollow'
 import { AddContributorsModal } from './AddContributorsModal';
 import Swal from 'sweetalert2';
+import { WorkspaceTask, CommitBase } from '../../../../../interfaces/models';
 
-export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, task, uid }) => {
+interface TaskContributorsProps {
+    setIsTaskCOpen: (isOpen: boolean) => void;
+    isTaskCOpen: boolean;
+    repoID: string;
+    taskId: string;
+    task: WorkspaceTask;
+    uid: string;
+}
+interface ContributorCommit {
+    id: string;
+    username: string;
+    photoUrl: string;
+    commits: number;
+    lastCommit: Commit | null
+    firstCommit: Commit | null
+}
+export interface TaskContributorsCommitsMap {
+    [key: string]: ContributorCommit;
+}
+type Commit = Pick<CommitBase,  'createdAt' | 'uuid' | 'author' | 'associated_task'>
+
+
+export const TaskContributors: React.FC<TaskContributorsProps> = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, task, uid }) => {
 
     const [open, setOpen] = useState(false)
-    const [repoContributors, setRepoContributors] = useState(false)
-    const [taskContributors, setTaskContributors] = useState(null);
-    const [expanded, setExpanded] = useState(null);
+    const [taskContributors, setTaskContributors] = useState<TaskContributorsCommitsMap | null>(null);
+    const [expanded, setExpanded] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false)
 
-    const handleAccordionChange = (panel) => (event, isExpanded) => {
-        setExpanded(isExpanded ? panel : false);
+    const handleAccordionChange = (panel: string) => (_:unknown, isExpanded: boolean) => {
+        setExpanded(isExpanded ? panel : null);
     };
 
     const handleClose = () => {
@@ -34,7 +56,7 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
         }
     };
 
-    const getAvatar = (photoUrl, username) => {
+    const getAvatar = (photoUrl: string, username: string) => {
         if (photoUrl) return photoUrl;
         // Aquí podrías generar un avatar con las iniciales si no hay foto
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random`;
@@ -49,7 +71,7 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
             }
         })
         .then(res => {
-            console.log(res)
+            // console.log(res)
             setTaskContributors(res.data.contributorsData);
             setIsLoading(false)
         })
@@ -59,29 +81,7 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
         });
     };
 
-    const fetchRepositoryCollaborators = () => {
-        axios.get(`${backendUrl}/repos/get-repo-collaborators/${repoID}`, {
-            params: {
-                add: true
-            },
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('x-token')
-            }
-        })
-        .then(res => {
-            // console.log(res)
-            setRepoContributors(res.data.collaborators);
-            setIsLoading(false)
-        })
-        .catch(err => {
-            setIsLoading(false)
-            console.error(err);
-        });
-    };
-
-    const handleDeleteContributor = (contributorId) => {
-
+    const handleDeleteContributor = (contributorId: string) => {
         axios.put(`${backendUrl}/tasks/delete-task-contributor/${taskId}`, { contributorId }, {
             params: {
                 uid
@@ -89,7 +89,7 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
             headers: {
                 Authorization: localStorage.getItem('x-token')
             }
-        }).then( res => {
+        }).then( () => {
             Swal.fire({
                 title: 'Contributor removed',
                 icon: 'success',
@@ -112,19 +112,15 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
     useEffect(() => {
         if (isTaskCOpen) {
             setTimeout(() => {
-                document.getElementById('contributorsModal').classList.add('opacity-100');
+                document.getElementById('contributorsModal')?.classList.add('opacity-100');
             }, 20);
         }
     }, [isTaskCOpen]);
 
-    useEffect(() => {
-        if(task && task.type === "assigned" && task.assigned_to === uid) {
-            fetchRepositoryCollaborators()
-        }
-    }, [task]);
 
     useEffect(() => {
         fetchContributorsData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -138,7 +134,7 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
                         {
                             !open && task.type === "assigned" && task.assigned_to === uid && (
                                 <button onClick={() => setOpen(true)} className='text-xl p-1 hover:text-green-500 transition-colors duration-300'>
-                                    <UserFollow className="w-5 h-5" />
+                                    <UserFollow className="w-5 h-5" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                 </button> 
                             )
                         }
@@ -164,67 +160,65 @@ export const TaskContributors = ({ setIsTaskCOpen, isTaskCOpen, repoID, taskId, 
                             setOpen={setOpen} 
                             taskId={taskId}
                             repoID={repoID}
-                            currentTaskContributors={taskContributors}
+                            currentTaskContributors={taskContributors as TaskContributorsCommitsMap}
                             uid={uid}
                         />
                     )
                     :
-                        <div className='flex flex-col items-center p-4 max-h-[556px] overflow-y-auto'>
-                            {taskContributors && Object.values(taskContributors).map((contributor, index) => (
-                                <div className='w-full p-3 flex flex-col bg-gray-100 rounded-lg shadow mb-4 min-w-[300px]'>
-                                    <div className='flex items-center p-2'>
-                                        <img src={getAvatar(contributor.photoUrl, contributor.username)} alt={contributor.username} className='w-12 h-12 rounded-full mr-4' />
-                                        <div className='w-full'>
-                                            <div className='flex justify-between  w-full'>
-                                                <h3 className='font-bold'>{contributor.username}</h3>
-                                                {
-                                                    task.type === "assigned" && task.assigned_to === uid && (
-                                                        <button onClick={() => handleDeleteContributor(contributor.id)}>
-                                                            <UserX className='h-5 w-5 text-red-500 cursor-pointer' />
-                                                        </button>
-                                                          
-                                                    )
-                                                }
-                                            </div>
-                                            
-                                            <p>Commits: {contributor.commits}</p>
+                    <div className='flex flex-col items-center p-4 max-h-[556px] overflow-y-auto'>
+                        {taskContributors && Object.values(taskContributors).map((contributor, index) => (
+                            <div className='w-full p-3 flex flex-col bg-gray-100 rounded-lg shadow mb-4 min-w-[300px]'>
+                                <div className='flex items-center p-2'>
+                                    <img src={getAvatar(contributor.photoUrl, contributor.username)} alt={contributor.username} className='w-12 h-12 rounded-full mr-4' />
+                                    <div className='w-full'>
+                                        <div className='flex justify-between  w-full'>
+                                            <h3 className='font-bold'>{contributor.username}</h3>
+                                            {
+                                                task.type === "assigned" && task.assigned_to === uid && (
+                                                    <button onClick={() => handleDeleteContributor(contributor.id)}>
+                                                        <UserX className='h-5 w-5 text-red-500 cursor-pointer' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                                                    </button>
+                                                        
+                                                )
+                                            }
                                         </div>
+                                        
+                                        <p>Commits: {contributor.commits}</p>
                                     </div>
-
-                                    {                        
-                                        contributor.firstCommit && contributor.lastCommit && (
-                                            <Accordion 
-                                                expanded={expanded === `panel${index}`} 
-                                                onChange={handleAccordionChange(`panel${index}`)}>
-                                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                                    <p className='font-semibold'>More Details</p>
-                                                </AccordionSummary>
-                                                <AccordionDetails>
-                                                    <div className='flex flex-col'>    
-                                                        <p className='text-green-600'>First Commit</p>      
-                                                        <div className='mt-2 ml-2 p-2 shadow'>
-                                                            <p className='text-[13px] font-semibold'>Date: {new Date(contributor.firstCommit.createdAt).toLocaleString()}</p>
-                                                            <p className='text-[13px] font-semibold'>Hash: {contributor.firstCommit.uuid}</p>
-                                                        </div>                                       
-                                                    </div>
-                                                    
-                                                    <div className='flex flex-col mt-4'>    
-                                                        <p className='text-green-600'>Last Commit</p>      
-                                                        <div className='mt-2 ml-2 p-2 shadow'>
-                                                            <p className='text-[13px] font-semibold'>Date:  <span>{new Date(contributor.lastCommit.createdAt).toLocaleString()}</span> </p>
-                                                            <p className='text-[13px] font-semibold'>Hash: <span>{contributor.lastCommit.uuid}</span> </p>
-                                                        </div>
-                                                    </div>
-                                                </AccordionDetails>
-                                            </Accordion>
-                                        )
-                                    }
-
                                 </div>
 
-                            ))}
-                        </div>
-                    
+                                {                        
+                                    contributor.firstCommit && contributor.lastCommit && (
+                                        <Accordion 
+                                            expanded={expanded === `panel${index}`} 
+                                            onChange={handleAccordionChange(`panel${index}`)}>
+                                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                <p className='font-semibold'>More Details</p>
+                                            </AccordionSummary>
+                                            <AccordionDetails>
+                                                <div className='flex flex-col'>    
+                                                    <p className='text-green-600'>First Commit</p>      
+                                                    <div className='mt-2 ml-2 p-2 shadow'>
+                                                        <p className='text-[13px] font-semibold'>Date: {new Date(contributor.firstCommit.createdAt).toLocaleString()}</p>
+                                                        <p className='text-[13px] font-semibold'>Hash: {contributor.firstCommit.uuid}</p>
+                                                    </div>                                       
+                                                </div>
+                                                
+                                                <div className='flex flex-col mt-4'>    
+                                                    <p className='text-green-600'>Last Commit</p>      
+                                                    <div className='mt-2 ml-2 p-2 shadow'>
+                                                        <p className='text-[13px] font-semibold'>Date:  <span>{new Date(contributor.lastCommit.createdAt).toLocaleString()}</span> </p>
+                                                        <p className='text-[13px] font-semibold'>Hash: <span>{contributor.lastCommit.uuid}</span> </p>
+                                                    </div>
+                                                </div>
+                                            </AccordionDetails>
+                                        </Accordion>
+                                    )
+                                }
+
+                            </div>
+                        ))}
+                    </div>       
                 }
             </div>
         </div>

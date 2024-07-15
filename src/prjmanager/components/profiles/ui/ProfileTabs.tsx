@@ -4,12 +4,27 @@ import { cn } from "../../../../utils/cn";
 import { RenderOverview } from "../tabs/RenderOverview";
 import { RenderProjects } from "../tabs/RenderProjects";
 import './profile.css'
+import { UserRelation, ProfileData, ProfileProjects, TopRepos, TopProjects } from "../hooks/useProfileData";
+import { Location } from "react-router-dom";
 
 type Tab = {
   title: string;
   value: string;
-  content?: string | ReactNode | any;
+  content?: string | ReactNode;
 };
+
+interface ProfileTabsProps {
+  firstTime: boolean;
+  setFirstTime: (firstTime: boolean) => void;
+  usersRelation: UserRelation;
+  user: ProfileData;
+  projects: ProfileProjects[];
+  topRepos: TopRepos[];
+  topProjects: TopProjects[];
+  location: Location;
+  isProfileFollowersModalOpen: boolean;
+  setIsProfileFollowersModalOpen: (isProfileFollowersModalOpen: boolean) => void;
+}
 
 
 const tabsArr = [
@@ -23,7 +38,8 @@ const tabsArr = [
     }
 ];
 
-export function ProfileTabs({ firstTime, setFirstTime, usersRelation, user, projects, topRepos, topProjects, location, isProfileFollowersModalOpen, setIsProfileFollowersModalOpen }) {
+export function ProfileTabs({ firstTime, setFirstTime, usersRelation, 
+  user, projects, topRepos, topProjects, location, isProfileFollowersModalOpen, setIsProfileFollowersModalOpen }: ProfileTabsProps) {
   
 
   const [tabToRender, setTabToRender] = useState('overview')
@@ -33,9 +49,9 @@ export function ProfileTabs({ firstTime, setFirstTime, usersRelation, user, proj
 
   const memoizedRenderOverview = useMemo(() => 
     <RenderOverview user={user} topRepos={topRepos} topProjects={topProjects}  location={location} />
-  , [user, location, tabToRender]);
+  , [user, location, topRepos, topProjects]);
 
-  const renderTab = (render) => {
+  const renderTab = (render: string) => {
     switch (render) {
         case 'overview': 
         return memoizedRenderOverview

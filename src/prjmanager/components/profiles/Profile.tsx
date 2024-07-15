@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useProfileData } from './hooks/useProfileData';
+import { useProfileData, ProfileData, ProfileProjects, TopProjects, TopRepos } from './hooks/useProfileData';
 import { ScaleLoader } from 'react-spinners';
 import { ProfileTabs } from './ui/ProfileTabs';
 import { ProfileFollowers } from './modals/ProfileFollowers';
+
 
 export const Profile = () => {
 
@@ -28,8 +29,8 @@ export const Profile = () => {
           <ProfileFollowers 
             isProfileFollowersModalOpen={isProfileFollowersModalOpen} 
             setIsProfileFollowersModalOpen={setIsProfileFollowersModalOpen} 
-            profileUID={profile.uid} 
-            profileName={profile.username} 
+            profileUID={profile?.uid as string} 
+            profileName={profile?.username as string} 
           />
         )
       }
@@ -44,8 +45,10 @@ export const Profile = () => {
             firstTime={firstTime} 
             setFirstTime={setFirstTime} 
             usersRelation={usersRelation}  
-            user={profile} projects={profileProjects} 
-            topRepos={topRepos} topProjects={topProjects}  
+            user={profile as ProfileData} 
+            projects={profileProjects as ProfileProjects[]} 
+            topRepos={topRepos as TopRepos[]} 
+            topProjects={topProjects as TopProjects[]}  
             location={location} 
             isProfileFollowersModalOpen={isProfileFollowersModalOpen}
             setIsProfileFollowersModalOpen={setIsProfileFollowersModalOpen}

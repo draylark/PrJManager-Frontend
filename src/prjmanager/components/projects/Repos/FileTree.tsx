@@ -1,28 +1,47 @@
-import { Fragment, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { fileExtensionToIconAndColor } from './helpers/repos-fn';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { faFolder, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { RepositoryBase } from '../../../../interfaces/models';
+import { File } from './Repository';
 
 
-export const FileTree = ({ branch, files, onFileClick, onFolderClick, repo, setFiles, selectedFileName, setSelectedFileContent, setSelectedFileName }) => {
+interface FileTreeProps {
+  branch: string;
+  files: File[];
+  onFileClick: (branch: string, repo: RepositoryBase, path: string, setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>, setSelectedFileName: React.Dispatch<React.SetStateAction<string>>) => void;
+  onFolderClick: (repo: RepositoryBase, path: string, id: string, setFiles: React.Dispatch<React.SetStateAction<File[]>>) => void;
+  repo: RepositoryBase;
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  selectedFileName: string;
+  setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedFileName: React.Dispatch<React.SetStateAction<string>>;
+}
 
-    const [opened, setOpened] = useState(0)
-    
-    const handleOnFolderClick = (repo, path, id, setFiles) => {
 
-        const toggleFolderFiles = (currentFiles, folderId) => {
+export const FileTree: React.FC<FileTreeProps> = ({ branch, files, onFileClick, onFolderClick, repo, setFiles, selectedFileName, setSelectedFileContent, setSelectedFileName }) => {
 
-            return currentFiles.map(file => {
-                if (file.id === folderId && file.type === 'tree') {
-                    return { ...file, files: file.files && file.files.length > 0 ? [] : file.files };
-                } else if (file.type === 'tree' && file.files) {
-                    return { ...file, files: toggleFolderFiles(file.files, folderId) };
-                }
-                return file;
-            });
-        };
-    
+    const [opened, setOpened] = useState<string | number>(0)
+
+
+    const toggleFolderFiles = (currentFiles: File[], folderId: string): File[] => {
+        return currentFiles.map(file => {
+            if (file.id === folderId && file.type === 'tree') {
+                return { ...file, files: file.files && file.files.length > 0 ? [] : file.files };
+            } else if (file.type === 'tree' && file.files) {
+                return { ...file, files: toggleFolderFiles(file.files, folderId) };
+            }
+            return file;
+        });
+    };  
+
+    const handleOnFolderClick = (
+      repo: RepositoryBase, 
+      path: string, 
+      id: string, 
+      setFiles: React.Dispatch<React.SetStateAction<File[]>>
+    ) => {
         if (opened === id) {
             setFiles(currentFiles => toggleFolderFiles(currentFiles, id));
             setOpened(0);
@@ -32,14 +51,12 @@ export const FileTree = ({ branch, files, onFileClick, onFolderClick, repo, setF
         }
     };
 
-    // Función para obtener el icono FontAwesome basado en la extensión del archivo
     const getIconAndColorForFile = (fileName: string) => {
       const extension = fileName.split('.').pop()?.toLowerCase() || '';
       const defaultIconAndColor = { icon: faFile, color: '#6c757d' }; // Color gris por defecto
       return fileExtensionToIconAndColor[extension] || defaultIconAndColor;
     };
     
-    // Componente para renderizar el icono de un archivo
     const FileIcon = ({ fileName }: { fileName: string }) => {
       const { icon, color } = getIconAndColorForFile(fileName);
       return <FontAwesomeIcon icon={icon} style={{ color }} />;
@@ -66,7 +83,17 @@ export const FileTree = ({ branch, files, onFileClick, onFolderClick, repo, setF
             {/* Renderiza recursivamente los archivos de la carpeta */}
             {file.type === 'tree' && file.files && (
               <div className="pl-2">
-                <FileTree branch={branch} files={file.files} repo={repo} setFiles={setFiles} setSelectedFileContent={setSelectedFileContent} setSelectedFileName={setSelectedFileName} onFileClick={onFileClick} onFolderClick={onFolderClick} />
+                <FileTree 
+                  branch={branch} 
+                  files={file.files} 
+                  repo={repo} 
+                  setFiles={setFiles} 
+                  setSelectedFileContent={setSelectedFileContent} 
+                  setSelectedFileName={setSelectedFileName} 
+                  onFileClick={onFileClick} 
+                  onFolderClick={onFolderClick} 
+                  selectedFileName={selectedFileName}        
+                />
               </div>
             )}
           </Fragment>

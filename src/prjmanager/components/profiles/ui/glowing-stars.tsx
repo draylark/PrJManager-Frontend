@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from '../../../../utils/cn';
 import { cleanUrl } from "../../projects/helpers/helpers";
+import { TopProjects } from "../hooks/useProfileData";
+import { NavigateFunction } from "react-router-dom";
 
 export const GlowingStarsBackgroundCard = ({
   className,
@@ -53,8 +55,8 @@ export const GlowingStarsTitle = ({
   className?: string;
   children?: React.ReactNode;
   setMouseEnter: (value: boolean) => void;
-  currentProject: any;
-  navigate: any;
+  currentProject: TopProjects;
+  navigate: NavigateFunction;
 }) => {
   const seeProject = () => {
     navigate(`/projects/${cleanUrl(currentProject.name)}`, {

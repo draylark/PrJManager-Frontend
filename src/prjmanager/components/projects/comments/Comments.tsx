@@ -11,16 +11,9 @@ import { useFetchComments } from './hooks/useFetchComments';
 import { tierS, tierA } from '../../../helpers/accessLevels-validator';
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { RootState } from '../../../../store/store';
+import { MComment } from './hooks/useFetchComments';
 
-interface Comment {
-    id: string;
-    content: string;
-    username: string;
-    photoUrl: string;
-    likes: number;
-    commentParent: string;
-    answering_to: string
-}
 
 export const Comments = () => {
 
@@ -33,16 +26,15 @@ export const Comments = () => {
     const [moreOption, setMoreOption] = useState('')
     const [showButtons, setShowButtons] = useState(false)
     const [newComment, setNewComment] = useState(''); 
-    const [newAnswer, setNewAnswer] = useState<{ [key: number]: string }>({});
-    const [replyField, setReplyField] = useState<{ [key: number]: boolean }>({});
-    const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
-    const { currentProject} = useSelector((state) => state.platypus );
-    const { uid, username, photoUrl } = useSelector((state) => state.auth);
+    const [newAnswer, setNewAnswer] = useState<{ [key: string]: string }>({});
+    const [replyField, setReplyField] = useState<{ [key: string]: boolean }>({});
+    const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
+    const { currentProject} = useSelector((state: RootState) => state.platypus );
+    const { uid, username, photoUrl } = useSelector((state: RootState) => state.auth);
     
     const { setComments, fetchComments, fetchMoreReplies, handleLikeDislike, setNoCommentsToFetch,
             comments, likes, noCommentsToFetch, hasMoreComments, currentPage,  isLoading, errorMessage,
             errorWhileFetching, setErrorWhileFetching, errorType } = useFetchComments()
-
 
 
     const handleCommentSubmit = async() => {
@@ -50,14 +42,17 @@ export const Comments = () => {
             const response = await axios.post(`${backendUrl}/comments/create-comment`, { project: project.ID, content: newComment, uid, photoUrl })
             const commentInfo = response.data.newComment
 
-            const comment: Comment = {
+            const comment: MComment = {
                 id: commentInfo._id, // Mejor usar un ID único
                 content: commentInfo.content,
-                username,
+                username: username as string,
                 photoUrl: commentInfo.photoUrl || null, // Suponiendo que tienes la URL del avatar en los datos del usuario
                 likes: commentInfo.likes,
                 commentParent: commentInfo.commentParent,
-                answering_to: commentInfo.answering_to
+                answering_to: commentInfo.answering_to,
+                current_page: 1,
+                total_pages: 1,
+                createdAt: new Date().toISOString()
             };
             setComments([ comment, ...comments ]);
             setNoCommentsToFetch(false)
@@ -68,20 +63,23 @@ export const Comments = () => {
 
     };
 
-    const handleAnswerSubmit = async (commentId: number) => {
+    const handleAnswerSubmit = async (commentId: string) => {
         const content = newAnswer[commentId] || '';
         try {
             const response = await axios.post(`${backendUrl}/comments/create-comment`, { project: project.ID, content, uid, answering_to: commentId, photoUrl });
             const commentInfo = response.data.newComment;
 
-            const c: Comment = {
+            const c: MComment = {
                 id: commentInfo._id,
                 content: commentInfo.content,
-                username,
+                username: username as string,
                 likes: commentInfo.likes,
                 photoUrl: commentInfo.photoUrl,
                 commentParent: commentInfo.commentParent,
-                answering_to: commentInfo.answering_to
+                answering_to: commentInfo.answering_to,
+                current_page: 1,
+                total_pages: 1,
+                createdAt: new Date().toISOString()
             }
 
             setComments([ ...comments, c ]);
@@ -96,11 +94,11 @@ export const Comments = () => {
 
 
 
-    const toggleReplyField = (commentId: number, show: boolean) => {
+    const toggleReplyField = (commentId: string, show: boolean) => {
         setReplyField(prev => ({ ...prev, [commentId]: show }));
     };
     
-    const toggleShowReplies = (commentId: number) => {
+    const toggleShowReplies = (commentId: string) => {
         setShowReplies(prev => {
             const show = prev[commentId] === true ? true : true
             return { ...prev, [commentId]: show }
@@ -135,7 +133,7 @@ export const Comments = () => {
         }
     };
 
-    const getAccurateDate = (date) => {
+    const getAccurateDate = (date: string) => {
         return (
             <Typography component="span" style={{ color: 'gray', fontSize: '10px' }}>
                 { date }
@@ -144,7 +142,7 @@ export const Comments = () => {
 
     };
 
-    const findOriginalCommentUsername = (commentId) => {
+    const findOriginalCommentUsername = (commentId: string) => {
         const comment = comments.find(comment => comment.id === commentId);
     
         if( comment ) {
@@ -154,10 +152,9 @@ export const Comments = () => {
         }                   
     };
 
-    const renderComments = (comments: Comment[], parentId: number | null = null) => {
+    const renderComments = (comments: MComment[]) => {
   
-
-        const renderShowButtonReplies = (commentId: number, style: React.CSSProperties = {}) => {
+        const renderShowButtonReplies = (commentId: string, style: React.CSSProperties = {}) => {
             if (comments.find(comment => comment.commentParent === commentId)) {
                 return (
                     <Button 
@@ -172,20 +169,21 @@ export const Comments = () => {
             return null;
         };
         
-        const renderCommentsLikesDislikes = (commentId: number, style: React.CSSProperties = {}) => {
-            const like = likes.filter(like => like.commentId === commentId && like.uid === uid && like.isLike === true).length;
-        
+        const renderCommentsLikesDislikes = (commentId: string, style: React.CSSProperties = {}) => {
+            const myLike = likes.filter(like => like.commentId === commentId && like.uid === uid && like.isLike === true).length > 0
+            const commentLikes = likes.filter(like => like.commentId === commentId && like.isLike === true).length
+
             return (
                 <Box sx={{ marginRight: 1, display: 'flex', alignItems: 'center', ...style } }> 
                     <IconButton onClick={() => handleLikeDislike(commentId)}>
-                        <ThumbUpAltIcon sx={{ width: 20, height: 20 }}  color={like ? 'primary' : 'inherit'} />
+                        <ThumbUpAltIcon sx={{ width: 20, height: 20 }}  color={myLike ? 'primary' : 'inherit'} />
                     </IconButton>
-                    <span>{like}</span>
+                    <span>{commentLikes}</span>
                 </Box>
             );
         };
 
-        const renderCommentsReplies = (commentId: number, current_page, total_pages ) => {
+        const renderCommentsReplies = (commentId: string, current_page: number, total_pages: number ) => {
             return (
                 <List dense>
                     {comments.filter(comment => comment.commentParent === commentId).map(comment => (
@@ -265,9 +263,9 @@ export const Comments = () => {
                                 </Dialog>
                                 
                                 {
-                                        tierS(uid, currentProject) 
+                                        tierS(uid as string, currentProject) 
                                     ||
-                                        tierA(uid, currentProject)
+                                        tierA(uid as string, currentProject)
                                     ? (
                                         <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
                                             <MoreVertIcon  sx={{ width: 18, height: 18 }}  />
@@ -398,9 +396,9 @@ export const Comments = () => {
                             </Dialog>
 
                             {
-                                    tierS(uid, currentProject) 
+                                    tierS(uid as string, currentProject) 
                                 ||
-                                    tierA(uid, currentProject)
+                                    tierA(uid as string, currentProject)
                                 ? (
                                     <IconButton onClick={() => setMoreOption( prev => prev === comment.id ? '' : comment.id )}>
                                         <MoreVertIcon  sx={{ width: 20, height: 20 }}  />
@@ -445,6 +443,7 @@ export const Comments = () => {
 
     useEffect(() => {
         fetchComments(currentPage, true);
+          // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
 

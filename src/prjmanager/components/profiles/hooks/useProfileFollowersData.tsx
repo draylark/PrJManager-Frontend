@@ -1,15 +1,26 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { FollowerBase } from '../../../../interfaces/models';
 
-export const useProfileFollowersData = (profileUID) => {
+
+export interface Follower extends Pick<FollowerBase, '_id'> {
+    followerId: { uid: string; username: string; photoUrl: string | null }
+}
+export interface Following extends Pick<FollowerBase, '_id'> {
+    uid: { uid: string; username: string; photoUrl: string | null }
+}
+
+
+
+export const useProfileFollowersData = (profileUID: string) => {
 
     const [fetchingUsers, setfetchingUsers] = useState(true);
     const [fetchingMoreFollowers, setFetchingMoreFollowers] = useState(false)
     const [fetchingMoreFollowing, setFetchingMoreFollowing] = useState(false)
 
-    const [followers, setFollowers] = useState([]);
-    const [following, setFollowing] = useState([]);
+    const [followers, setFollowers] = useState<Follower[]>([]);
+    const [following, setFollowing] = useState<Following[]>([]);
 
     const [followersLength, setfollowersLength] = useState(0)
     const [followingLength, setfollowingLength] = useState(0)
@@ -35,7 +46,7 @@ export const useProfileFollowersData = (profileUID) => {
             setfetchingUsers(false)
             setFetchingMoreFollowing(false)
         })
-        .catch((error) => {
+        .catch(() => {
             setFetchingMoreFollowing(false)
         })
     }
@@ -49,7 +60,7 @@ export const useProfileFollowersData = (profileUID) => {
             setFollowers([...followers, ...moreFollowers])
             setFetchingMoreFollowers(false)
         })
-        .catch((error) => {
+        .catch(() => {
             setFetchingMoreFollowers(false)
         })
     }
@@ -83,6 +94,7 @@ export const useProfileFollowersData = (profileUID) => {
 
     useEffect(() => {
         fetchInitialUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
 
@@ -90,6 +102,7 @@ export const useProfileFollowersData = (profileUID) => {
         if (FollowersPage > 1) {
             fetchMoreFollowers()
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [FollowersPage])
 
 
@@ -97,6 +110,7 @@ export const useProfileFollowersData = (profileUID) => {
         if (FollowingPage > 1) {
             fetchMoreFollowing()
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [FollowingPage])
 
   return {

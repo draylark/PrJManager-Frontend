@@ -1,29 +1,52 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { TextField, Button, List, ListItem, ListItemText, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Autocomplete, Typography, Tooltip } from '@mui/material';
 import { ImCancelCircle } from "react-icons/im";
 import Avatar from '@mui/material/Avatar';
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import { LiaQuestionCircleSolid } from "react-icons/lia";
 import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
+import { Collaborator } from './RepositoryConfigForm';
 
 
-export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, currentOrNew }) => {
+interface RepoNewCollaboratorsProps {
+    setFieldValue: (field: string, value: unknown) => void;
+    values: FormValues;
+    setCurrentOrNew: (value: boolean) => void;
+}
 
-    const [selectedUser, setSelectedUser] = useState({
-        name: '',
-        id: '',
-        accessLevel: ''
-    });
+interface UserFromServer {
+    name: string;
+    photoUrl: string | null;
+    id: string;
+    new: boolean
+}
+
+interface FormValues {
+    name: string;
+    description: string;
+    visibility: string;
+    collaborators: Collaborator[];
+    newCollaborators: Collaborator[];
+    modifiedCollaborators: Collaborator[];
+    deletedCollaborators: string[];
+    branches: {
+      _id: string;
+      name: string;
+      default: boolean;
+    }[];
+    newDefaultBranch: string | null;
+}
+
+export const RepoNewCollaborators: React.FC<RepoNewCollaboratorsProps> = ({ setFieldValue, values, setCurrentOrNew }) => {
+
     const [openDialog, setOpenDialog] = useState(false);
     const [accessLevel, setAccessLevel] = useState('');
     const [tooltipContent, setTooltipContent] = useState('');
     const [tooltipOpen, setTooltipOpen] = useState('');
     const { users, setSearch } = useGlobalUsersSearcher();
+    const [selectedUser, setSelectedUser] = useState<UserFromServer | null>(null);
 
-
-
-
-    const handleMouseEnter = (text, type) => {
+    const handleMouseEnter = (text: string, type: string) => {
         setTooltipContent(text);
         setTooltipOpen(type);
     };
@@ -33,7 +56,10 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
     };
 
 
-    const addUserAsCollaborator = (values, setFieldValue) => {
+    const addUserAsCollaborator = (
+        values: FormValues, 
+        setFieldValue: (field: string, value: unknown) => void
+    ) => {
         const newCollaborator = { ...selectedUser, accessLevel };
         
         // Filtrar cualquier posible duplicado basado en el 'id'.
@@ -48,7 +74,10 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
         setAccessLevel('');
     };
 
-    const handleAddNewCollaborators = (values, setFieldValue) => {
+    const handleAddNewCollaborators = (
+        values: FormValues, 
+        setFieldValue: (field: string, value: unknown) => void
+    ) => {
     // Obtener los IDs de los nuevos colaboradores.
     const newCollaboratorIds = new Set(values.newCollaborators.map(collab => collab.id));
 
@@ -68,7 +97,11 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
     setCurrentOrNew(false); // Cambia la vista si es necesario.
     };
 
-    const handleDeleteNewCollaborator = (values, setFieldValue, id) => {
+    const handleDeleteNewCollaborator = (
+        values: FormValues, 
+        setFieldValue: (field: string, value: unknown) => void,
+        id: string
+    ) => {
         const updateProjectCollaborators = values.collaborators.filter(collaborator => collaborator.id !== id);
         const updatedNewCollaborators = values.newCollaborators.filter(collaborator => collaborator.id !== id);
 
@@ -130,7 +163,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                         option.id.toString().includes(inputValue)
                         );
                     }}
-                    onChange={(e, newValue) => {
+                    onChange={(_, newValue) => {
                         // Verificar si el elemento seleccionado ya es un colaborador o ha sido añadido
                         const isACollaboratorAlready = values.collaborators.some(collab => collab.id === newValue?.id);
                         const isAdded = values.newCollaborators.some(collab => collab.id === newValue?.id);
@@ -230,7 +263,7 @@ export const RepoNewCollaborators = ({ setFieldValue, values, setCurrentOrNew, c
                 <DialogActions>
                     <Button onClick={() => {
                     setOpenDialog(false)
-                    setSelectedUser({ name: '', accessLevel: '', id: '' })
+                    setSelectedUser(null)
                     }}
                     >Cancel</Button>
                     

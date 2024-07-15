@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { ImCancelCircle } from "react-icons/im";
 import { formateDate, getInitialsAvatar } from '../../../../helpers/helpers';
+import { PopulatedReasonForRejection } from '../../../../../interfaces/models';
 
-export const TaskRejectionReasons = ({ setIsTaskReasonsOpen, isTaskReasonsOpen, reasons }) => {
+interface TaskRejectionReasonsProps {
+    setIsTaskReasonsOpen: (isOpen: boolean) => void;
+    isTaskReasonsOpen: boolean;
+    reasons: PopulatedReasonForRejection[];
+}
 
-    console.log('reasons', reasons)
+export const TaskRejectionReasons: React.FC<TaskRejectionReasonsProps> = ({ setIsTaskReasonsOpen, isTaskReasonsOpen, reasons }) => {
+
     const handleClose = () => {
         const modal = document.getElementById('tasksReasons');
         if (modal) {
@@ -15,12 +21,11 @@ export const TaskRejectionReasons = ({ setIsTaskReasonsOpen, isTaskReasonsOpen, 
         }
     };
 
-
     useEffect(() => {
         if (isTaskReasonsOpen) {
           const timer = setTimeout(() => {
-            document.getElementById('tasksReasons').classList.remove('opacity-0');
-            document.getElementById('tasksReasons').classList.add('opacity-100');
+            document.getElementById('tasksReasons')?.classList.remove('opacity-0');
+            document.getElementById('tasksReasons')?.classList.add('opacity-100');
           }, 20);
           return () => clearTimeout(timer);
         }
@@ -47,8 +52,7 @@ export const TaskRejectionReasons = ({ setIsTaskReasonsOpen, isTaskReasonsOpen, 
                     <div className='flex flex-col'>
                       <span className='text-lg font-semibold text-black'>{reason.uid.username}</span>
                       <span className='text-sm text-gray-600'>About the submitted task on <span className='font-semibold'>{formateDate(reason.taskSubmissionDate)}</span></span>
-                    </div>
-                  </div>
+                    </div>                  </div>
                   <div className='relative flex flex-grow h-full space-x-2 mt-2'>
                     <p className='text-[14px] font-semibold '>Reason:</p>
                 

@@ -1,19 +1,30 @@
-import { Gitlab } from "@ricons/fa";
-import { ProjectType, NotiType, TaskType, ClientType, EventType, FriendType, RepoType, GroupType, LayerType, CommitType} from "./stateTypes";
+import {  NotiType, TaskType, ClientType, EventType, FriendType, RepoType, CommitType} from "./stateTypes";
+import { ProjectBase } from "../../interfaces/models/project";
+import { LayerBase } from "../../interfaces/models/layer";
+import { RepositoryBase } from '../../interfaces/models/repository';
+
+
+interface TopProjects {
+    _id: string;
+    name: string;
+}
 
 export interface Auth {
     status: string;
     uid: string | null;
     email: string | null;
     username: string | null;
-    photoURL: string | null;
+    photoUrl: string | null;
     description: string | null;
-    site: string | null;
-    gitlabAuth: boolean;
+    followers: number;
+    topProjects: TopProjects[];
+    website: string | null;
+    github: string | null;
+    linkedin: string | null;
+    twitter: string | null;
     errorMessage: string | null;
     state: boolean  // <-- Reemplaza 'any' con el tipo apropiado si es posible
-    friendsRequests: string[];
-    friends: string[];
+    gitlabAuth: boolean;    
 }
 
 export interface Notification {
@@ -22,7 +33,7 @@ export interface Notification {
 }
 
 export interface Project {
-    projects: ProjectType[];
+    projects: ProjectBase[];
     current: string[],
     topProjects: string[],
     loading: boolean,
@@ -75,8 +86,11 @@ export interface Commit {
 
 
 export interface Platypus {
-    currentProject: ProjectType | null,
-    layers: LayerType[],
-    currentLayer: LayerType | null,
-    layerRepositories: RepoType[],
+    currentProject: ProjectBase | null,
+    layers: LayerBase[],
+    repositories: RepositoryBase[],
+    fetchingResources: boolean,
+    errorWhileFetching: boolean | null,
+    errorMessage: string | null,
+    errorType: string | null,
 }

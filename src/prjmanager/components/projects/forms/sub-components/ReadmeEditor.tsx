@@ -4,13 +4,25 @@ import 'github-markdown-css/github-markdown.css'; // Importar estilos para markd
 import ReactMarkdown from 'react-markdown';
 import { ArrowHookUpLeft16Regular } from '@ricons/fluent'
 
-export const ReadmeEditor = ({ setNextStep, readmeContent, setFieldValue }) => {
+
+
+
+interface ReadmeEditorProps {
+    setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
+    readmeContent: string;
+    setFieldValue: (field: string, value: unknown, shouldValidate?: boolean | undefined) => void;
+}
+
+
+
+export const ReadmeEditor = ({ setNextStep, readmeContent, setFieldValue }: ReadmeEditorProps) => {
 
   const [editMode, setEditMode] = useState(false)
 
-  const handleReadmeChange = (e) => {
+  const handleReadmeChange = (e:  React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement> ) => {
     setFieldValue('readmeContent', e.target.value);
   };
+    
 
   const defaultMarkdown = `
 # Nombre del Proyecto
@@ -31,7 +43,7 @@ Una breve descripción del proyecto, explicando su propósito, funcionalidades p
     <div className='flex flex-col space-y-5'>
         <div className="flex justify-between">
             <div className='flex space-x-2 items-center'>
-                <ArrowHookUpLeft16Regular className='w-5 h-5 cursor-pointer' onClick={() => setNextStep(false)} />
+                <ArrowHookUpLeft16Regular className='w-5 h-5 cursor-pointer' onClick={() => setNextStep(false)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                  <h1 className="text-2xl font-bold text-sky-950">Readme Preview</h1>
             </div>
            

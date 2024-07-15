@@ -1,22 +1,33 @@
-// import { useHeatMapData } from './hooks/useHeatMapData'
+import React from 'react';
 import HeatMap from '@uiw/react-heat-map';
 import { TextField, MenuItem, Tooltip } from '@mui/material';
-import { useSelector } from 'react-redux';
 import { useRepoHeatMapData } from './modals/hooks/useRepoHeatMapData';
+import { RepositoryBase } from '../../../../interfaces/models';
 
-export const RepoHeatMap = ({ uid, repository }) => {
+
+interface RepoHeatMapProps {
+    uid: string;
+    repository: RepositoryBase;
+}
+
+interface TooltipContentProps {
+    formattedDate: string;
+    details: { commits: number, tasks: number };
+}
+
+export const RepoHeatMap: React.FC<RepoHeatMapProps> = ({ uid, repository }) => {
 
     const { data, year, setYear, detailsMap, formatDateFromHeatMap } = useRepoHeatMapData(repository._id, uid);
 
-   const repoYear = new Date(repository.createdAt).getFullYear();
+   const repoYear = new Date(repository.createdAt as string).getFullYear();
    const currentYear = new Date().getFullYear();
-   const yearsRange = Array.from({ length: currentYear - repoYear + 1 }, (v, k) => repoYear + k);
+   const yearsRange = Array.from({ length: currentYear - repoYear + 1 }, (_, k) => repoYear + k);
 
    const startDate = new Date(`${year}/01/01`);
    const endDate = new Date(`${year}/12/31`);
 
 
-   const TooltipContent = ({ formattedDate, details }) => {
+   const TooltipContent: React.FC<TooltipContentProps> = ({ formattedDate, details }) => {
         return (
             <div className='flex space-x-2'>
                 <h3>{formattedDate} |</h3>

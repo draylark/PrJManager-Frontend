@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ScaleLoader } from 'react-spinners';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { FaFolderClosed } from "react-icons/fa6";
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useSelector } from 'react-redux';
 import { MdLayers } from 'react-icons/md';
 import { FaGitAlt } from 'react-icons/fa';
@@ -10,8 +10,7 @@ import { TaskHeatmap } from './heatmap/TaskHeatmap';
 import { AnimatedTooltip } from './animated=tooltip';
 import { AiOutlineDiff } from "react-icons/ai";
 import { DiffModal } from './modals/DiffModal';
-import { Copy20Regular, CommentMultipleCheckmark28Regular, CommentDismiss20Regular, CommentCheckmark28Regular, Warning24Regular } from '@ricons/fluent'
-import { MessageReport } from '@ricons/tabler'
+import { Copy20Regular, CommentCheckmark28Regular, Warning24Regular } from '@ricons/fluent'
 import { Tooltip } from '@mui/material';
 import Swal from 'sweetalert2';
 import { TaskComplete, TaskView, TaskRemove, UserMultiple } from '@ricons/carbon'
@@ -23,58 +22,73 @@ import { ContributorsNotes } from './modals/ContributorsNotes';
 import { TaskContributors } from './modals/TaskContributors';
 import img1 from '../../../assets/imgs/formbg.jpg'
 import { capitalizeFirstLetter } from '../../../helpers/helpers';
+import { RootState } from '../../../../store/store';
+import { WorkspaceTask, CommitForWTask, PopulatedReasonForRejection } from '../../../../interfaces/models';
+import { getInitialsAvatar } from '../../projects/helpers/helpers';
+
+interface CommitCount {
+    date: string;
+    count: number;
+    commits?: number; // Esta propiedad es opcional
+}
+
+interface ApiResponse {
+    message: string;
+}
+
+interface DiffData {
+    hash: string; 
+    new: boolean | undefined
+}
+
+interface TaskNote {
+    _id: string;
+    uid: { username: string; photoUrl: string; uid: string },
+    task: string;
+    text: string;
+    createdAt: string;
+    updatedAt: string
+}
 
 export const TaskSetDetails = () => {
 
 
     const location = useLocation();
-    const navigate = useNavigate();
-    const { uid } = useSelector((state) => state.auth );
+    const { uid } = useSelector( (state: RootState) => state.auth );
 
     const [ready, setReady] = useState(false)
-
     const [commitsDetailsByDay, setCommitsDetailsByDay] = useState(new Map());
-    const [heatmapData, setHeatmapData] = useState(null)
-    const [commits, setCommits] = useState(null)
+    const [heatmapData, setHeatmapData] = useState<CommitCount[] | null>(null)
+    const [commits, setCommits] = useState<CommitForWTask[]>([])
 
-    const [ task, setTask ] = useState(null);
-    const [taskNotes, setTaskNotes] = useState([])
+    const [ task, setTask ] = useState<WorkspaceTask | null>(null);
+    const [taskNotes, setTaskNotes] = useState<TaskNote[]>([])
     const [ isLoading, setIsLoading ] = useState(true);
-    const [ errorMessage, setErrorMessage ] = useState(null);
+    const [ errorMessage, setErrorMessage ] = useState<string | null>(null);
     const [ errorWhileFetching, setErrorWhileFetching ] = useState(false);
     const [handlingParticipation, setHandlingParticipation] = useState(false)
 
-    const [selecteDiffData, setSelecteDiffData] = useState({ hash: '', new: undefined })
+    const [selecteDiffData, setSelecteDiffData] = useState<DiffData>({ hash: '', new: undefined })
     const [isDiffModalOpen, setIsDiffModalOpen] = useState(false)
     const [isNotesOpen, setIsNotesOpen] = useState(false)
     const [isTaskCOpen, setIsTaskCOpen] = useState(false)
     const [isTaskReasonsOpen, setIsTaskReasonsOpen] = useState(false)
 
     const [open, setOpen] = useState(false)
-    const [notes, setNotes] = useState([])
+    const [notes, setNotes] = useState<string[]>([])
     const { taskId } = location.state.task
     const locationState = location.state.task
 
 
-    const formatDate = (date) => {
+    const formatDate = (date: string) => {
         const formattedDate = new Date(date).toLocaleDateString();
         return formattedDate;
     };
 
-    const getInitialsAvatar = (name: string) => {
-        let initials = name.match(/\b\w/g) || [];
-        initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-        return `data:image/svg+xml;base64,${btoa(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
-                <rect width="36" height="36" fill="#333" />
-                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="18px" font-family="Arial, sans-serif">${initials}</text>
-            </svg>`
-        )}`;
-    };
+    const processDataForHeatmap = ( commits: CommitForWTask[], createdAt: string, deadline: string ) => {
 
-    const processDataForHeatmap = ( commits, createdAt, deadline ) => {
-        const commitCounts = {};  // Objeto para almacenar los conteos por fecha
-
+        const commitCounts: { [date: string]: CommitCount } = {};  // Objeto para almacenar los conteos por fecha
+        
         const start = new Date(createdAt)
         const end = new Date(deadline)
 
@@ -93,7 +107,7 @@ export const TaskSetDetails = () => {
     
             if (commitCounts[dateString]) {
                 if( commitCounts[dateString].count === 872349287928342 ){
-                    commitCounts[dateString].commits += 1;
+                    commitCounts[dateString].commits! += 1
                 } else {
                     commitCounts[dateString].count += 1;
                 }     
@@ -108,8 +122,8 @@ export const TaskSetDetails = () => {
         setIsLoading(false)
     };
 
-    const readySetted = (task) => {
-        return task.readyContributors.filter(c => c._id === uid).length > 0;
+    const readySetted = (task: WorkspaceTask) => {
+        return task.readyContributors.filter(c => c.uid._id === uid).length > 0;
     };
 
     const fetchTaskData = async() => {
@@ -120,7 +134,6 @@ export const TaskSetDetails = () => {
         try {
             const { data: { task, commits } } = await axios.get(url1)
             const { data: { notes }} = await axios.get(url2)
-            // console.log(res)
             setTask(task)
             setCommits(commits)
             setTaskNotes(notes)
@@ -132,9 +145,17 @@ export const TaskSetDetails = () => {
             }
         } catch (error) {
             console.log(error)
-            setErrorWhileFetching(true)
-            setErrorMessage(error.response.data.message || 'An error occurred while fetching the task data')
-            setIsLoading(false)
+            const axiosError = error as AxiosError<ApiResponse>
+
+            if (axiosError.response) {
+                setErrorWhileFetching(true)
+                setErrorMessage(axiosError.response.data.message || 'An error occurred while fetching the task data')
+                setIsLoading(false)
+            } else {
+                setErrorWhileFetching(true)
+                setErrorMessage('An error occurred while fetching the task data')
+                setIsLoading(false)
+            }
         }
     };
 
@@ -164,7 +185,7 @@ export const TaskSetDetails = () => {
     };
 
     const dialog = () => {
-        if( task.type === 'assigned' && task.assigned_to === uid ){
+        if( task?.type === 'assigned' && task?.assigned_to === uid ){
             Swal.fire({
                 icon: 'info',
                 title: 'Do you want to continue?',
@@ -198,7 +219,7 @@ export const TaskSetDetails = () => {
     useEffect(() => {
          setIsLoading(true)
          fetchTaskData()
-         
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [taskId])
 
   return (
@@ -211,17 +232,17 @@ export const TaskSetDetails = () => {
         }}    
     >
 
-        { isTaskCOpen && <TaskContributors setIsTaskCOpen={setIsTaskCOpen} isTaskCOpen={isTaskCOpen} repoID={task.repository_related_id._id} taskId={task._id} task={task} uid={uid} /> }
-        { isNotesOpen && <ContributorsNotes setIsNotesOpen={setIsNotesOpen} isNotesOpen={isNotesOpen} taskNotes={taskNotes} uid={uid} setTaskNotes={setTaskNotes} /> }
+        { isTaskCOpen && <TaskContributors setIsTaskCOpen={setIsTaskCOpen} isTaskCOpen={isTaskCOpen} repoID={task?.repository_related_id._id as string} taskId={task?._id as string} task={task as WorkspaceTask} uid={uid as string} /> }
+        { isNotesOpen && <ContributorsNotes setIsNotesOpen={setIsNotesOpen} isNotesOpen={isNotesOpen} taskNotes={taskNotes} setTaskNotes={setTaskNotes} /> }
         { isDiffModalOpen && <DiffModal isDiffModalOpen={isDiffModalOpen} setIsDiffModalOpen={setIsDiffModalOpen} commits={commits} selecteDiffData={selecteDiffData} /> }
         { open && <TaskNotesDialog open={open} setOpen={setOpen} notes={notes} setNotes={setNotes} handleParticipation={handleParticipation} /> }
-        { isTaskReasonsOpen && <TaskRejectionReasons reasons={task?.reasons_for_rejection} setIsTaskReasonsOpen={setIsTaskReasonsOpen} isTaskReasonsOpen={isTaskReasonsOpen} /> }
+        { isTaskReasonsOpen && <TaskRejectionReasons reasons={task?.reasons_for_rejection as PopulatedReasonForRejection[]} setIsTaskReasonsOpen={setIsTaskReasonsOpen} isTaskReasonsOpen={isTaskReasonsOpen} /> }
 
         {
             isLoading 
             ? 
                ( <div className='flex flex-grow items-center justify-center'>
-                    <ScaleLoader  color="#32174D" size={20} /> 
+                    <ScaleLoader  color="#32174D" /> 
                 </div> ) 
           
             : errorWhileFetching 
@@ -237,15 +258,15 @@ export const TaskSetDetails = () => {
                             <div className="flex space-x-2">
                                 <div className='flex flex-col'>
                                     {
-                                        task.assigned_to === uid && (
+                                        task?.assigned_to === uid && (
                                             <p className='flex text-[12px] font-semibold text-center'> <GiLaurelsTrophy className="text-xl text-black mr-2" />  This task has been assigned to you</p>
                                         )
                                     }
-                                    <h1 className='text-blue-700 text-3xl font-bold'>{task.task_name}</h1>
+                                    <h1 className='text-blue-700 text-3xl font-bold'>{task?.task_name}</h1>
                                 </div>
 
                                 <button
-                                    onClick={() => navigator.clipboard.writeText(task._id)}                                  
+                                    onClick={() => navigator.clipboard.writeText(task?._id as string)}                                  
                                 >
 
                                     <Tooltip
@@ -254,6 +275,7 @@ export const TaskSetDetails = () => {
                                         placement="top"      
                                     >
                                         <Copy20Regular
+                                            onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                                             className='w-5 h-5 cursor-pointer hover:text-blue-500 transition-all duration-200 ease-in-out transform active:translate-y-[2px]'
                                         />
                                     </Tooltip>
@@ -269,6 +291,7 @@ export const TaskSetDetails = () => {
                                         placement="top"      
                                     >
                                         <UserMultiple
+                                            onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                                             className='w-5 h-5 cursor-pointer hover:text-blue-500 transition-all duration-200 ease-in-out transform active:translate-y-[2px]'
                                         />
                                     </Tooltip>
@@ -280,35 +303,40 @@ export const TaskSetDetails = () => {
 
 
                             <p className='text-xl'>
-                                {task.task_description}
+                                {task?.task_description}
                             </p>
 
                             <div className='flex space-x-[30px] w-full pl-2 items-center '>
                                 <div className='flex  items-center '>
                                     <FaFolderClosed size={28} color='#6082B6' className='mb-[2px]' />  
-                                    <p className='text-[12px] font-semibold ml-4'> {task.project.name}</p>
+                                    <p className='text-[12px] font-semibold ml-4'> {task?.project.name}</p>
                                 </div>
                                 <div className='flex   items-center  '>
                                     <MdLayers size={38} color='#ffafcc'/>   
-                                    <p  className='text-[12px] font-semibold ml-4'>{task.layer_related_id.name}</p>
+                                    <p  className='text-[12px] font-semibold ml-4'>{task?.layer_related_id.name}</p>
                                 </div>
                                 <div className='flex   items-center  '>
                                     <FaGitAlt size={34} color="#80ed99"/> 
-                                    <p  className='text-[12px] font-semibold ml-4'>{task.repository_related_id.name}</p>
+                                    <p  className='text-[12px] font-semibold ml-4'>{task?.repository_related_id.name}</p>
                                 </div>
                                 <div className='flex   items-center '>
                                     {
-                                        task.status === 'completed' ?
+                                        task?.status === 'completed' ?
                                         ( 
                                             <>
-                                                <TaskComplete  className='w-[26px] h-[26px] text-blue-500'/> 
-                                                <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task.status)}</p>
+                                                <TaskComplete  
+                                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                                                    className='w-[26px] h-[26px] text-blue-500'
+                                                /> 
+                                                <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task?.status)}</p>
                                             </>
                                         )
-                                        : task.status === 'approval' ?
+                                        : task?.status === 'approval' ?
                                         ( 
                                            <>
-                                                <TaskView  className='w-[26px] h-[26px] text-yellow-500'/>
+                                                <TaskView  
+                                                    onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                                                    className='w-[26px] h-[26px] text-yellow-500'/>
                                                 <p className='text-[12px] font-semibold ml-4'>Waiting for approval</p>
                                            </>
                                            
@@ -316,8 +344,10 @@ export const TaskSetDetails = () => {
                                         : 
                                         (            
                                           <>
-                                            <TaskRemove  className='w-[26px] h-[26px] text-[#FF0800]'/>
-                                            <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task.status)}</p>
+                                            <TaskRemove  
+                                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                                                className='w-[26px] h-[26px] text-[#FF0800]'/>
+                                            <p className='text-[12px] font-semibold ml-4'>{capitalizeFirstLetter(task?.status)}</p>
                                           </>
                                         )
                                     }
@@ -331,7 +361,7 @@ export const TaskSetDetails = () => {
 
                         <div id='goals' className='flex flex-col flex-grow mt-5'>
                             <h2 className='font-semibold mb-2'>Goals</h2>
-                            {task.goals.map((goal, index) => (
+                            {task?.goals.map((goal, index) => (
                                 <div key={index} className="goal-item p-2 m-2 bg-white rounded shadow">
                                     <p className="text-gray-700 text-sm">{goal}</p>
                                 </div>
@@ -341,7 +371,7 @@ export const TaskSetDetails = () => {
 
                         <div className='absolute flex-grow bottom-0 w-[94%]'>               
                             {
-                                task?.readyContributors.length > 0 && (
+                                task?.readyContributors && task?.readyContributors.length > 0 && (
                                     <div className="flex items-center mb-2 w-full max-h-[820px]">
                                         <AnimatedTooltip items={task.readyContributors} commits={commits} />
                                     </div>
@@ -349,12 +379,12 @@ export const TaskSetDetails = () => {
                             }  
                             {
                             
-                                task.status === 'completed' ? (
+                                task?.status === 'completed' ? (
                                     <div className='flex items-center justify-center w-full p-4'>
                                         <p className='text-xl font-semibold text-blue-500'>Task Completed.</p>
                                     </div>
                                 )
-                                : task.status === 'approval' ? (
+                                : task?.status === 'approval' ? (
                                     <div className='flex items-center justify-center w-full p-4'>
                                         <p className='text-xl font-semibold text-yellow-600'>Waiting for approval.</p>
                                     </div>
@@ -375,7 +405,7 @@ export const TaskSetDetails = () => {
                                             ? ( <ScaleLoader height={20} width={3}  color="#32174D" /> )                                                                        
                                             : (
                                                 <p className="w-[50%] transition-transform duration-200 ease-in-out hover:scale-110">
-                                                    {task.assigned_to === uid ? 'Send task for revision' : 'Finish contributions'}
+                                                    {task?.assigned_to === uid ? 'Send task for revision' : 'Finish contributions'}
                                                 </p>
                                             )
                                       }
@@ -391,9 +421,11 @@ export const TaskSetDetails = () => {
                              <h4 className='font-semibold'>Task Activity</h4> 
                              <div className='flex space-x-2'>
                                 {
-                                    task?.reasons_for_rejection.length > 0 && (
+                                    task?.reasons_for_rejection && task?.reasons_for_rejection.length > 0 && (
                                         <button onClick={() =>  setIsTaskReasonsOpen(true)}>
-                                        <Warning24Regular className='w-5 h-5 hover:text-red-600 transition-colors duration-100'/>
+                                        <Warning24Regular 
+                                            onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                                            className='w-5 h-5 hover:text-red-600 transition-colors duration-100'/>
                                     </button>
                                     )
                                 }
@@ -401,7 +433,9 @@ export const TaskSetDetails = () => {
                                 {
                                     taskNotes.length > 0 && (
                                         <button onClick={() =>  setIsNotesOpen(true) }>
-                                            <CommentCheckmark28Regular className='w-5 h-5 hover:text-green-600 transition-colors duration-100'/>
+                                            <CommentCheckmark28Regular 
+                                                onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                                                className='w-5 h-5 hover:text-green-600 transition-colors duration-100'/>
                                         </button>
                                     )
                                 }
@@ -415,12 +449,16 @@ export const TaskSetDetails = () => {
                  
                         </div>
                         
-                        <TaskHeatmap data={heatmapData} commitsDetailsByDay={commitsDetailsByDay} createdAt={task.createdAt} />
+                        <TaskHeatmap 
+                            data={heatmapData as CommitCount[]} 
+                            commitsDetailsByDay={commitsDetailsByDay} 
+                            createdAt={task?.createdAt as string} 
+                        />
 
                         <div id='hashes-users' className='flex flex-grow flex-col min-h-[460px] max-h-[460px] overflow-auto w-[92%] mx-auto border-t-[1px] pt-4 border-gray-400'>
                                 {
                                 
-                                commits.length > 0  ?
+                                commits && commits.length > 0  ?
                                     commits.map((commit, index) => (
                                         <div key={index} 
                                             onClick={() => {
@@ -433,8 +471,9 @@ export const TaskSetDetails = () => {
                                                 alt={commit.author.name} 
                                                 className="w-9 h-9 rounded-full mr-3" 
                                                 onError={(e) => {
-                                                    e.target.onerror = null; // Previene bucles infinitos en caso de que la imagen de las iniciales también falle
-                                                    e.target.src = getInitialsAvatar(commit.author.name); // Establece la imagen de las iniciales si la imagen principal falla
+                                                    const target = e.target as HTMLImageElement; // Asegura el tipo
+                                                    target.onerror = null; // Previene el bucle de error
+                                                    target.src = getInitialsAvatar(commit.author.name); // Establece la imagen de las iniciales si la imagen principal falla
                                                 }}
                                             />
                                             <div className="flex flex-col">

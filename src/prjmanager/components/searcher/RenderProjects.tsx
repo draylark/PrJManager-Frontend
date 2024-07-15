@@ -7,17 +7,18 @@ import projectimg from '../../assets/imgs/projectbg.jpg';
 import { HandshakeFilled } from '@ricons/material'; // Asegúrate de tener este ícono disponible
 import { useNavigate } from 'react-router-dom';
 import { cleanUrl } from '../projects/helpers/helpers';
+import { ProjectBase } from '../../../interfaces/models';
 
-export const RenderProjects = ({ projects }) => {
+export const RenderProjects = ({ projects } : { projects: ProjectBase[]}) => {
   const navigate = useNavigate();
-  const limitDescription = (description, limit = 100) => {
+  const limitDescription = (description: string, limit = 100) => {
     return description.length > limit ? `${description.substring(0, limit)}...` : description;
   };
 
   return (
     <List dense>
-      {projects.map((project, index) => (
-        <Fragment key={project._id}>
+      {projects.map((project) => (
+        <Fragment key={project.pid}>
           <ListItem
             className='rounded-lg hover:bg-slate-300 transition-all duration-150 ease-in-out cursor-pointer' 
             onClick={() => navigate(`../projects/${cleanUrl(project.name)}`, { state: { project: { ID: project.pid, name: project.name } } })}
@@ -50,7 +51,7 @@ export const RenderProjects = ({ projects }) => {
               secondaryTypographyProps={{ style: { color: 'rgba(0, 0, 0, 0.7)', display: 'block' } }}
             />
             <p style={{ display: 'flex', marginLeft: 'auto' }}>
-               {project.praises} <HandshakeFilled className='ml-4 w-5 h-5' />
+               {project.praises} <HandshakeFilled className='ml-4 w-5 h-5' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
             </p>
           </ListItem>
           {project !== projects[projects.length - 1] && <Divider component="li" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} />}

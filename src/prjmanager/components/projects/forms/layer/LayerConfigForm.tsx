@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Formik, Form } from 'formik';
-import { TextField, Select, MenuItem, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material'
+import { TextField, Select, MenuItem, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, SelectChangeEvent } from '@mui/material'
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
 import { useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../../../store/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../store/store';
 import { ImCancelCircle } from "react-icons/im";
-import axios from 'axios';
-import bgform from './assets/formbg.jpg'
+import axios, { AxiosError } from 'axios';
+import bgform from '../assets/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
+import { LayerBase } from '../../../../../interfaces/models';
 
 
 
@@ -21,11 +21,28 @@ const LayerSchema = Yup.object().shape({
     visibility: Yup.string().required('Visibility is required'),
 });
 
+interface LayerConfigFormProps {
+    layer: LayerBase;
+    setIsLayerConfigFormOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    isLayerConfigFormOpen: boolean;
+}
 
-export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfigFormOpen }) => {
+interface ApiResponse {
+    message: string;
+    type: string;
+}
 
+interface FormValues {
+    name: string;
+    description: string;
+    visibility: string;
+}
+
+
+export const LayerConfigForm: React.FC<LayerConfigFormProps> = ({ layer, setIsLayerConfigFormOpen, isLayerConfigFormOpen }) => {
+
+    // const dispatch = useDispatch();
     const location = useLocation();
-    const dispatch = useDispatch();
     const { uid } = useSelector( (selector: RootState) => selector.auth);
 
     const { ID } = location.state.project;
@@ -33,7 +50,7 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
 
     const [IsLoading, setIsLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
-    const [tempVisibility, setTempVisibility] = useState(''); 
+    const [tempVisibility, setTempVisibility] = useState<string>(''); 
     const [buttonDisabled, setButtonDisabled] = useState(false)
     const [isBackgroundReady, setIsBackgroundReady] = useState(false);  
 
@@ -63,8 +80,11 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
         }
     };
 
-    const handleVisibilityChange = (event, setFieldValue) => {
-        const selectedVisibility = event.target.value;
+    const handleVisibilityChange = (
+        event: SelectChangeEvent<string>, 
+        setFieldValue: (field: string, value: unknown) => void
+    ) => {
+        const selectedVisibility = event.target.value as string;
         if (selectedVisibility !== layer?.visibility) {
             setTempVisibility(selectedVisibility); // Almacenar temporalmente la nueva visibilidad seleccionada
             setOpenDialog(true); // Abrir el diálogo para confirmar el cambio
@@ -74,7 +94,7 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
         }
     };
 
-    const handleConfirmChange = (setFieldValue) => {
+    const handleConfirmChange = (setFieldValue: (field: string, value: unknown) => void) => {
         // Confirmar el cambio de visibilidad
         setFieldValue('visibility', tempVisibility); // Actualizar el valor del campo de formulario
         setOpenDialog(false); // Cerrar el diálogo
@@ -97,17 +117,20 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
         }
     };
 
-    const IsTheButtonDisabled = ({values}) => {
+    const IsTheButtonDisabled = ({values}: {values: FormValues}) => {
         useEffect(() => {
             const isDisabled = values.name === layer.name && values.description === layer.description && values.visibility === layer.visibility;
             setButtonDisabled(isDisabled);
-        }, [values, layer.name, layer.description, layer.visibility]);
+        }, [values]);
         
         // Utiliza buttonDisabled para cualquier lógica relacionada aquí, o retorna este estado si es necesario
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
 
-    const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const handleSubmit = async (
+        values: FormValues, 
+        { setSubmitting, resetForm }: { setSubmitting: (isSubmitting: boolean) => void, resetForm: () => void }
+    ) => {
         setIsLoading(true);
         setSubmitting(true);
 
@@ -134,23 +157,33 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
             });
 
         } catch (error) {
+
+            const axiosError = error as AxiosError<ApiResponse>
+
             setSubmitting(false);
             setIsLoading(false);
 
-            if(  error.response.data?.type === 'collaborator-validation' ){
-                handleClose();
+            if (axiosError.response) {
+                if( axiosError?.response.data?.type === 'collaborator-validation' ){
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: axiosError.response.data.message || 'Access Validation'
+                  });
+                } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Oops...',
+                      text: axiosError.response.data.message || 'An unexpected error occurred',
+                  });
+                }
+              } else {
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'Access Validation',
-                    text: error.response.data.message,
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'An unexpected error occurred'
                 });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: error.response.data.message,
-                });
-            }
+              }
         }
     };
 
@@ -166,8 +199,8 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
     useEffect(() => {
         if (isLayerConfigFormOpen) {
           const timer = setTimeout(() => {
-            document.getElementById('layerConfigModal').classList.remove('opacity-0');
-            document.getElementById('layerConfigModal').classList.add('opacity-100');
+            document.getElementById('layerConfigModal')?.classList.remove('opacity-0');
+            document.getElementById('layerConfigModal')?.classList.add('opacity-100');
           }, 20); // Un retraso de 20ms suele ser suficiente
           return () => clearTimeout(timer);
         }
@@ -205,7 +238,7 @@ export const LayerConfigForm = ({ layer, setIsLayerConfigFormOpen, isLayerConfig
                                 name: layer.name,
                                 description: layer.description,
                                 visibility: layer.visibility                                                    
-                            }}
+                            } as FormValues }
                             validationSchema={LayerSchema}                     
                             onSubmit={handleSubmit}
                         >

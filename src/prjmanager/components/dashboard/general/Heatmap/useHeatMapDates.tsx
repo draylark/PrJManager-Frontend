@@ -1,35 +1,41 @@
 import { useState, useEffect } from 'react';
-import { RootState } from '../../../../../store/store';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { CommitBase, TaskBase } from '../../../../../interfaces/models';
 
-interface HeatMapData {
-    date: string,
-    count: number
+
+type HeatMapFormat = {
+    date: string;
+    count: number;
 }
 
-export const useHeatMapDatesData = ( uid ) => {
+interface Commit extends Pick<CommitBase, 'createdAt' | '_id' | 'message'> {}
+interface Task extends Pick<TaskBase, 'completed_at' | '_id' | 'task_name'> {}
+
+interface ApiResponse {
+    message: string;
+}
+
+export const useHeatMapDatesData = ( uid: string ) => {
 
     const currentDate = new Date()
     currentDate.setHours(23, 59, 59, 999);
     const sixMonthsAgo = new Date( currentDate )
     sixMonthsAgo.setMonth( currentDate.getMonth() - 6 )
 
-    const [isLoading, setIsLoading] = useState(true)
 
-    const [errorMessage, seterrorMessage] = useState(null)
-    const [errorWhileFetching, setErrorWhileFetching] = useState(false)
-
-    const [tasks, setTasks] = useState([]);
-    const [commits, setCommits] = useState([]);
+    const [commits, setCommits] = useState<HeatMapFormat[]>([]);
+    const [tasks, setTasks] = useState<HeatMapFormat[]>([]);
     const [endDate, setEndDate] = useState(currentDate);    
     const [startDate, setStartDate] = useState(sixMonthsAgo);
-    const [tasksDetailsByDay, setTasksDetailsByDay] = useState(new Map());
-    const [commitsDetailsByDay, setCommitsDetailsByDay] = useState(new Map());
+    const [tasksDetailsByDay, setTasksDetailsByDay] = useState<Map<string, HeatMapFormat>>(new Map());
+    const [commitsDetailsByDay, setCommitsDetailsByDay] = useState<Map<string, HeatMapFormat>>(new Map());
 
-
-    const formatDateFromHeatMap = (date: Date) => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorWhileFetching, setErrorWhileFetching] = useState(false)    
+    const [errorMessage, seterrorMessage] = useState<string | null>(null)
+   
+    const formatDateFromHeatMap = (date: string) => {
         // Asumiendo que date es una cadena en formato "YY/M/D"
         const parts = date.split("/"); // Separar la cadena por '/'
         const year = parts[0]; // Año ya está en formato YY
@@ -39,92 +45,75 @@ export const useHeatMapDatesData = ( uid ) => {
         return `${year}-${month}-${day}`;
     };
 
-    const handleHeatMapData = ( commits, tasks ) => {
+    const handleHeatMapData = (commits: Commit[], tasks: Task[]) => {
 
-        if( tasks.length === 0 && commits.length === 0 ) {
-            setIsLoading(false)
-            return;
-            
-        } else if ( tasks.length === 0 && commits.length > 0 ) {
+        const addOrUpdateCount = (
+            countsObj: { [key: string]: { date: string; count: number; } }, 
+            date: Date, 
+        ) => {
+            const dateString = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+            if (countsObj[dateString]) {
+                countsObj[dateString].count += 1;
+            } else {
+                countsObj[dateString] = { date: dateString, count: 1 };
+            }
+        };
+    
+        const processData = (
+            items: (Task | Commit)[], 
+            dateKey: 'completed_at' | 'createdAt', 
+            setFunction: React.Dispatch<React.SetStateAction<HeatMapFormat[]>>, 
+            detailsByDaySetter: React.Dispatch<React.SetStateAction<Map<string, HeatMapFormat>>>
+        ) => {
 
-            const commitCounts = {};  // Objeto para almacenar los conteos por fecha
-            commits.forEach(commit => {
-                const date = new Date(commit.createdAt);
-                const dateString = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-        
-                // Si la fecha ya está en el objeto, incrementa el conteo, si no, inicialízalo a 1
-                if (commitCounts[dateString]) {
-                    commitCounts[dateString].count += 1;
-                } else {
-                    commitCounts[dateString] = { date: dateString, count: 1 };
-                }
+            const counts = {};
+            items.forEach(item => {
+                const date = new Date(item[dateKey as keyof (Task | Commit)]);
+                addOrUpdateCount(counts, date);
             });
-            const transformedCommits = Object.values(commitCounts);
-            setCommits(transformedCommits); 
-            setCommitsDetailsByDay(new Map(Object.entries(commitCounts)));
-            setIsLoading(false)
-            return;
+            const transformedItems = Object.values(counts);
+            setFunction(transformedItems as HeatMapFormat[]);
+            detailsByDaySetter(new Map(Object.entries(counts)));
 
-        }  else if ( tasks.length > 0 && commits.length === 0 ) {      
-            const taskCounts = {};  // Objeto para almacenar los conteos por fecha
-            tasks.forEach(task => {
-                const date = new Date(task.updatedAt);
-                const dateString = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-        
-                // Si la fecha ya está en el objeto, incrementa el conteo, si no, inicialízalo a 1
-                if (taskCounts[dateString]) {
-                    taskCounts[dateString].count += 1;
-                } else {
-                    taskCounts[dateString] = { date: dateString, count: 1 };
-                }
-            });
-            const transformedTasks = Object.values(taskCounts);
-            setTasks(transformedTasks); 
-            setTasksDetailsByDay(new Map(Object.entries(taskCounts)));
-            setIsLoading(false)
+        };
+    
+        setIsLoading(true);
+    
+        if (!tasks.length && !commits.length) {
+            setIsLoading(false);
             return;
         }
-
-        const taskCounts = {};  // Objeto para almacenar los conteos por fecha
-        const commitCounts = {};  // Objeto para almacenar los conteos por fecha
     
-        // Iterar sobre cada tarea y acumular el conteo de tareas por fecha
-        tasks.forEach(task => {
-            const date = new Date(task.updatedAt);
-            const dateString = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+        if (tasks.length && commits.length) {
+            processData(
+                tasks, 
+                'completed_at', 
+                setTasks as React.Dispatch<React.SetStateAction<HeatMapFormat[]>>, 
+                setTasksDetailsByDay
+            );
+            processData(
+                commits, 
+                'createdAt', 
+                setCommits as React.Dispatch<React.SetStateAction<HeatMapFormat[]>>, 
+                setCommitsDetailsByDay
+            );
+        } else if (tasks.length) {
+            processData(
+                tasks, 
+                'completed_at', 
+                setTasks as React.Dispatch<React.SetStateAction<HeatMapFormat[]>>, 
+                setTasksDetailsByDay
+            );
+        } else if (commits.length) {
+            processData(
+                commits, 
+                'createdAt', 
+                setCommits as React.Dispatch<React.SetStateAction<HeatMapFormat[]>>, 
+                setCommitsDetailsByDay
+            );
+        }
     
-            // Si la fecha ya está en el objeto, incrementa el conteo, si no, inicialízalo a 1
-            if (taskCounts[dateString]) {
-                taskCounts[dateString].count += 1;
-            } else {
-                taskCounts[dateString] = { date: dateString, count: 1 };
-            }
-        });
-
-
-        // Iterar sobre cada commit y acumular el conteo de commits por fecha
-        commits.forEach(commit => {
-            const date = new Date(commit.createdAt);
-            const dateString = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-    
-            // Si la fecha ya está en el objeto, incrementa el conteo, si no, inicialízalo a 1
-            if (commitCounts[dateString]) {
-                commitCounts[dateString].count += 1;
-            } else {
-                commitCounts[dateString] = { date: dateString, count: 1 };
-            }
-        });
-
-    
-        // Convertir el objeto de conteos en un array para el estado
-        const transformedTasks = Object.values(taskCounts);
-        const transformedCommits = Object.values(commitCounts);
-
-        setTasks(transformedTasks); 
-        setCommits(transformedCommits); 
-        setTasksDetailsByDay(new Map(Object.entries(taskCounts)));
-        setCommitsDetailsByDay(new Map(Object.entries(commitCounts)));
-        setIsLoading(false)
+        setIsLoading(false);
     };
 
     const fetchData = async() => {
@@ -141,9 +130,17 @@ export const useHeatMapDatesData = ( uid ) => {
 
             handleHeatMapData(commits, tasks);
         } catch (error) {
-            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-            setErrorWhileFetching(true)
-            setIsLoading(false)
+            const axiosError = error as AxiosError<ApiResponse>
+
+            if( axiosError.response ) {
+                seterrorMessage(axiosError.response.data.message); 
+                setErrorWhileFetching(true)
+            } else {
+                seterrorMessage('An error occurred while fetching data');
+                setErrorWhileFetching(true)
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -151,6 +148,7 @@ export const useHeatMapDatesData = ( uid ) => {
     useEffect(() => {
         setIsLoading(true)
         fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ startDate, endDate ])
     
 

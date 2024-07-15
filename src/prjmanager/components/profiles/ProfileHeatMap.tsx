@@ -1,19 +1,37 @@
 import { TextField, MenuItem, Tooltip } from '@mui/material';
 import HeatMap from '@uiw/react-heat-map';
 import { ScaleLoader } from 'react-spinners';
+import { ProfileData } from './hooks/useProfileData';
 
 
-export const ProfileHeatMap = ({ user, year, setYear, data, detailsMap, formatDateFromHeatMap, fetchingUserActivity, errorWhileFetching, errorMessage }) => {
+interface ProfileHeatMapProps {
+    user: ProfileData;
+    year: string;
+    setYear: (year: string) => void;
+    data: { date: string; count: number }[];
+    detailsMap: Map<string, { commits: number; tasks: number }>;
+    formatDateFromHeatMap: (date: string) => string;
+    fetchingUserActivity: boolean;
+    errorWhileFetching: boolean;
+    errorMessage: string | null;
+}
+
+
+export const ProfileHeatMap = ({ user, year, setYear, data, detailsMap, 
+    formatDateFromHeatMap, fetchingUserActivity, errorWhileFetching, errorMessage }: ProfileHeatMapProps) => {
 
     const userCreatedAt = new Date(user.createdAt).getFullYear();
     const currentYear = new Date().getFullYear();
-    const yearsRange = Array.from({ length: currentYear - userCreatedAt + 1 }, (v, k) => userCreatedAt + k);
+    const yearsRange = Array.from({ length: currentYear - userCreatedAt + 1 }, (_, k) => userCreatedAt + k);
  
     const startDate = new Date(`${year}/01/01`);
     const endDate = new Date(`${year}/12/31`);
 
 
-    const TooltipContent = ({ formattedDate, details }) => {
+    const TooltipContent = (
+        { formattedDate, details }:
+        { formattedDate: string; details: { commits: number; tasks: number } }
+    ) => {
         return (
             <div className='flex space-x-2'>
                 <h3>{formattedDate} |</h3>

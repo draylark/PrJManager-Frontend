@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom';
 import { ImCancelCircle } from "react-icons/im";
 import { ArrowHookUpLeft16Regular } from '@ricons/fluent'
@@ -12,14 +12,26 @@ import { useSelector } from 'react-redux';
 import { tierS, tierA } from '../../../../helpers/accessLevels-validator';
 import { RenderRepositoryTasks } from './RenderRepositoryTasks';
 import { PuffLoader  } from 'react-spinners';
+import { RootState } from '../../../../../store/store';
+import { ProjectBase, RepositoryBase, LayerBase } from '../../../../../interfaces/models';
 
-export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, setIsTasksModalOpen }) => {
+
+interface RepositoryTasksModalProps {
+  project: ProjectBase;
+  layer: LayerBase;
+  repo: RepositoryBase;
+  isTasksModalOpen: boolean;
+  setIsTasksModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+
+
+export const RepositoryTasksModal: React.FC<RepositoryTasksModalProps> = ({ project, layer, repo, isTasksModalOpen, setIsTasksModalOpen }) => {
 
   const location = useLocation();
   const { repoID } = location.state.repository;
-  const { uid } = useSelector( (state) => state.auth );
+  const { uid } = useSelector( (state: RootState) => state.auth );
   
-  const [isAssigned, setIsAssigned] = useState(false);
   const [goalsExpanded, setGoalsExpanded] = useState(false);
   const [modalOpacity, setModalOpacity] = useState(0);
   const [render, setRender] = useState('completed');
@@ -98,12 +110,9 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
                   <p className='text-xl text-black'>
                     {
                       taskFormOpen && (
-                        <button className='mr-2' onClick={() => {
-                            setTaskFormOpen(false)
-                            setIsAssigned(false)
-                          }}>
+                        <button className='mr-2' onClick={() => setTaskFormOpen(false)}>
                           <Icon>
-                            <ArrowHookUpLeft16Regular/>
+                            <ArrowHookUpLeft16Regular onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                           </Icon>               
                         </button>
                       )
@@ -121,7 +130,11 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
 
               {
                   taskFormOpen
-                  ? <TaskForm uid={uid} setTaskFormOpen={setTaskFormOpen} setGoalsExpanded={setGoalsExpanded} goalsExpanded={goalsExpanded}  isAssigned={isAssigned} setIsAssigned={setIsAssigned} />
+                  ? <TaskForm 
+                        uid={uid as string}          
+                        setGoalsExpanded={setGoalsExpanded} 
+                        goalsExpanded={goalsExpanded}                   
+                      />
                   :
                     (
                       <div className='flex flex-col space-y-2 flex-grow'>
@@ -153,8 +166,7 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
                                 transformOrigin: {
                                   vertical: 'top', // Puede ser 'top' o 'bottom'
                                   horizontal: 'left', // Puede ser 'left', 'center' o 'right'
-                                },
-                                getContentAnchorEl: null, // Evita que MUI establezca la posición basándose en el contenido seleccionado
+                                }
                               }}
 
                             >
@@ -184,14 +196,13 @@ export const RepositoryTasksModal = ({ project, layer, repo, isTasksModalOpen, s
                           </div>
 
                           {
-                                tierS(uid, project, layer, repo) 
+                                tierS(uid as string, project, layer, repo) 
                             ||
-                                tierA(uid, project, layer, repo)
+                                tierA(uid as string, project, layer, repo)
                             ? (   
                                 <TaskAdd 
-                                    className='w-8 h-8 hover:text-blue-400 transition-colors duration-200 mr-2 cursor-pointer'
-                                    onClick={() => setTaskFormOpen(true)}
-                                />
+                                  className='w-8 h-8 hover:text-blue-400 transition-colors duration-200 mr-2 cursor-pointer'
+                                  onClick={() => setTaskFormOpen(true)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                />
                   
                               )
                             : null

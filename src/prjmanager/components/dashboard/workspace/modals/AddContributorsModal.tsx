@@ -1,32 +1,45 @@
-import { useState, useEffect } from 'react'
-import { Autocomplete, TextField, Chip, Tooltip, Button } from '@mui/material';
+import React,{ useState, useEffect } from 'react'
+import { Autocomplete, TextField, Chip, Button } from '@mui/material';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { CollaboratorBase } from '../../../../../interfaces/models';
+import { getInitialsAvatar } from '../../../projects/helpers/helpers';
+import { TaskContributorsCommitsMap } from './TaskContributors';
 
+interface AddContributorsModalProps {
+    setIsTaskCOpen: (isOpen: boolean) => void;
+    setOpen: (isOpen: boolean) => void;
+    taskId: string;
+    repoID: string;
+    currentTaskContributors: TaskContributorsCommitsMap;
+    uid: string;
+}
 
-export const AddContributorsModal = ({  setIsTaskCOpen, setOpen, taskId, repoID, currentTaskContributors, uid }) => {
+interface Contributor extends Pick<CollaboratorBase, 'uid' | 'name' | 'photoUrl'> {}
 
-    const [selectedContributors, setSelectedContributors] = useState([]);
-    const [options, setOptions] = useState([]);
+export const AddContributorsModal: React.FC<AddContributorsModalProps> = ({  setIsTaskCOpen, setOpen, taskId, repoID, currentTaskContributors, uid }) => {
+
+    const [selectedContributors, setSelectedContributors] = useState<Contributor[]>([]);
+    const [options, setOptions] = useState<Contributor[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [cTaskContributors, setCTaskContributors] = useState(Object.keys(currentTaskContributors));
+    const cTaskContributors = Object.keys(currentTaskContributors)
 
-    const handleAddContributor = (contributor) => {
+    const handleAddContributor = ( contributor: Contributor ) => {
         if (!selectedContributors.some(c => c.uid === contributor.uid)) {
             setSelectedContributors([...selectedContributors, contributor]);
         }
     };
 
-    const handleDeleteContributor = (contributorUid) => {
+    const handleDeleteContributor = (contributorUid: string) => {
         setSelectedContributors(selectedContributors.filter(c => c.uid !== contributorUid));
     };
 
-    const handleSearchChange = (event) => {
+    const handleSearchChange = (event:  React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> ) => {
         setSearchQuery(event.target.value);
     };
 
-    const handleAddContributors = (newContributorsUids) => {
+    const handleAddContributors = (newContributorsUids: Contributor[]) => {
         const ids = newContributorsUids.map( c => c.uid );
         axios.put(`${backendUrl}/tasks/update-task-contributors/${taskId}`, { contributorsIds: ids }, {
             params: {
@@ -66,12 +79,13 @@ export const AddContributorsModal = ({  setIsTaskCOpen, setOpen, taskId, repoID,
                     Authorization: localStorage.getItem('x-token')
                 }
             }).then(response => {
+                console.log('OPT',response)
                 setOptions(response.data.collaborators);
             }).catch(error => {
                 console.error(error);
             });
         }
-    }, [searchQuery]);
+    }, [searchQuery, repoID]);
 
     return (
         <div className='flex flex-grow flex-col px-5'>
@@ -81,7 +95,7 @@ export const AddContributorsModal = ({  setIsTaskCOpen, setOpen, taskId, repoID,
                 getOptionLabel={(option) => option.name}
                 getOptionDisabled={(option) => cTaskContributors.includes(option.uid) || selectedContributors.map(c => c.uid).includes(option.uid) }
                 filterSelectedOptions
-                onChange={(event, newValue) => {
+                onChange={(_, newValue) => {
                     if (newValue) {
                         handleAddContributor(newValue);
                     }
@@ -95,7 +109,7 @@ export const AddContributorsModal = ({  setIsTaskCOpen, setOpen, taskId, repoID,
                 )}
                 renderOption={( props, option ) => (
                     <li className='flex p-4 w-full' {...props}>
-                        <img className='rounded-extra h-10 w-10' src={option.photoUrl} alt="" />
+                        <img className='rounded-extra h-10 w-10' src={option.photoUrl || getInitialsAvatar(option.name)} alt="" />
                         <div className='flex flex-col space-y-1'>
                             <div className='flex justify-between w-full'>
                                 <p className='ml-2'>{option.name}</p> 

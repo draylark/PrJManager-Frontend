@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-export const useBarData = (uid) => {
+export const useBarData = (uid: string) => {
 
     const [totalProjects, setTotalProjects] = useState(0)
     const [ totalCommits, setTotalCommits ] = useState(0)    
@@ -30,6 +30,8 @@ export const useBarData = (uid) => {
     
     useEffect(() => {
         fetchData()
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
   return {

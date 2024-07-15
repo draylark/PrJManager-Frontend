@@ -1,15 +1,39 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { TaskBase, CommitBase } from '../../../../../../interfaces/models';
+
+
+interface CompletedTasks extends Omit<TaskBase, 'status'> {
+    status: 'completed';
+}
+
+interface DedicatedCommit extends Omit<CommitBase, 'hash' | 'associated_task'> {
+    associated_task: Pick<TaskBase, '_id' | 'task_name'> | null;
+}
+
+interface HeatMapData {
+    date: string;
+    count: number;
+    details?: { commits: number; tasks: number };
+}
+
+interface CombinedData {
+    [date: string]: { count: number; commits: number; tasks: number };
+}
+
+interface DetailsByDay {
+    [date: string]: { commits: number; tasks: number };
+}
 
 export const useRepoHeatMapData = (repoID: string, uid: string ) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<HeatMapData[]>([]);
     const [detailsByDay, setDetailsByDay] = useState(new Map());
     const [year, setYear] = useState(new Date().getFullYear().toString());
 
 
-    const formatDate = (date: Date) => {
+    const formatDate = (date: string) => {
         const d = new Date(date);
         // Convertir a UTC
         const year = d.getUTCFullYear();
@@ -18,7 +42,7 @@ export const useRepoHeatMapData = (repoID: string, uid: string ) => {
         return `${year}/${month}/${day}`;
     };
 
-    const formatDateFromHeatMap = (date: Date) => {
+    const formatDateFromHeatMap = (date: string) => {
         // Asumiendo que date es una cadena en formato "YY/M/D"
         const parts = date.split("/"); // Separar la cadena por '/'
         const year = parts[0]; // Año ya está en formato YY
@@ -28,9 +52,9 @@ export const useRepoHeatMapData = (repoID: string, uid: string ) => {
         return `${year}/${month}/${day}`;
     };
 
-    const handleHeatMapData = (commits, tasks) => {
-        const combinedData = {};
-        const details = {};
+    const handleHeatMapData = (commits: DedicatedCommit[], tasks: CompletedTasks[]) => {
+        const combinedData: CombinedData = {};
+        const details: DetailsByDay = {};
 
         // Procesar commits
         commits.forEach(commit => {
@@ -64,12 +88,10 @@ export const useRepoHeatMapData = (repoID: string, uid: string ) => {
         }));
 
         setData(heatmapData);
-        // Actualiza el estado con los detalles por día
         setDetailsByDay(new Map(Object.entries(details)));
     };
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const tasksData = await axios.get(`${backendUrl}/tasks/repo-activity/${repoID}`, { 
@@ -88,6 +110,8 @@ export const useRepoHeatMapData = (repoID: string, uid: string ) => {
             }
         };
         fetchData();
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [repoID, year]);
 
     return {

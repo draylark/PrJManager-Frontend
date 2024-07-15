@@ -11,6 +11,8 @@ import Swal from 'sweetalert2';
 import { ScaleLoader } from 'react-spinners';
 import * as Yup from 'yup';
 const backendUrl = import.meta.env.VITE_BACKEND_URL
+import { RootState } from '../../../../store/store';
+
 
 const validationSchema = Yup.object().shape({
     website: Yup.string().url('Invalid URL').matches(
@@ -31,17 +33,29 @@ const validationSchema = Yup.object().shape({
     )
 });
 
-export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
+interface FormValues {
+    website: string;
+    github: string;
+    linkedin: string;
+    twitter: string;
+}
 
-  const { website, github, linkedin, twitter, uid } = useSelector( selector => selector.auth)
+interface MyLinksProps {
+    isMyLinksModalOpen: boolean;
+    setIsMyLinksModalOpen: (isOpen: boolean) => void;
+}
+
+export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }: MyLinksProps) => {
+
+  const { website, github, linkedin, twitter, uid } = useSelector( (state: RootState) => state.auth)
   const [isLoading, setIsLoading] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(true)
-  const [links, setLinks] = useState({
+  const links = {
     website,
     github,
     linkedin,
     twitter
-  });
+  };
 
   const handleClose = () => {
     const modal = document.getElementById('linksModal');
@@ -56,7 +70,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
     }
   };
 
-  const IsTheButtonDisabled = ({ values }) => {
+  const IsTheButtonDisabled = ({ values }: {values: FormValues}) => {
 
     useEffect(() => {
         const isDisabled = 
@@ -72,7 +86,10 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
     return null; // Este componente no necesita renderizar nada por sí mismo
   };
 
-  const handleSubmit = (values, { setSubmitting, resetForm }) => {
+  const handleSubmit = (
+    values: FormValues, 
+    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+  ) => {
     setIsLoading(true);
     setSubmitting(true);
     axios.put(`${backendUrl}/users/update-my-links/${uid}`, values, {
@@ -81,7 +98,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
             'Authorization':  localStorage.getItem('x-token') 
         }  
     })
-      .then( response => {
+      .then( () => {
         Swal.fire({
           icon: 'success',
           title: 'Your links have been updated!',
@@ -91,7 +108,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
         setIsLoading(false);
         setSubmitting(false);
       })
-      .catch( error => {
+      .catch( () => {
         Swal.fire({
           icon: 'error',
           title: 'Oops...',
@@ -108,8 +125,8 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
       // Asegúrate de que el modal existe antes de intentar acceder a él
       // Luego, después de un breve retraso, inicia la transición de opacidad
       const timer = setTimeout(() => {
-        document.getElementById('linksModal').classList.remove('opacity-0');
-        document.getElementById('linksModal').classList.add('opacity-100');
+        document.getElementById('linksModal')?.classList.remove('opacity-0');
+        document.getElementById('linksModal')?.classList.add('opacity-100');
       }, 20); // Un retraso de 20ms suele ser suficiente
       return () => clearTimeout(timer);
     }
@@ -118,7 +135,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
   return (
     <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
         <div id="linksModal" 
-            className={`bg-white flex flex-col min-w-[28%] min-h-[65%] items-center rounded-2xl glass2 border-[1px] border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isMyLinksModalOpen ? '' : 'pointer-events-none'}`}>
+            className={`bg-white flex flex-col min-w-[28%] h-[535px] items-center rounded-2xl glass2 border-[1px] border-gray-400 transition-opacity duration-300 ease-in-out opacity-0 ${isMyLinksModalOpen ? '' : 'pointer-events-none'}`}>
 
             <div className='flex justify-between w-[95%] h-12 ml-auto mr-auto mt-2 p-2 border-b-2 border-b-gray-500 px-'>
                 <p className='text-xl text-black'>My Links</p>
@@ -129,13 +146,13 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
 
             <Formik
                 validationSchema={validationSchema}
-                initialValues={links}
+                initialValues={links as FormValues}
                 onSubmit={handleSubmit}
                 >
                 {({ values, handleChange, isSubmitting, touched, errors }) => (
                     <Form className='flex flex-grow w-full h-full mt-4 px-5'>
                     <IsTheButtonDisabled values={values} />
-                    {console.log(Object.keys(errors))}
+
                         {
                             
                             isLoading 
@@ -150,7 +167,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
                                     height: '100%',
                                 }} spacing={2}>
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        <IosLink className='w-20 h-20' />
+                                        <IosLink className='w-20 h-20' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                         <Field
                                             as={TextField}
                                             fullWidth
@@ -164,7 +181,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
                                         />
                                     </Stack>
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        <Github className='w-20 h-20' />
+                                        <Github className='w-20 h-20' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                         <Field
                                             as={TextField}
                                             fullWidth
@@ -178,7 +195,7 @@ export const MyLinks = ({ isMyLinksModalOpen, setIsMyLinksModalOpen }) => {
                                         />
                                     </Stack>
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        <LogoLinkedin className='w-20 h-20' />
+                                        <LogoLinkedin className='w-20 h-20' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                         <Field
                                             as={TextField}
                                             fullWidth

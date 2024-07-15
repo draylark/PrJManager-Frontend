@@ -8,7 +8,7 @@ import { TopProjects } from "./modal/TopProjects"
 import { RootState } from "../../../../store/store"
 import { useSelector } from "react-redux"
 import { QuickNotis } from "./notis/QuickNotis"
-import { CardContainer, CardBody, CardItem } from "./updates/3d-card"
+import { CardContainer, CardBody, CardItem } from "./updates/3d-updates"
 import figures from '../../../assets/imgs/projectbg.jpg'
 import sea from '../../../assets/imgs/sea.jpg'
 import stars from '../../../assets/imgs/stars.jpg'
@@ -16,10 +16,14 @@ import { useTreeChartData } from "../hooks/useTreeChartData"
 import { ScaleLoader } from 'react-spinners';
 import { useNavigate, useLocation, Outlet } from "react-router-dom"
 import { cleanUrl } from "../../projects/helpers/helpers"
-
+import { ProjectBase } from "../../../../interfaces/models"
 import '../styles.css'
 import '../updates.css'
+import { TreeNode } from "../hooks/useTreeChartData"
 
+interface TopProject extends Pick<ProjectBase, 'name'>{
+  _id: string
+}
 
 export const General = () => {
 
@@ -62,6 +66,7 @@ export const General = () => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % articles.length);
     }, 10000); // 10 segundos
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex]);
 
   const currentArticle = articles[currentIndex];
@@ -92,7 +97,7 @@ export const General = () => {
                           { errorWhileFetching ? errorMessage : noDataMessage }</p>
                       </div>
                     )          
-                  : <TreeChart data={data} isLoading={isLoading}  />
+                  : <TreeChart data={data as TreeNode} />
                 }           
               </div>
           </div>
@@ -103,7 +108,7 @@ export const General = () => {
 
             <div id="quickNotis" className='flex flex-col h-[90%] space-y-3  ml-1 overflow-hidden w-[30%] glassi rounded-extra bg-[#ffffff26] border-[1px] border-gray-400'>
                 <h3 className="font-bold text-sky-950 mt-5 ml-6 text-[14px]">Activity Notifications</h3>
-                <QuickNotis uid={uid}/>
+                <QuickNotis uid={uid as string}/>
             </div>
 
             <div id="topProjects" className='h-[90%] flex flex-col w-1/3 glassi  bg-[#ffffff26] rounded-extra border-[1px] border-gray-400'>
@@ -111,22 +116,22 @@ export const General = () => {
                   <h3 className="font-bold text-sky-950 text-[14px]">Top Projects</h3>
                   <button className="flex items-center justify-center w-[20%] transition-transform duration-150 ease-in-out transform active:translate-y-[2px]"
                             onClick={() => setIsModalOpen(!isModalOpen)}>
-                      <Icon size={25} color='#0c4a6e'><FolderAdd/></Icon>
+                      <Icon size={25} color='#0c4a6e'><FolderAdd onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/></Icon>
                   </button>
-                  { isModalOpen && <TopProjects uid={uid} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}/> }        
+                  { isModalOpen && <TopProjects uid={uid as string} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}/> }        
                 </div>
                 
                   <div className="w-full h-full flex flex-col mt-10 space-y-5">
                       {
                         topProjects.length > 0 ? (
-                          topProjects.map((project: string) => {               
+                          topProjects.map((project: TopProject) => {               
                               return (
                                 <div className="glassi flex w-[90%] py-2 justify-end items-center border-1 border-gray-400  pr-2 ml-auto mr-auto rounded-extra transition-all duration-150 ease-in-out transform hover:translate-y-[-2px]">
                                   <button 
                                     onClick={() => navigate(`../projects/${cleanUrl(project.name)}`, { state: { project: { ID: project._id, name: project.name } } })}
                                     className="flex justify-center items-center w-11 h-11 rounded-extra border-[1px] border-gray-400 hover:glassi-hover glassi transition-all duration-200 ease-in-out transform hover:rotate-[-90deg]">
                                     <Icon size={24}>
-                                      <ArrowUpRight/>
+                                      <ArrowUpRight onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                                     </Icon>
                                   </button>
                                   <div className="flex w-[80%] h-full items-center justify-end">

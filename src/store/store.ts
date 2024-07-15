@@ -1,17 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { authSlice } from './auth/authSlice'
-import { notisSlice } from './notifications/notificationSlice';
 import { projectSlice } from './projects/projectSlice';
-import { clientSlice } from './clients/clientSlice';
-import { taskSlice } from './tasks/taskSlice';
 import { eventSlice } from './events/eventSlice';
 import { friendSlice } from './friends/friendSlice';
-import { repositorySlice } from './repos/reposSlice';
-import { commitSlice } from './commits/commitSlice';
-import { platypusSlice2 } from './gitlab/gitlabSlice';
 import { platypusSlice } from './platypus/platypusSlice';
-import { Task, Notification, Project, Auth, Client, Event, Friend, Commit, Repository, Platypus } from './types/stateInterfaces';
-
+import { Task, Project, Auth, Client, Event, Friend, Commit, Repository, Platypus } from './types/stateInterfaces';
 
 export interface RootState {
     auth: Auth,
@@ -34,4 +27,5 @@ export const store = configureStore({
     friends: friendSlice.reducer,
     platypus: platypusSlice.reducer
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
 })

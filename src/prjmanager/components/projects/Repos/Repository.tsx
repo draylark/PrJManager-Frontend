@@ -1,5 +1,5 @@
 import axios from 'axios';
-import  { useState, useEffect } from 'react';
+import  { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { RootState } from '../../../../store/store';
@@ -26,6 +26,17 @@ import { RepositoryInfo } from './modals/RepositoryInfo';
 import { PuffLoader  } from 'react-spinners';
 import './styles/repository.css'
 const backendUrl = import.meta.env.VITE_BACKEND_URL
+import { RepositoryBase, LayerBase, ProjectBase } from '../../../../interfaces/models';
+
+
+export type File = {
+  id: string;
+  mode: string;
+  name: string;
+  path: string;
+  type: string;
+  files? : File[];
+}
 
 export const Repository = () => {
 
@@ -35,9 +46,9 @@ export const Repository = () => {
   const { uid } = useSelector((state: RootState) => state.auth );
   const { currentProject: project, layers } = useSelector((state: RootState) => state.platypus );
 
-  const [repo, setRepo] = useState({});
-  const [layer, setlayer] = useState({});
-  const [files, setFiles] = useState<[]>([]);
+  const [repo, setRepo] = useState<RepositoryBase | null>(null);
+  const [layer, setlayer] = useState<LayerBase | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentBranch, setCurrentBranch] = useState('');
   const [loadingFiles, setLoadingFiles] = useState(true);
@@ -59,7 +70,6 @@ export const Repository = () => {
   const { repoID, repoName } = location.state.repository;
 
 
-
   const handleLoadNewBranch = (branch: string) => {
     setLoadingFiles(true)
     setOpenBranches(false)
@@ -70,7 +80,7 @@ export const Repository = () => {
     loadRepoFiles(branch)
   };
 
-  const loadRepoFiles = async(branch: string ) => {
+  const loadRepoFiles = useCallback(async(branch?: string ) => {
       await axios.get(`${backendUrl}/gitlab/loadRepoFiles/${repoID}/${ branch ? branch : currentBranch }`, {
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +88,7 @@ export const Repository = () => {
         }
       })
       .then( res => {
-        console.log(res)
+        console.log('ARCHIVOS',res)
         setFiles(res.data.files)
         setCurrentBranch(res.data.branch)
         setLoadingFiles(false)
@@ -90,26 +100,34 @@ export const Repository = () => {
         setErrorType(error.response.data.type || 'Error')
         seterrorMessage(error.response.data.message || 'An error occurred while fetching data')
       });        
-  };
+  }, [repoID, currentBranch]);
 
-  const getExtension = (fileName: string) => {
+  const getExtension = (fileName?: string) => {
     const nameToSplit = fileName !== undefined ? fileName : selectedFileName;
     const extension = nameToSplit.split('.').pop()?.toLowerCase() || '';
     return extension === 'md' ? true : false
   };
 
-  const handleRepoData = (repository: object ) => {
+  const handleRepoData = useCallback((repository: RepositoryBase) => {
     setRepo(repository);
-    const defaultBranch = repository.branches.length !== 0 ? repository.branches.find( branch => branch.default === true ).name : 'main'
-    setCurrentBranch(defaultBranch)
-    loadRepoFiles(defaultBranch)
+    // Encuentra la rama por defecto o usa 'null' si no existe ninguna
+    const defaultBranchInfo = repository.branches?.find(branch => branch.default === true);
+    const defaultBranchName = defaultBranchInfo ? defaultBranchInfo.name : 'main';
+    setCurrentBranch(defaultBranchName);
+    loadRepoFiles(defaultBranchName);
           
-    const layerFromRState = layers.find((layer) => layer._id === layerID)
-    setlayer(layerFromRState)
-    setIsLoading(false)
-  };
+    const layerFromRState = layers.find((layer) => layer._id === layerID);
+    // Manejo seguro al suponer que layerFromRState puede ser undefined
+    if (layerFromRState) {
+        setlayer(layerFromRState as LayerBase);
+    } else {
+      setlayer(null);
+    }
+    setIsLoading(false);
+}, [layers, layerID, loadRepoFiles]);
 
-  const fetchRepositoryData = async() => {
+
+  const fetchRepositoryData = useCallback( async() => {
     axios.get(`${backendUrl}/repos/${repoID}`, {
       params: {
         projectID: ID
@@ -130,7 +148,7 @@ export const Repository = () => {
       setErrorType(error.response.data.type || 'Error')
       seterrorMessage(error.response.data.message || 'An error occurred while fetching data')
     });
-  };
+  }, [ID, repoID, handleRepoData]);
 
 
   useEffect(() => {  
@@ -142,14 +160,12 @@ export const Repository = () => {
           fetchRepositoryData() 
         }
     }
-
-
-  }, [repoID]);
+  }, [repoID, repositories, fetchRepositoryData, handleRepoData]);
 
 
   const gitInstructions = `
-    PrJConsole Instructions for ${repo.name}
-    Remote URL: ${'https://prjmanager.com/' + repo.layerID + '/' + repoID + '.git'}
+    PrJConsole Instructions for ${repo?.name}
+    Remote URL: ${'https://prjmanager.com/' + repo?.layerID + '/' + repoID + '.git'}
     
 
     Disclaimer: 
@@ -238,9 +254,9 @@ export const Repository = () => {
   return (
     <div className="flex flex-grow w-full h-full">
         
-      { isRepoInfoOpen && <RepositoryInfo uid={uid} repo={repo} instructions={gitInstructions} isRepoInfoOpen={isRepoInfoOpen} setRepoInfoOpen={setIsRepoInfoOpen} /> }
-      { isRepoFormOpen && <RepositoryConfigForm isRepoFormOpen={isRepoFormOpen} setIsRepoFormOpen={setIsRepoFormOpen} repo={repo} /> }  
-      { isTasksModalOpen && <RepositoryTasksModal project={project} layer={layer} repo={repo} isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
+      { isRepoInfoOpen && <RepositoryInfo uid={uid as string} repo={repo as RepositoryBase} instructions={gitInstructions} isRepoInfoOpen={isRepoInfoOpen} setRepoInfoOpen={setIsRepoInfoOpen} /> }
+      { isRepoFormOpen && <RepositoryConfigForm isRepoFormOpen={isRepoFormOpen} setIsRepoFormOpen={setIsRepoFormOpen} repo={repo as RepositoryBase} /> }  
+      { isTasksModalOpen && <RepositoryTasksModal project={project as ProjectBase} layer={layer as LayerBase} repo={repo as RepositoryBase} isTasksModalOpen={isTasksModalOpen} setIsTasksModalOpen={setIsTasksModalOpen} /> }
       { isCodeOnBigScreenOpen && <CodeOnBigScreen  getExtension={getExtension}  isCodeOnBigScreenOpen={isCodeOnBigScreenOpen} setIsCodeOnBigScreenOpen={setIsCodeOnBigScreenOpen} fileName={selectedFileName} fileContent={selectedFileContent} /> } 
 
       {
@@ -254,12 +270,12 @@ export const Repository = () => {
                   <div className="flex items-center justify-between px-1">
                     <button className="flex items-center space-x-2" onClick={() => navigate(-1)}>
                       <Icon size={20}>
-                        <ArrowBackUp />
+                        <ArrowBackUp onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                       </Icon>      
                     </button>
                     <button className="flex items-center space-x-2" onClick={() => loadRepoFiles()}>
                       <Icon size={18}>
-                        <ReloadSharp />
+                        <ReloadSharp onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                       </Icon>
                     </button>
                   </div>
@@ -279,7 +295,7 @@ export const Repository = () => {
                     <div className="flex items-center justify-between h-[39px] mt-2 pr-3 pl-4">
                         <button className="flex items-center" onClick={() => navigate(-1)}>
                           <Icon size={20}>
-                            <ArrowBackUp />
+                            <ArrowBackUp onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                           </Icon>             
                         </button>
 
@@ -287,42 +303,38 @@ export const Repository = () => {
                               <CommitSharp 
                                 className='w-5 h-5 cursor-pointer hover:text-yellow-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
                                 onClick={() => navigate(
-                                  `commits`, 
-                                  { 
-                                    state: { 
-                                      project: { ID, name }, 
-                                      layer: { layerID, layerName }, 
+                                  `commits`,
+                                  {
+                                    state: {
+                                      project: { ID, name },
+                                      layer: { layerID, layerName },
                                       repository: { repoID, repoName },
-                                      commits: true 
-                                    } 
-                                  })}
-                              />
+                                      commits: true
+                                    }
+                                  })} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                              />
 
                               <TaskSettings 
-                                    className='w-[17px] h-[17px] cursor-pointer hover:text-blue-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
-                                    onClick={() => setIsTasksModalOpen(true)}
-                              />
+                                className='w-[17px] h-[17px] cursor-pointer hover:text-blue-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-3'
+                                onClick={() => setIsTasksModalOpen(true)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                              />
 
                               {
-                                tierS(uid, project, layer, repo) && 
+                                tierS(uid as string, project, layer, repo) && 
                                   (
-                                      <CloudSatelliteConfig
-                                          className='w-[17px] h-[17px] cursor-pointer hover:text-slate-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
-                                          onClick={() => setIsRepoFormOpen(true)}
-                                      />                              
+                                    <CloudSatelliteConfig
+                                    className='w-[17px] h-[17px] cursor-pointer hover:text-slate-600 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
+                                    onClick={() => setIsRepoFormOpen(true)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                      />                              
                                   )                           
                               }
 
                               <InformationOutline 
                                 className='w-[19px] h-[19px] cursor-pointer hover:text-green-500 duration-150 ease-in-out transition-all transform active:translate-y-[2px] mr-2'
-                                onClick={() => setIsRepoInfoOpen(true)}
-                              />
+                                onClick={() => setIsRepoInfoOpen(true)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                              />
 
                               <button 
                                 className='flex items-center justify-center w-[60px] h-[25px] text-[13px] hover:bg-blue-200 rounded-lg transition-all glassi border-[1px] border-gray-400  duration-150 ease-in-out transform active:translate-y-[2px]'
                                 onClick={() => setOpenBranches(!openBranches)}>
                                 
-                                {currentBranch} <ArrowDropDownOutlined className='w-[17px] h-[17px]' />
+                                {currentBranch} <ArrowDropDownOutlined className='w-[17px] h-[17px]' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                               </button> 
                               {
                                 openBranches && (
@@ -331,9 +343,9 @@ export const Repository = () => {
                                     <div className='text-center w-full py-2 text-sm font-semibold'>Branches</div>
 
                                     <div className='flex flex-col max-h-60 overflow-y-auto'>
-                                      {repo.branches.map(branch => (
+                                      {repo?.branches.map(branch => (
                                         <button 
-                                          key={branch._id}
+                                          key={branch?._id}
                                           className={`flex justify-center items-center py-2  text-sm hover:bg-blue-200 transition-colors duration-100 ${branch.name === currentBranch ? 'bg-blue-100' : ''} `}
                                           onClick={() => handleLoadNewBranch(branch.name)}
                                         >
@@ -351,7 +363,7 @@ export const Repository = () => {
                     <FileTree 
                         branch={currentBranch} 
                         files={files} 
-                        repo={repo} 
+                        repo={repo as RepositoryBase} 
                         setFiles={setFiles} 
                         setSelectedFileContent={setSelectedFileContent} 
                         setSelectedFileName={setSelectedFileName} 
@@ -403,7 +415,7 @@ export const Repository = () => {
                           selectedFileContent !== '' && (
                             <button className='absolute z-10 text-white bottom-5 right-6'>
                                 <Icon>
-                                  <ExpandSharp onClick={() => setIsCodeOnBigScreenOpen(!isCodeOnBigScreenOpen)} />
+                                  <ExpandSharp onClick={() => setIsCodeOnBigScreenOpen(!isCodeOnBigScreenOpen)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                 </Icon>
                             </button>
                           )

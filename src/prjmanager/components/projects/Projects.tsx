@@ -1,12 +1,12 @@
-import { useSelector, useDispatch,  } from "react-redux"
-import { useState, useEffect, useMemo } from "react"
+import { useSelector, useDispatch } from "react-redux"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { RootState } from "../../../store/store"
 import { TextField } from "@mui/material"
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { VscNewFolder } from "react-icons/vsc";
 import { RenderProjects } from "./RenderProjects";
 import { startProjects } from "../../../store/projects/projectSlice";
-import { ProjectForm } from "./forms/ProjectForm";
+import { ProjectForm } from "./forms/project/ProjectForm";
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from "axios";
@@ -19,23 +19,24 @@ export const Projects = () => {
   const dispatch = useDispatch();
   const projectID = location.state?.project.ID;
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(null);
+  const [searchTerm, setSearchTerm] = useState<string | null>(null);
   const { uid } = useSelector((state: RootState) => state.auth);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false)
   const { projects } = useSelector((state: RootState) => state.projects);
 
 
-  const fetchProjects = async() => {
+  const fetchProjects = useCallback(() => {
     axios.get(`${backendUrl}/projects/get-projects/${uid}`)
-    .then((res) => {
-      dispatch(startProjects(res.data))
-      setIsLoading(false)
-    })
-    .catch((err) => {
-      setIsLoading(false)
-      console.log(err)
-    })
-  };
+      .then((res) => {
+        dispatch(startProjects(res.data));
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setIsLoading(false);
+        console.log(err);
+      });
+  }, [uid, dispatch]); 
+  
 
   const filteredProjects = useMemo(() => {
     if (!searchTerm) return projects;
@@ -44,7 +45,7 @@ export const Projects = () => {
   
   useEffect(() => {
     fetchProjects()
-  }, []);
+  }, [fetchProjects]);
 
 
   if(isLoading) return (
@@ -56,7 +57,7 @@ export const Projects = () => {
   return (
         <div id="projects" className="flex flex-col flex-grow overflow-y-auto">            
         
-        { isProjectFormOpen && <ProjectForm uid={uid} isProjectFormOpen={isProjectFormOpen} setIsProjectFormOpen={setIsProjectFormOpen} /> }
+        { isProjectFormOpen && <ProjectForm uid={uid as string} isProjectFormOpen={isProjectFormOpen} setIsProjectFormOpen={setIsProjectFormOpen} /> }
             {
               projectID 
               ?  <Outlet/> 

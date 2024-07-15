@@ -1,21 +1,34 @@
-// import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 import figures from '../../../assets/imgs/formbg.jpg'
-import { cn } from '../../../../utils/cn'
 import { cleanUrl } from "../../projects/helpers/helpers";
 import { GiLaurelsTrophy } from "react-icons/gi";
 import { Tooltip } from "@mui/material";
+import { NavigateOptions } from 'react-router-dom';
 
-export function TaskSet({ navigate, taskSet, uid }) {
+interface TaskSet {
+    _id: string;
+    task_name: string;
+    task_description: string;
+    type: string;
+    status: string;
+    priority: string;
+    deadline: string;
+    goals: string[];
+    repository_number_task: string;
+    assigned_to: string;
+}
 
+interface TaskSetProps {
+    navigate: (to: string, state: NavigateOptions) => void;
+    taskSet: TaskSet;
+    uid: string;
+}
 
-  const formatDate = (date) => {
+export function TaskSet({ navigate, taskSet, uid }: TaskSetProps) {
+
+  const formatDate = (date: string) => {
     const formattedDate = new Date(date).toLocaleDateString();
     return formattedDate;
 };
-
-
 
   return (
     <div className="min-w-80 max-w-80 h-full">
@@ -26,13 +39,12 @@ export function TaskSet({ navigate, taskSet, uid }) {
             backgroundSize: 'cover',
             backgroundPosition: 'bottom center',
             backgroundRepeat: 'no-repeat'
-          
           }}  
         >
           <div className="p-4">
           <div className="flex justify-between">
             <h2 className="font-bold text-[12px] text-zinc-700">
-              #{taskSet.repository_number_task || taskSet.layer_number_task}
+              #{taskSet.repository_number_task || 0}
             </h2>
             {
               taskSet.type === 'assigned' && taskSet.assigned_to === uid ? (

@@ -1,7 +1,7 @@
 import { Avatar } from '@mui/material';
+import { PopulatedContributorsIds } from '../../../../interfaces/models';
 
-
-export const TaskCollaborators = ({ collaborators }) => {
+export const TaskCollaborators = ({ collaborators }: { collaborators: PopulatedContributorsIds[] }) => {
     
     const totalCollaborators = collaborators.length;
     const startFadeIndex = 0; // Comenzar a difuminar desde el segundo elemento (índice 1)

@@ -21,7 +21,7 @@ export const Commits = () => {
             {
                 !commitHash && (
                     <div className='flex w-full pb-3  items-center'>           
-                        <ArrowHookUpLeft16Regular className='w-5 h-5 ml-4 cursor-pointer' onClick={() => navigate(-1)} />          
+                        <ArrowHookUpLeft16Regular className='w-5 h-5 ml-4 cursor-pointer' onClick={() => navigate(-1)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />          
                         <h1 className='text-lg font-bold ml-2'>Commits</h1>           
                     </div>
                 )

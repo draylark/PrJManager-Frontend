@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useQuickNotisData } from '../../hooks/useQuickNotisData'
 import platy from '../../../../assets/imgs/platy.jpg'
 import { ScaleLoader   } from 'react-spinners';
@@ -8,14 +7,40 @@ import Swal from 'sweetalert2'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
 
-export const QuickNotis = ({ uid }) => {
+
+interface Notification {
+  _id: string;
+  type: string;
+  description: string;
+  additionalData: {
+    username?: string;
+    taskName?: string;
+    repositoryName?: string;
+    projectName?: string;
+    layerName?: string;
+    repoName?: string;
+    projectID?: string;
+    layerId?: string;
+    repoId?: string;
+    accessLevel?: string;
+    taskId?: string;
+    date?: string;
+  };
+  from: {
+    name: string
+    ID: string;
+
+  }
+  createdAt: string;
+}
+
+export const QuickNotis = ( { uid }: { uid: string } ) => {
 
   const navigate = useNavigate();
   const { notifications, isLoading, errorMessage, errorWhileFetching } = useQuickNotisData(uid)
 
 
-  const renderNotification = (type, noti) => {
-
+  const renderNotification = (type: string, noti: Notification) => {
     switch (type) {
       case 'new-task-commit':
         return (
@@ -28,7 +53,7 @@ export const QuickNotis = ({ uid }) => {
         return (
           <div className="flex flex-col space-y-1 rounded-r-lg  p-2 pr-3 text-[12px] border-[1px] border-gray-400 glassi">
             <p className='font-semibold text-[11px]'>{formateDate(noti.createdAt)}</p>
-            <p>The task <span onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName)}`, {
+            <p>The task <span onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName as string)}`, {
                 state: {
                   task: {
                     taskId: noti.additionalData.taskId,
@@ -43,7 +68,7 @@ export const QuickNotis = ({ uid }) => {
         return (
           <div className="flex flex-col space-y-1 rounded-r-lg  p-2 pr-3 text-[12px] border-[1px] border-gray-400 glassi">
             <p className='font-semibold text-[11px]'>{formateDate(noti.createdAt)}</p>
-            <p>{noti.description} <span onClick={() => invitationAlert(noti._id, noti.additionalData.taskId, noti.additionalData.taskName)} className='cursor-pointer font-semibold transition-colors duration-200 hover:text-blue-500 text-blue-600'>
+            <p>{noti.description} <span onClick={() => invitationAlert(noti._id, noti.additionalData.taskId as string, noti.additionalData.taskName as string)} className='cursor-pointer font-semibold transition-colors duration-200 hover:text-blue-500 text-blue-600'>
               {noti.additionalData.taskName}</span> in the repository <span  className='font-semibold text-green-600'>
                 {noti.additionalData.repositoryName}.
               </span>
@@ -53,8 +78,8 @@ export const QuickNotis = ({ uid }) => {
       case 'task-approved':
         return (
           <div className="flex flex-col space-y-1 rounded-r-lg  p-2 pr-3 text-[12px] border-[1px] border-gray-400 glassi">
-            <p className='font-semibold text-[11px]'>{formateDate(noti.additionalData.date)}</p>
-            <p>The task <span  onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName)}`, {
+            <p className='font-semibold text-[11px]'>{formateDate(noti.additionalData.date as string)}</p>
+            <p>The task <span  onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName as string)}`, {
                 state: {
                   task: {
                     taskId: noti.additionalData.taskId,
@@ -68,8 +93,8 @@ export const QuickNotis = ({ uid }) => {
       case 'task-rejected':
         return (
           <div className="flex flex-col space-y-1 rounded-r-lg p-2 pr-3 text-[12px] border-[1px] border-gray-400 glassi">
-            <p className='font-semibold text-[11px]'>{formateDate(noti.additionalData.date)}</p>
-            <p>The task <span onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName)}`, {
+            <p className='font-semibold text-[11px]'>{formateDate(noti.additionalData.date as string)}</p>
+            <p>The task <span onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName as string)}`, {
                 state: {
                   task: {
                     taskId: noti.additionalData.taskId,
@@ -77,7 +102,7 @@ export const QuickNotis = ({ uid }) => {
                   }
                 }
             })}  
-            className='font-semibold transition-colors duration-200 hover:text-blue-500 text-blue-600 cursor-pointer'>{noti.additionalData.taskName}</span> has been <span className='text-red-500'>rejected</span>, see the reason <span onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName)}`, {
+            className='font-semibold transition-colors duration-200 hover:text-blue-500 text-blue-600 cursor-pointer'>{noti.additionalData.taskName}</span> has been <span className='text-red-500'>rejected</span>, see the reason <span onClick={() => navigate(`workspace/${cleanUrl(noti.additionalData.taskName as string)}`, {
               state: {
                 task: {
                   taskId: noti.additionalData.taskId,
@@ -92,7 +117,7 @@ export const QuickNotis = ({ uid }) => {
         return (
           <div className="flex flex-col space-y-1 rounded-r-lg p-2 pr-3 text-[12px] border-[1px] border-gray-400 glassi">
             <p className='font-semibold text-[11px]'>{formateDate(noti.createdAt)}</p>
-            <p>You have been added to the repository <span onClick={() => navigate(`/projects/${cleanUrl(noti.additionalData.projectName)}/${cleanUrl(noti.additionalData.layerName)}/${cleanUrl(noti.additionalData.repoName)}`, {
+            <p>You have been added to the repository <span onClick={() => navigate(`/projects/${cleanUrl(noti.additionalData.projectName as string)}/${cleanUrl(noti.additionalData.layerName as string)}/${cleanUrl(noti.additionalData.repoName as string)}`, {
                 state: {            
                     project: { ID: noti.from.ID, name: noti.additionalData.projectName, accessLevel: noti.additionalData.accessLevel || null },
                     layer: { layerID: noti.additionalData.layerId, layerName: noti.additionalData.layerName }, 
@@ -107,7 +132,7 @@ export const QuickNotis = ({ uid }) => {
         return (
           <div className="flex flex-col space-y-1 rounded-r-lg p-2 pr-3 text-[12px] border-[1px] border-gray-400 glassi">
             <p className='font-semibold text-[11px]'>{formateDate(noti.createdAt)}</p>
-            <p>You have been added to the layer <span onClick={() => navigate(`/projects/${cleanUrl(noti.additionalData.projectName)}/${cleanUrl(noti.additionalData.layerName)}`, {
+            <p>You have been added to the layer <span onClick={() => navigate(`/projects/${cleanUrl(noti.additionalData.projectName as string)}/${cleanUrl(noti.additionalData.layerName as string)}`, {
                 state: {            
                     project: { ID: noti.from.ID, name: noti.additionalData.projectName },
                     layer: { layerID: noti.additionalData.layerId, layerName: noti.additionalData.layerName }        
@@ -121,7 +146,7 @@ export const QuickNotis = ({ uid }) => {
     }
   };
 
-  const handleInvitation = (accepted, taskId, notiId, taskName) => {
+  const handleInvitation = (accepted: boolean, taskId: string, notiId: string, taskName: string) => {
       axios.put(`${backendUrl}/tasks/handle-task-invitation/${taskId}`, {
         uid,
         accepted,
@@ -161,7 +186,7 @@ export const QuickNotis = ({ uid }) => {
       })
   };
 
-  const invitationAlert = (notiId, taskId, taskName) => {
+  const invitationAlert = (notiId: string, taskId: string, taskName: string) => {
     Swal.fire({
       title: 'You have been invited to a task',
       text: 'If you accept, you can contribute to the task and collaborate with other users. Do you want to accept the invitation?',
@@ -214,9 +239,10 @@ export const QuickNotis = ({ uid }) => {
                           src={ platy || `https://dummyimage.com/500x500/000/fff&text=S`}
                           alt=''
                           onError={(e) => {
-                              e.target.onerror = null; // prevents looping
-                              e.target.src = `https://dummyimage.com/500x500/000/fff&text=S`;
-                          }}
+                            const target = e.target as HTMLImageElement; // Usar type assertion aquí
+                            target.onerror = null; // Esto previene un bucle de error
+                            target.src = `https://dummyimage.com/500x500/000/fff&text=S`;
+                        }}
                       />
 
                       {renderNotification(noti.type, noti)}

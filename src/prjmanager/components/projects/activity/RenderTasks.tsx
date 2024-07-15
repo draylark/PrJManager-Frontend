@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, memo } from 'react'
+import { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react'
 import { Icon } from '@ricons/utils';
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { CheckTwotone } from '@ricons/material'
@@ -11,49 +11,67 @@ import axios from 'axios';
 import { Avatar } from '@mui/material';
 import { MdLayers } from 'react-icons/md';
 import { FaGitAlt  } from 'react-icons/fa';
-import { tierS, tierA } from '../../../helpers/accessLevels-validator';
 import { BeatLoader } from 'react-spinners';
 import { InformationOutline } from '@ricons/ionicons5'
 import { Copy20Regular } from '@ricons/fluent'
 import './activity.css'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
+import { RootState } from '../../../../store/store';
 import { TaskCollaborators } from './TaskCollaborators';
+import { LayerBase, RepositoryBase, ModifiedTaskBase } from '../../../../interfaces/models';
 
 
-  export const RenderTasks = ({ projectLayers, projectRepositories, tasksCompleted, setTasksCompleted, wFApprovalTasks, setWFApprovalTasks, setRender, render }) => {
+interface RenderTasksProps {
+  projectLayers: { label: string; value: string }[];
+  projectRepositories: { label: string; value: string }[];
+  tasksCompleted: ModifiedTaskBase[];
+  setTasksCompleted: (value: React.SetStateAction<ModifiedTaskBase[]>) => void;
+  wFApprovalTasks: ModifiedTaskBase[];
+  setWFApprovalTasks: (value: React.SetStateAction<ModifiedTaskBase[]>) => void;
+  setRender: (value: React.SetStateAction<string>) => void;
+  render: string;
+}
 
-    const accordionRefs = useRef([]);
-    const [expanded, setExpanded] = useState(null);
 
+  export const RenderTasks = ({ 
+    projectLayers, 
+    projectRepositories, 
+    tasksCompleted, 
+    setTasksCompleted, 
+    wFApprovalTasks, 
+    setWFApprovalTasks, 
+    setRender, render }: RenderTasksProps) => {
 
-    const [layerInfo, setLayerInfo] = useState({});
-    const [repoInfo, setRepoInfo] = useState({});
-    const [layerID, setLayerID] = useState(null)
-    const [repoID, setRepoID] = useState(null)
+    const accordionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+    const [expanded, setExpanded] = useState<string | null>(null);
 
-    const [response, setResponse] = useState([])
-    const [taskHandled, setTaskHandled] = useState(false)
-    const [taskToHandle, setTaskToHandle] = useState('')
-    const [handlingTask, setHandlingTask] = useState(false)
+    const [layerInfo, setLayerInfo] = useState<LayerBase | null>(null);
+    const [repoInfo, setRepoInfo] = useState<RepositoryBase | null>(null);
+    const [layerID, setLayerID] = useState<string | null>(null)
+    const [repoID, setRepoID] = useState<string | null>(null)
+
+    const [response, setResponse] = useState<[boolean?, string?]>([])
+    const [taskHandled, setTaskHandled] = useState<string | null>(null)
+    const [taskToHandle, setTaskToHandle] = useState<string | null>(null)
+    const [handlingTask, setHandlingTask] = useState<string | null>(null)
     const [reasonsTextField, setReasonsTextField] = useState('')
     const [openDialog, setOpenDialog] = useState(false)
 
-    const [openDialogs, setOpenDialogs] = useState({});
+    const [openDialogs, setOpenDialogs] = useState<{ [key: string]: boolean | null }>({});
 
     const [isLoading, setIsLoading] = useState(true)
-    const [layerFilter, setLayerFilter] = useState(null);
-    const [repoFilter, setRepoFilter] = useState(null);
-    const [userFilter, setUserFilter] = useState(null);
+    const [layerFilter, setLayerFilter] = useState<string | null>(null);
+    const [repoFilter, setRepoFilter] = useState<string | null>(null);
+    const [userFilter, setUserFilter] = useState<string | null>(null);
     const [statusTerm, setStatusTerm] = useState('completed');
-    const [layerTerm, setLayerTerm] = useState(null);
-    const [repoTerm, setRepoTerm] = useState(null);
+    const [layerTerm, setLayerTerm] = useState<string | null>(null);
+    const [repoTerm, setRepoTerm] = useState<string | null>(null);
 
-    const { layers, repositories } = useSelector((state) => state.platypus );
-    const { uid } = useSelector((state) => state.auth);
+    const { layers, repositories } = useSelector((state: RootState) => state.platypus );
+    const { uid } = useSelector((state: RootState) => state.auth);
 
 
-    const handleExpandClick = (taskId, layerID, repoID) => {
+    const handleExpandClick = (taskId: string, layerID: string, repoID: string) => {
       const isExpanded = expanded === taskId;
       setExpanded(isExpanded ? null : taskId);
       setLayerID(isExpanded ? null : layerID)
@@ -63,8 +81,8 @@ import { TaskCollaborators } from './TaskCollaborators';
         // Esperar al próximo ciclo del evento para asegurar que la expansión se ha completado antes de desplazarse
         setTimeout(() => {
           const accordionElement = accordionRefs.current[taskId];
-          if (accordionElement) {
-            const container = document.querySelector('#container-scroll'); // Asegúrate de que este selector coincida con tu contenedor
+          const container = document.querySelector('#container-scroll'); // Asegúrate de que este selector coincida con tu contenedor          
+          if (accordionElement && container) {
             const containerRect = container.getBoundingClientRect();
             const accordionRect = accordionElement.getBoundingClientRect();
     
@@ -76,8 +94,74 @@ import { TaskCollaborators } from './TaskCollaborators';
       }
     };
 
+    const handleOpenDialog = (taskId: string) => {
+      setOpenDialogs({ ...openDialogs, [taskId]: true });
+    };
+    
+    const handleCloseDialog = (taskId: string) => {
+      const newDialogs = { ...openDialogs };
+      delete newDialogs[taskId];
+      setOpenDialogs(newDialogs);
+    };
 
-    const handleLayerAndRepoInformation = ( layerID, repoID ) => {
+    const InfoDialog = memo(({ 
+      infoDialogOpen, 
+      setInfoDialogOpen, 
+      description, goals}: {
+        infoDialogOpen: boolean | undefined | null;
+        setInfoDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+        description: string;
+        goals: string[];     
+      }) => {
+      return (
+        <Dialog
+          open={infoDialogOpen as boolean}
+          onClose={() => setInfoDialogOpen(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Task Information and Goals"}</DialogTitle>
+        <DialogContent>
+            <div className='flex space-x-8 p-2'>
+              <TextField
+                sx={{
+                  width: '600px',
+                  '& .Mui-disabled': {
+                    color: 'black',
+                    'text-fill-color': 'black',
+                  }
+                }}
+                label="Task Description"
+                variant="outlined"
+                value={description}
+                fullWidth
+                multiline
+                rows={7}
+                disabled
+              />
+      
+              <Paper variant="outlined" sx={{ maxHeight: '194px', overflow: 'auto', width: '400px' }}>
+                <List dense component="ul">
+                  {goals && goals.map((goal, index) => (
+                    <ListItem key={index} component="li">
+                      <ListItemText primary={goal} primaryTypographyProps={{ fontSize: '0.875rem' }} />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>                            
+            </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInfoDialogOpen(false)} autoFocus>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      )
+    });   
+    
+    const handleLayerAndRepoInformation = useCallback(( layerID: string, repoID: string ) => {
 
       setIsLoading(true)
       const layer = layers.filter( layer => layer._id === layerID )
@@ -137,68 +221,10 @@ import { TaskCollaborators } from './TaskCollaborators';
         setRepoInfo(repo[0])
         setIsLoading(false)
       } 
-    };
+    }, [layers, repositories])
 
-    const handleOpenDialog = (taskId) => {
-      setOpenDialogs({ ...openDialogs, [taskId]: true });
-    };
-    
-    const handleCloseDialog = (taskId) => {
-      const newDialogs = { ...openDialogs };
-      delete newDialogs[taskId];
-      setOpenDialogs(newDialogs);
-    };
 
-    const InfoDialog = memo(({ infoDialogOpen, setInfoDialogOpen, description, goals}) => {
-      return (
-        <Dialog
-        open={infoDialogOpen}
-        onClose={() => setInfoDialogOpen(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Task Information and Goals"}</DialogTitle>
-        <DialogContent>
-            <div className='flex space-x-8 p-2'>
-              <TextField
-                sx={{
-                  width: '600px',
-                  '& .Mui-disabled': {
-                    color: 'black',
-                    'text-fill-color': 'black',
-                  }
-                }}
-                label="Task Description"
-                variant="outlined"
-                value={description}
-                fullWidth
-                multiline
-                rows={7}
-                disabled
-              />
-      
-              <Paper variant="outlined" sx={{ maxHeight: '194px', overflow: 'auto', width: '400px' }}>
-                <List dense component="ul">
-                  {goals.map((goal, index) => (
-                    <ListItem key={index} component="li">
-                      <ListItemText primary={goal} primaryTypographyProps={{ fontSize: '0.875rem' }} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>                            
-            </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setInfoDialogOpen(false)} autoFocus>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      )
-    });
-
-    const handleTask = async( taskId, approved, status, reasons ) => {
+    const handleTask = async( taskId: string, approved: boolean, status: string, reasons?: string[] ) => {
       const task = wFApprovalTasks.filter( task => task._id === taskId )[0]
       setHandlingTask(taskId)
 
@@ -214,45 +240,41 @@ import { TaskCollaborators } from './TaskCollaborators';
         }
       })
         .then( res => {
-          // console.log(res)
           setResponse([ res.data.success, res.data.message ])
-          setTaskToHandle('')
+          setTaskToHandle(null)
 
           setTimeout(() => {
-                setHandlingTask('')
+                setHandlingTask(null)
                 setTaskHandled(taskId) 
           }, 2000);
 
           setTimeout(() => {
             setWFApprovalTasks(wFApprovalTasks.filter( task => task._id !== taskId))
             if( res.data.type === 'task-approved' ) {
-              const { status: oldStatus, ...rest } = task
-              setTasksCompleted([ { status, ...rest }, ...tasksCompleted ])
+              setTasksCompleted([ {  ...task, status: 'completed' }, ...tasksCompleted ])
             }
           }, 5000);       
         })
         .catch( err => {
-          // console.log(err)     
           setResponse([ err.response.data.success, err.response.data.message ])
-          setTaskToHandle('')
+          setTaskToHandle(null)
 
           setTimeout(() => {
-                setHandlingTask('')
+                setHandlingTask(null)
                 setTaskHandled(taskId) 
           }, 2000);
         })
     };
 
     const filteredTasks = useMemo(() => {
-      // Implementa tu lógica de filtrado aquí, basada en los estados de filtros
-      // Por ejemplo:
-      const filterTasks = (tasks) => tasks.filter(task => {
+      // Lógica de filtrado aquí, basada en los estados de filtros
+      const filterTasks = (tasks: ModifiedTaskBase[]) => tasks.filter(task => {
           // Verificar filtro de capa
           const layerPasses = layerFilter ? task.layer_related_id === layerFilter : true;
           // Verificar filtro de repositorio
           const repoPasses = repoFilter ? task.repository_related_id === repoFilter : true;
           // Verificar filtro de usuario
-          const userPasses = userFilter ? task.collaboratorsIds.includes(userFilter) : true;
+          const userPasses = userFilter ? task.contributors.filter(c => c._id === userFilter).length > 0 : true;
         // Añade otras condiciones de filtrado aquí
         return layerPasses && repoPasses && userPasses;
       });
@@ -269,12 +291,11 @@ import { TaskCollaborators } from './TaskCollaborators';
 
 
     useEffect(() => {
-      if (expanded) {
+      if (expanded && layerID && repoID) {
         handleLayerAndRepoInformation(layerID, repoID)
       }
-    }, [expanded, layerID, repoID ])
+    }, [expanded, layerID, repoID, handleLayerAndRepoInformation])
     
-
     return (
           <div className="flex flex-col  flex-grow px-7 h-full">
             <div className='flex justify-between h-[70px]'>
@@ -293,7 +314,6 @@ import { TaskCollaborators } from './TaskCollaborators';
                           vertical: 'top', // Puede ser 'top' o 'bottom'
                           horizontal: 'left', // Puede ser 'left', 'center' o 'right'
                         },
-                        getContentAnchorEl: null, // Evita que MUI establezca la posición basándose en el contenido seleccionado
                       }}
                     >
                       <MenuItem value="completed">Completed</MenuItem>
@@ -305,12 +325,12 @@ import { TaskCollaborators } from './TaskCollaborators';
                       size="small" // Ajusta el tamaño
                       options={projectLayers}
                       getOptionLabel={(option) => option.label}
-                      onChange={(event, value) => {
-                        setLayerFilter(value?.value || value)
-                        setLayerTerm(value?.label || value)
+                      onChange={(_, value) => {
+                        setLayerFilter(value?.value as string)
+                        setLayerTerm(value?.label as string)
                       }}
                       renderInput={(params) => <TextField {...params} label="Layer" />}
-                      onInputChange={(event, newInputValue, reason) => {
+                      onInputChange={(_, newInputValue, reason) => {
                         if (reason !== 'reset') {
                           setLayerFilter(newInputValue);
                           setLayerTerm(newInputValue);
@@ -325,12 +345,12 @@ import { TaskCollaborators } from './TaskCollaborators';
                       size="small" // Ajusta el tamaño
                       options={projectRepositories}
                       getOptionLabel={(option) => option.label}
-                      onChange={(event, value) => {
-                        setRepoFilter(value?.value || value)
-                        setRepoTerm(value?.label || value)
+                      onChange={(_, value) => {
+                        setRepoFilter(value?.value as string)
+                        setRepoTerm(value?.label as string)
                       
                       }}
-                      onInputChange={(event, newInputValue, reason) => {
+                      onInputChange={(_, newInputValue, reason) => {
                         if (reason !== 'reset') {
                           setRepoFilter(newInputValue);
                           setRepoTerm(newInputValue);
@@ -367,7 +387,6 @@ import { TaskCollaborators } from './TaskCollaborators';
                           vertical: 'top', // Puede ser 'top' o 'bottom'
                           horizontal: 'left', // Puede ser 'left', 'center' o 'right'
                         },
-                        getContentAnchorEl: null, // Evita que MUI establezca la posición basándose en el contenido seleccionado
                       }}
                     >
                       <MenuItem value="tasks">Tasks</MenuItem>
@@ -418,13 +437,13 @@ import { TaskCollaborators } from './TaskCollaborators';
                                                                   setTaskToHandle(task._id)
                                                                 }}
                                                                 className='flex justify-center items-center w-[55px] bg-red-300 hover:bg-red-500 transition-colors duration-100 h-full rounded-l-extra font-semibold border-[1px] border-black'>
-                                                                <IosClose className="w-7 h-7" />
+                                                                <IosClose className="w-7 h-7" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                                                 
                                                               </button>
                                                               <button
                                                                 onClick={() => handleTask(task._id, true, 'completed')} 
                                                                 className='flex justify-center items-center w-[55px] bg-blue-300 hover:bg-blue-500 transition-colors duration-100 h-full rounded-r-extra font-semibold border-[1px] border-black'>                                                   
-                                                                <CheckTwotone className="w-5 h-5" />
+                                                                <CheckTwotone className="w-5 h-5" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                                               </button>
                                                             </>
                                                           )
@@ -437,8 +456,8 @@ import { TaskCollaborators } from './TaskCollaborators';
                                                     <Icon size={24}>
                                                       {
                                                         task.status === 'completed' 
-                                                        ? <TaskComplete />
-                                                        : <TaskView />
+                                                        ? <TaskComplete onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                                                        : <TaskView onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                                       }
                                                     </Icon>
                                                 </div>
@@ -472,7 +491,7 @@ import { TaskCollaborators } from './TaskCollaborators';
                                           
                                           <Button onClick={() =>{
                                             setOpenDialog(false)
-                                            handleTask(taskToHandle, false, 'pending', [ reasonsTextField ])                                              
+                                            handleTask(taskToHandle as string, false, 'pending', [ reasonsTextField ])                                              
                                           }} disabled={ reasonsTextField.length === 0 }>Send</Button>            
                                         </DialogActions>
                                       </Dialog>
@@ -494,7 +513,7 @@ import { TaskCollaborators } from './TaskCollaborators';
                                             <div className='flex space-x-2'>
                                                 {
                                                     task.assigned_to && (
-                                                    task.contributors.filter( contributor => contributor.uid === task.assigned_to).map((collaborator, index) => (
+                                                    task.contributors.filter( contributor => contributor._id === task.assigned_to).map((collaborator, index) => (
                                                         <div key={index} className="flex items-center space-x-2 mt-[1px]">
                                                         <Avatar alt={collaborator.username} src={collaborator.photoUrl || collaborator.username} sx={{ width: 20, height: 20 }} />
                                                         <span className='text-[14px]'>{collaborator.username}</span>
@@ -505,7 +524,7 @@ import { TaskCollaborators } from './TaskCollaborators';
                                                 {
                                                   task.assigned_to && task.contributors.length === 0 
                                                   ? null
-                                                  : task.assigned_to && !task.contributors.some(contri => contri.uid !== task.assigned_to)
+                                                  : task.assigned_to && !task.contributors.some(c => c._id !== task.assigned_to)
                                                   ? null
                                                   : !task.assigned_to && task.contributors.length === 0 
                                                   ? ( <span className='text-[12px]'>No contributors yet</span> )
@@ -530,17 +549,17 @@ import { TaskCollaborators } from './TaskCollaborators';
                                                   placement="left"                                 
                                                   >
                                                   <Copy20Regular 
-                                                    onClick={() => navigator.clipboard.writeText(task._id)}                                  
-                                                    className='w-5 h-5 cursor-pointer hover:text-blue-500 transition-colors duration-200 ease-in-out transform active:translate-y-[2px]'/>
+                                                    onClick={() => navigator.clipboard.writeText(task._id)}
+                                                    className='w-5 h-5 cursor-pointer hover:text-blue-500 transition-colors duration-200 ease-in-out transform active:translate-y-[2px]' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                                                 </Tooltip>
 
                                                 <InformationOutline 
-                                                  onClick={() => handleOpenDialog(task._id)}
-                                                  className='w-5 h-5 cursor-pointer hover:text-blue-500 transition-colors duration-200 ease-in-out transform active:translate-y-[2px]' />
+                                                    onClick={() => handleOpenDialog(task._id)}
+                                                    className='w-5 h-5 cursor-pointer hover:text-blue-500 transition-colors duration-200 ease-in-out transform active:translate-y-[2px]' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
 
                                                 <ArrowCircleDown48Regular 
-                                                  onClick={() => handleExpandClick(task._id, task.layer_related_id, task.repository_related_id)}                                                                        
-                                                  className='w-5 h-5 cursor-pointer mr-2 hover:text-blue-500 transition-colors duration-200' />                                      
+                                                    onClick={() => handleExpandClick(task._id, task.layer_related_id as string, task.repository_related_id as string)}
+                                                    className='w-5 h-5 cursor-pointer mr-2 hover:text-blue-500 transition-colors duration-200' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />                                      
                                             </div>
 
 
@@ -568,14 +587,14 @@ import { TaskCollaborators } from './TaskCollaborators';
                                                 </div>
 
                                                 <div className="flex flex-col ">
-                                                    <div className="flex space-x-2 items-center "><MdLayers /> <span className='text-lg font-semibold'>{ layerInfo.name}</span> </div>
-                                                    <div className="text-[13px] ml-6">{layerInfo._id} </div>
+                                                    <div className="flex space-x-2 items-center "><MdLayers /> <span className='text-lg font-semibold'>{ layerInfo?.name}</span> </div>
+                                                    <div className="text-[13px] ml-6">{layerInfo?._id} </div>
                                                     <div> </div>
                                                 </div>
 
                                                 <div className="flex flex-col ">
-                                                    <div className="flex space-x-2 items-center "><FaGitAlt /> <span className='text-lg font-semibold'>{repoInfo.name }</span> </div>
-                                                    <div className="text-[13px] ml-6">{repoInfo._id}</div>
+                                                    <div className="flex space-x-2 items-center "><FaGitAlt /> <span className='text-lg font-semibold'>{repoInfo?.name }</span> </div>
+                                                    <div className="text-[13px] ml-6">{repoInfo?._id}</div>
                                                 </div>
                                             </div>
 

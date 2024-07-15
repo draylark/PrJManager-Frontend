@@ -1,4 +1,4 @@
-export const abbreviateNumber = (number) => {
+export const abbreviateNumber = (number: number) => {
     if (number < 1000) return number.toString();
     const units = ["K", "M", "B", "T"];
     const order = Math.floor(Math.log10(number) / 3);
@@ -8,8 +8,8 @@ export const abbreviateNumber = (number) => {
 };
 
 export const getInitialsAvatar = (name: string) => {
-    let initials = name.match(/\b\w/g) || [];
-    initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+    const initialsMatch = name.match(/\b\w/g) || []; // Asegurarse de que siempre es un arreglo
+    const initials = ((initialsMatch.shift() || '') + (initialsMatch.pop() || '')).toUpperCase();
     return `data:image/svg+xml;base64,${btoa(
         `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
             <rect width="36" height="36" fill="#000000" />
@@ -18,17 +18,15 @@ export const getInitialsAvatar = (name: string) => {
     )}`;
 };
 
-
 export const cleanUrl = (name: string) => {
     return name.replace(/\./g, '').replace(/\s+/g, '-');
 }
 
-export const formateDate = (date: string) => {
+export const formateDate = (date: string | Date) => {
     const d = new Date(date);
     return d.toLocaleDateString();
 }
 
-
-export const capitalizeFirstLetter = (str) => {
+export const capitalizeFirstLetter = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
 };

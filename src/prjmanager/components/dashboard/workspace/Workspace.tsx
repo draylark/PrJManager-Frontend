@@ -7,14 +7,29 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import { useSelector } from 'react-redux';
 import { ScaleLoader } from 'react-spinners';
 import { IoIosArrowForward, IoIosArrowBack  } from "react-icons/io";
+import { RootState } from '../../../../store/store';
+
+
+interface TaskSet {
+  _id: string;
+  task_name: string;
+  task_description: string;
+  type: string;
+  status: string;
+  priority: string;
+  deadline: string;
+  goals: string[];
+  repository_number_task: string;
+  assigned_to: string;
+}
 
 export const Workspace = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
   const taskId = location.state?.task?.taskId
-  const [tasks, setTasks] = useState(null)
-  const { uid } = useSelector( state => state.auth )
+  const [tasks, setTasks] = useState<TaskSet[]>([])
+  const { uid } = useSelector( (state: RootState) => state.auth )
 
   const [ isLoading, setIsLoading ] = useState(true);
   const [ errorMessage, setErrorMessage ] = useState(null);
@@ -22,25 +37,28 @@ export const Workspace = () => {
   const [ready, setReady] = useState(false)
 
   const [filter, setFilter] = useState('')
-  const scrollContainerRef = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
   const checkScroll = () => {
-    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current as HTMLDivElement;
     setShowLeftArrow(scrollLeft > 0);  // Muestra la flecha izquierda si no estás en el inicio
     setShowRightArrow(scrollLeft < scrollWidth - clientWidth);  // Muestra la flecha derecha si no estás al final
   };
 
   const scrollLeft = () => {
-    scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    if(scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    }
   };
 
   const scrollRight = () => {
-    scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+    if( scrollContainerRef.current ){
+      scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+    }
   };
 
-  // Agrega un efecto para añadir el evento de scroll después de montar el componente
   useEffect(() => {
     if(ready && scrollContainerRef.current){ 
       const container = scrollContainerRef.current;
@@ -63,7 +81,7 @@ export const Workspace = () => {
       }
     })
       .then(res => {
-        // console.log(res)
+        console.log(res)
         setTasks(res.data.tasks)
         setIsLoading(false)
         setReady(true)
@@ -74,6 +92,7 @@ export const Workspace = () => {
         setErrorWhileFetching(true)
         setErrorMessage(err.response.data.message || 'An error occurred while fetching the task data')
       })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
@@ -92,9 +111,9 @@ export const Workspace = () => {
     });
   }, [filter, tasks]);
 
-// min-h-[730px] max-h-[730px]  min-w-[1380px] max-w-screen
-if (taskId) {
-    return ( <Outlet /> )
+
+  if (taskId) {
+      return ( <Outlet /> )
   }
 
   return (
@@ -105,8 +124,7 @@ if (taskId) {
           name="set"
           label="Number task Or Task Name"
           size='small'
-          value={filter}
-          
+          value={filter}     
           onChange={e => setFilter(e.target.value)}
           sx={{
             width: 240
@@ -117,7 +135,7 @@ if (taskId) {
           isLoading 
           ? 
               ( <div className='flex flex-grow items-center justify-center'>
-                  <ScaleLoader  color="#32174D" size={20} /> 
+                  <ScaleLoader  color="#32174D" /> 
               </div> ) 
         
           : errorWhileFetching 
@@ -133,7 +151,7 @@ if (taskId) {
                   onScroll={checkScroll}  // Llamada al método para verificar el scroll
                 >
                   {filteredTasks.map(taskSet => (
-                    <TaskSet navigate={navigate} taskSet={taskSet} uid={uid} />
+                    <TaskSet navigate={navigate} taskSet={taskSet} uid={uid as string} />
                   ))}
                 </div>
                 {showLeftArrow && (

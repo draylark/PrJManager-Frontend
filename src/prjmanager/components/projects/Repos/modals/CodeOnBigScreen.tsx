@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Icon } from '@ricons/utils';
@@ -8,7 +8,17 @@ import 'github-markdown-css/github-markdown.css';
 import ReactMarkdown from 'react-markdown';
 import { getLanguageFromFileName } from '../helpers/repos-fn';
 
-export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen, fileName, fileContent }) => {
+
+interface CodeOnBigScreenProps {
+    getExtension: (fileName: string) => boolean;
+    isCodeOnBigScreenOpen: boolean;
+    setIsCodeOnBigScreenOpen: (isOpen: boolean) => void;
+    fileName: string;
+    fileContent: string;
+}
+
+
+export const CodeOnBigScreen: React.FC<CodeOnBigScreenProps> = ({ getExtension, isCodeOnBigScreenOpen, setIsCodeOnBigScreenOpen, fileName, fileContent }) => {
 
     const handleClose = () => {
         const modal = document.getElementById('bigScreenModal');
@@ -28,8 +38,8 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
             // Asegúrate de que el modal existe antes de intentar acceder a él
             // Luego, después de un breve retraso, inicia la transición de opacidad
             const timer = setTimeout(() => {
-            document.getElementById('bigScreenModal').classList.remove('opacity-0');
-            document.getElementById('bigScreenModal').classList.add('opacity-100');
+            document.getElementById('bigScreenModal')?.classList.remove('opacity-0');
+            document.getElementById('bigScreenModal')?.classList.add('opacity-100');
             }, 20); // Un retraso de 20ms suele ser suficiente
             return () => clearTimeout(timer);
         }
@@ -60,7 +70,7 @@ export const CodeOnBigScreen = ({ getExtension, isCodeOnBigScreenOpen, setIsCode
                     className='absolute z-10 right-7 top-3'
                     onClick={handleClose}>
                     <Icon size={28} color='white'>
-                        <IosCloseCircleOutline />
+                        <IosCloseCircleOutline onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                     </Icon>
                 </button>
             </div>

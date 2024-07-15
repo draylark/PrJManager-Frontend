@@ -1,20 +1,49 @@
-import { ImCancelCircle } from 'react-icons/im';
+ import { ImCancelCircle } from 'react-icons/im';
 import { useEffect, useState } from 'react';
 import axios from 'axios'
 import { ScaleLoader } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import Swal from 'sweetalert2';
+import { getInitialsAvatar } from '../../../projects/helpers/helpers';
 
-export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid, setTaskNotes }) => {
+
+interface TaskNote {
+    _id: string;
+    uid: { username: string; photoUrl: string; uid: string },
+    task: string;
+    text: string;
+    createdAt: string;
+    updatedAt: string
+}
+interface ContributorsNotesProps {
+    setIsNotesOpen: (isOpen: boolean) => void;
+    isNotesOpen: boolean;
+    taskNotes: TaskNote[];
+    uid?: string;
+    setTaskNotes: (notes: TaskNote[]) => void;
+}
+interface NoteModalProps {
+    note: TaskNote;
+    isOpen: boolean;
+    onSave: (editedNote: EditedNote) => void;
+    onDelete: (noteId: string) => void;
+    onClose: () => void;
+}
+
+type EditedNote = { noteId: string, text: string };
+type GroupedNotes = Record<string, { userInfo: { username: string; photoUrl: string }; notes: TaskNote[] }>;
+
+
+
+export const ContributorsNotes: React.FC<ContributorsNotesProps> = ({ setIsNotesOpen, isNotesOpen, taskNotes, setTaskNotes }) => {
 
     const [isLoading, setIsLoading] = useState(false)
     const [noteModalOpen, setNoteModalOpen] = useState(false);
-    const [selectedNote, setSelectedNote] = useState(null);
-    const [groupedNotes, setGroupedNotes] = useState({});
-
-
-    const groupNotesByUser = (notes) => {
-        return notes.reduce((acc, note) => {
+    const [groupedNotes, setGroupedNotes] = useState<GroupedNotes>({});    
+    const [selectedNote, setSelectedNote] = useState<TaskNote | null>(null);
+    
+    const groupNotesByUser = (notes: TaskNote[]) => {
+        return notes.reduce<GroupedNotes>((acc, note) => {
             const key = note.uid.uid; // Asumiendo que uid es un objeto con más datos dentro
             if (!acc[key]) {
                 acc[key] = {
@@ -27,20 +56,17 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
         }, {});
     };
 
-    // Función para abrir el modal con la nota seleccionada
-    const handleNoteClick = (note) => {
+    const handleNoteClick = (note: TaskNote) => {
         setSelectedNote(note);
         setNoteModalOpen(true);
     };
 
-    // Función para cerrar el modal de la nota
     const closeNoteModal = () => {
         setNoteModalOpen(false);
         setSelectedNote(null);
     };
 
-    const NoteModal = ({ note, isOpen, onSave, onDelete, onClose }) => {
-
+    const NoteModal = ({ note, isOpen, onSave, onDelete, onClose }: NoteModalProps) => {
         const [ editedNote, setEditedNote ] = useState(note.text)
         
         return (       
@@ -73,14 +99,12 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
                             </div>               
                         </>
                     }
-
                 </div>
             </div>       
         )
     };
 
-
-    const handleEditedNote = (editedNote) => {
+    const handleEditedNote = (editedNote: EditedNote) => {
         setIsLoading(true)
         axios.put(`${backendUrl}/tasks/update-note/${editedNote.noteId}`, { text: editedNote.text })
         .then((res) => {
@@ -108,9 +132,9 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
                 icon: 'error'
             });
         });
-    }
+    };
 
-    const handleDeleteNote = (noteId) => {
+    const handleDeleteNote = (noteId: string) => {
         setIsLoading(true)
         axios.delete(`${backendUrl}/tasks/delete-note/${noteId}`)
         .then((res) => {
@@ -138,7 +162,7 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
                 icon: 'error'
             });
         });
-    }
+    };
 
     const handleClose = () => {
         const modal = document.getElementById('notesModal');
@@ -150,18 +174,6 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
         }
     };
 
-    const getInitialsAvatar = (name) => {
-        let initials = name.match(/\b\w/g) || [];
-        initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-        return `data:image/svg+xml;base64,${btoa(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
-                <rect width="36" height="36" fill="#${intToRGB(hashCode(name))}" />
-                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="18px" font-family="Arial, sans-serif">${initials}</text>
-            </svg>`
-        )}`;
-    };
-
-
 
     useEffect(() => {
         if (taskNotes) {
@@ -172,7 +184,7 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
     useEffect(() => {
         if (isNotesOpen) {
             setTimeout(() => {
-                document.getElementById('notesModal').classList.add('opacity-100');
+                document.getElementById('notesModal')?.classList.add('opacity-100');
             }, 20);
         }
     }, [isNotesOpen]);
@@ -206,7 +218,7 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
                 {
                     noteModalOpen && (
                         <NoteModal
-                            note={selectedNote}
+                            note={selectedNote as TaskNote}
                             isOpen={noteModalOpen}
                             onSave={handleEditedNote}
                             onDelete={handleDeleteNote}
@@ -219,20 +231,3 @@ export const ContributorsNotes = ({ setIsNotesOpen, isNotesOpen, taskNotes, uid,
         </div>
     );
 };
-
-function hashCode(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const character = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + character;
-        hash |= 0; // Convertir a 32bit integer
-    }
-    return hash;
-}
-
-function intToRGB(i) {
-    const c = (i & 0x00FFFFFF)
-        .toString(16)
-        .toUpperCase();
-    return "00000".substring(0, 6 - c.length) + c;
-}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux'
 import { RootState } from '../../../../../store/store'
@@ -10,28 +10,46 @@ import { ScaleLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
 import Swal from 'sweetalert2';
+import { ProjectBase } from '../../../../../interfaces/models'
+
+interface TopProject extends Pick< ProjectBase, 'name' > {
+    _id: string;
+}
 
 interface OptionType {
     value: string;
     label: string;
-  }
+}
 
-export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
+interface TopProjectsProps {
+    uid: string;
+    isModalOpen: boolean;
+    setIsModalOpen: (value: boolean) => void;
+}
+
+interface FormValues {
+    currentTopProjects: string[];
+}
+
+export const TopProjects: React.FC<TopProjectsProps> = ({ uid, isModalOpen, setIsModalOpen }) => {
 
     const dispatch = useDispatch();
     const { topProjects } = useSelector((state: RootState) => state.auth);
     
     const [isLoading, setIsLoading] = useState(true)
     const [options, setOptions] = useState<OptionType[]>([]);
-    const [selectedOptions, setSelectedOptions] = useState<readonly OptionType[]>([]);
-    const [initialState, setinitialState] = useState([])
+    const [selectedOptions, setSelectedOptions] = useState<OptionType[]>([]);
+    const [initialState, setinitialState] = useState<string[]>([])
     const [buttonDisabled, setButtonDisabled] = useState(false)
 
-    const handleClientSelect = (_, newValues, setFieldValue) => {
+    const handleClientSelect = ( 
+        newValues: OptionType[], 
+        setFieldValue: (field: string, value: unknown) => void
+    ) => {
         if (newValues.length <= 3) {
-          setSelectedOptions(newValues); // Actualizar el estado local para las etiquetas
-          const newProjectValues = newValues.map((project) => project.value);
-          setFieldValue('currentTopProjects', newProjectValues);
+          setSelectedOptions(newValues);
+          const newValuesIds = newValues.map((project) => project.value);
+          setFieldValue('currentTopProjects', newValuesIds);
         } else {
           Swal.fire({
             title: 'Error',
@@ -42,7 +60,7 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
         }
     };
 
-    const setProjectsData = (projects) => {
+    const setProjectsData = (projects: ProjectBase[]) => {
         const options = projects.map((project) => {
             return { value: project.pid, label: `${project.name}` };
         });
@@ -50,23 +68,26 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
         setIsLoading(false);
     };
 
-    const IsTheButtonDisabled = ({ values }) => {
-        // console.log('initial',initialState)
-        // console.log('valores',values.currentTopProjects)
+    const IsTheButtonDisabled = ({ values } : { values: FormValues} ) => {
         useEffect(() => {
             // Función para comparar dos arrays
-            const arraysAreEqual = (array1, array2) => {
+            const arraysIdsAreEqual = (array1: string[], array2: string[]) => {
+                // Si la longitud de los arrays es diferente, no son iguales
                 if (array1.length !== array2.length) return false;
-                const sorted1 = [...array1].sort();
-                const sorted2 = [...array2].sort();
-                return sorted1.every((value, index) => value === sorted2[index]);
+        
+                // Si los elementos de los arrays no son iguales, no son iguales
+                for (let i = 0; i < array1.length; i++) {
+                    if (array1[i] !== array2[i]) return false;
+                }
+                // Si no se cumple ninguna de las condiciones anteriores, los arrays son iguales
+                return true;
             };
     
             // Compara el estado actual con el estado inicial
-            const isDisabled = arraysAreEqual(values.currentTopProjects, initialState);
+            const isDisabled = arraysIdsAreEqual(values.currentTopProjects, initialState);
     
             setButtonDisabled(isDisabled);
-        }, [values.currentTopProjects, initialState]);
+        }, [values.currentTopProjects]);
     
         return null; // Este componente no necesita renderizar nada por sí mismo
     };
@@ -85,7 +106,7 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
         } catch (error) {
             console.log(error)
         }
-    }
+    };
 
     const handleClose = () => {
         const modal = document.getElementById('topProjectsModal');
@@ -98,9 +119,12 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
                 setIsModalOpen(false);
             }, 500); // Asume que la duración de tu transición es de 500ms
         }
-    }
+    };
 
-    const handleSubmit = async( values, { setSubmitting, resetForm } ) => {
+    const handleSubmit = async( 
+        values: FormValues, 
+        { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+    ) => {
         setSubmitting(true);
         setIsLoading(true);
         
@@ -133,21 +157,26 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
         setIsLoading(true);
         fetchProjects();
         if( topProjects.length > 0 ){
-            const initialOptions = topProjects.map( (project: string) => {
+            const initialOptions = topProjects.map( ( project: TopProject ) => {
                 return { value: project._id, label: `${project.name}` };
             })
+
+            const initialFormState = topProjects.map( ( project: TopProject ) => project._id )
+
             setSelectedOptions(initialOptions);
-            setinitialState(initialOptions)
+            setinitialState(initialFormState)
         }
-    }, [ topProjects]);
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [topProjects]);
 
     useEffect(() => {
         if (isModalOpen) {
           // Asegúrate de que el modal existe antes de intentar acceder a él
           // Luego, después de un breve retraso, inicia la transición de opacidad
           const timer = setTimeout(() => {
-            document.getElementById('topProjectsModal').classList.remove('opacity-0');
-            document.getElementById('topProjectsModal').classList.add('opacity-100');
+            document.getElementById('topProjectsModal')?.classList.remove('opacity-0');
+            document.getElementById('topProjectsModal')?.classList.add('opacity-100');
           }, 20); // Un retraso de 20ms suele ser suficiente
           return () => clearTimeout(timer);
         }
@@ -168,10 +197,10 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
                         <Formik
                             initialValues={{ 
                                 currentTopProjects: initialState
-                            }}
+                            } as FormValues}
                             onSubmit={handleSubmit}
                         > 
-                            {({ values, setFieldValue, handleChange, isSubmitting }) => (
+                            {({ values, setFieldValue, isSubmitting }) => (
                                 <Form className='flex flex-col flex-grow'>
                                     <IsTheButtonDisabled values={values} />
                                     <div className='flex justify-between w-[90%] h-12 ml-auto mr-auto mt-2 py-2 px-1 border-b-2 border-b-gray-500'>
@@ -192,7 +221,7 @@ export const TopProjects = ({ uid, isModalOpen, setIsModalOpen }) => {
                                                 options={options}
                                                 value={selectedOptions}  // Utilizar el estado local para el valor
                                                 isOptionEqualToValue={(option, value) => option.value === value.value}
-                                                onChange={(_, newValues) => handleClientSelect(_, newValues, setFieldValue)}
+                                                onChange={(_, newValues) => handleClientSelect(newValues, setFieldValue)}
                                                 renderInput={(params) => (  
                                                 <TextField {...params}  label="projects" />
                                                 )}

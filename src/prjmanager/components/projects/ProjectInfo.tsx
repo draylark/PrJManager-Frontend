@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaLayerGroup, FaGitAlt } from 'react-icons/fa';
 import TaskComplete from '@ricons/carbon/TaskComplete';
@@ -9,8 +9,18 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
 import './styles/idk.css'
 import { abbreviateNumber } from '../../helpers/helpers';
+import { ProjectBase } from '../../../interfaces/models/project';
 
-export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => {
+
+type ProjectInfoProps = {
+  project: ProjectBase;
+  projectID: string;
+  firstTime: boolean;
+}
+
+
+
+export const ProjectInfo: FC<ProjectInfoProps> = ({ project, projectID, firstTime }) => {
   const [animationStep, setAnimationStep] = useState(0);
   const [readmeContent, setReadmeContent] = useState('');
   const [showWelcome, setShowWelcome] = useState(true)
@@ -36,7 +46,6 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
 
   useEffect(() => {
     if (firstTime) {
-      setFirstTime(false);
       const maxSteps = 9; // Tienes 9 elementos animados aparte del welcome
       let step = 0;
       const interval = setInterval(() => {
@@ -52,7 +61,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
       setShowWelcome(false)
       setAnimationStep(10); // Directamente muestra todos los elementos si no es la primera vez
     }
-  }, []);
+  }, [firstTime]);
 
   return (
     <div className='flex flex-col space-y-4 px-10 h-full w-full pt-9 pb-6'>
@@ -137,7 +146,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
                 className='animated-element'
               >
                 <div className='flex space-x-2 items-center'>
-                  <GitCompare className='w-9 h-9 text-yellow-400 mr-3'/>
+                  <GitCompare className='w-9 h-9 text-yellow-400 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                   <p className='flex text-[20px] mt-2 font-extralight'>
                     <span className='font-semibold text-yellow-400 mr-3'>{abbreviateNumber(project.commits || 0)}</span>
                     Commits
@@ -157,7 +166,7 @@ export const ProjectInfo = ({ project, projectID, firstTime, setFirstTime }) => 
                 className='animated-element'
               >
                 <div className='flex space-x-2 items-center'>
-                  <TaskComplete className='w-8 h-8 text-blue-400 mr-3'/>
+                  <TaskComplete className='w-8 h-8 text-blue-400 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                   <p className='flex text-[20px] mt-2 font-extralight'>
                     <span className='font-semibold text-blue-400 mr-3'>{abbreviateNumber(project.completedTasks || 0)}</span>
                     Completed Tasks

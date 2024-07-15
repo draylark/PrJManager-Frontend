@@ -4,11 +4,11 @@ import { RootState } from '../../../../store/store';
 import { Locked } from '@ricons/carbon'
 import { Repositories } from '../Repos/Repositories';
 import { Outlet } from 'react-router-dom'
-import { RepositoryForm } from '../forms/RepositoryForm';
-import { useState, useEffect } from 'react';
+import { RepositoryForm } from '../forms/repository/RepositoryForm';
+import { useState, useEffect, useCallback } from 'react';
 import { MdLayers } from 'react-icons/md';
-import { LayerConfigForm } from '../forms/LayerConfigForm';
-import { LayerCollaboratorsForm } from '../forms/LayerCollaboratorsForm';
+import { LayerConfigForm } from '../forms/layer/LayerConfigForm';
+import { LayerCollaboratorsForm } from '../forms/layer/LayerCollaboratorsForm';
 import { GoIssueOpened } from "react-icons/go";
 import { tierS } from '../../../helpers/accessLevels-validator';
 import { TbDatabasePlus } from "react-icons/tb";
@@ -18,19 +18,18 @@ import { TfiWorld } from "react-icons/tfi";
 import { PuffLoader  } from 'react-spinners';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios';
-
+import { LayerBase, ProjectBase } from '../../../../interfaces/models';
 
 export const Layer = () => {
 
   const location = useLocation();
 
-  const [layer, setLayer] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)  
-  const repository = location.state?.repository;
+  const [ layer, setLayer ] = useState<LayerBase | null>(null)
+  const [ isLoading, setIsLoading ] = useState(true)  
   const { layerID, layerName } = location.state.layer;
   const { uid } = useSelector((state: RootState) => state.auth);
   const { currentProject: project, layers } = useSelector((state: RootState) => state.platypus);
-
+  const repository = location.state?.repository;
   const [ isBellOpen, setIsBellOpen ] = useState(false); 
   const [ isConfigOpen, setIsConfigOpen ] = useState(false);
   const [ isRepositoryFormOpen, setIsRepositoryFormOpen ] = useState(false)
@@ -41,18 +40,13 @@ export const Layer = () => {
   const [errorMessage, seterrorMessage] = useState(null);
   const [errorWhileFetching, setErrorWhileFetching] = useState(false);
 
-
   const toggleConfigModal = () => {
     isBellOpen ? setIsBellOpen(false) : null
     setIsConfigOpen(!isConfigOpen);
   };
-  
 
-  const fetchLayerData = () => {
+  const fetchLayerData = useCallback(() => {
     axios.get(`${backendUrl}/layer/get-layer/${layerID}`, {
-      params: {
-        projectID: project._id
-      },
       headers: {
         'Authorization': localStorage.getItem('x-token')
       }
@@ -69,7 +63,7 @@ export const Layer = () => {
       setErrorType(err.response.data.type || 'Error')
       seterrorMessage(err.response.data.message || 'An error occurred while fetching data')
     })
-  };
+  }, [layerID]);
 
   useEffect(() => {
     isLayerConfigFormOpen ? setIsConfigOpen(false) : null
@@ -86,7 +80,7 @@ export const Layer = () => {
         fetchLayerData()
       }
     } 
-  }, [])
+  }, [ fetchLayerData, layerID, layers])
   
   if( repository?.repoID ) return <Outlet/>
 
@@ -132,7 +126,7 @@ export const Layer = () => {
 
                   <div id='lBtns' className="relative flex items-center space-x-3 px-4">
                         {
-                            tierS( uid, project, layer ) && (
+                            tierS( uid as string, project, layer ) && (
                               <>
                                   <button 
                                       onClick={ () => setIsRepositoryFormOpen(!isRepositoryFormOpen) }
@@ -174,13 +168,13 @@ export const Layer = () => {
                         }
 
 
-                        <Tooltip title={ layer.visibility === 'restricted' ? 'Restricted' : layer.visibility === 'internal' ? 'Internal' : 'Open' } arrow>
-                            <div className={`${layer.visibility === 'restricted' ? 'bg-[#00BFFF]/40' : layer.visibility === 'internal' ? 'bg-[#FFEF00]/40' : 'bg-[#ED2939]/40'} flex items-center glassi h-7 border-1 border-gray-400 py-1 px-3 rounded-lg transition-transform duration-150 ease-in-out transform active:translate-y-[2px]`}>
+                        <Tooltip title={ layer?.visibility === 'restricted' ? 'Restricted' : layer?.visibility === 'internal' ? 'Internal' : 'Open' } arrow>
+                            <div className={`${layer?.visibility === 'restricted' ? 'bg-[#00BFFF]/40' : layer?.visibility === 'internal' ? 'bg-[#FFEF00]/40' : 'bg-[#ED2939]/40'} flex items-center glassi h-7 border-1 border-gray-400 py-1 px-3 rounded-lg transition-transform duration-150 ease-in-out transform active:translate-y-[2px]`}>
                                 {
-                                    layer.visibility === 'restricted' ? 
-                                      <Locked className='w-4 h-4'/>
+                                    layer?.visibility === 'restricted' ? 
+                                      <Locked className='w-4 h-4' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                                     :
-                                    layer.visibility === 'internal' ?
+                                    layer?.visibility === 'internal' ?
                                       <GoIssueOpened/>
                                     :
                                       <TfiWorld className='w-4 h-4'/>
@@ -192,11 +186,11 @@ export const Layer = () => {
 
         }
 
-        { layer !== null && <Repositories layer={layer} project={project} uid={uid} /> }
+        { layer !== null && <Repositories layer={layer} project={project as ProjectBase} uid={uid as string} /> }
           
         { isRepositoryFormOpen && <RepositoryForm setIsRepositoryFormOpen={ setIsRepositoryFormOpen } isRepositoryFormOpen={ isRepositoryFormOpen } /> }
-        { isLayerConfigFormOpen && <LayerConfigForm layer={layer} setIsLayerConfigFormOpen={ setIsLayerConfigFormOpen } isLayerConfigFormOpen={isLayerConfigFormOpen}/> }
-        { isLayerCollaboratorsFormOpen && <LayerCollaboratorsForm layer={layer} setIsLayerCollaboratorsFormOpen={ setIsLayerCollaboratorsFormOpen } isLayerCollaboratorsFormOpen={isLayerCollaboratorsFormOpen}/> }
+        { isLayerConfigFormOpen && <LayerConfigForm layer={layer as LayerBase} setIsLayerConfigFormOpen={ setIsLayerConfigFormOpen } isLayerConfigFormOpen={isLayerConfigFormOpen}/> }
+        { isLayerCollaboratorsFormOpen && <LayerCollaboratorsForm setIsLayerCollaboratorsFormOpen={ setIsLayerCollaboratorsFormOpen } isLayerCollaboratorsFormOpen={isLayerCollaboratorsFormOpen}/> }
     </div>
   );
 };

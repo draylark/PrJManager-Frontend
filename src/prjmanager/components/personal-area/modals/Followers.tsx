@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { ImCancelCircle } from "react-icons/im";
 import { useFollowersData } from '../hooks/useFollowersData';
 import { getInitialsAvatar } from '../../projects/helpers/helpers';
@@ -10,11 +10,49 @@ import { cleanUrl } from '../../projects/helpers/helpers';
 import { TextField } from '@mui/material';
 import { capitalizeFirstLetter, abbreviateNumber } from '../../../helpers/helpers';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { RootState } from '../../../../store/store';
+import { FollowerBase, FriendshipBase } from '../../../../interfaces/models';
 
-export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => {
 
-    const [handlingProfile, setHandlingProfile] = useState(null)
-    const { uid, username, photoUrl } = useSelector((state) => state.auth)
+interface PopulatedUser {
+    uid: string;
+    username: string;
+    photoUrl: string | null;
+    createdAt: string;
+}
+
+interface FollowedProfile extends Pick<FollowerBase, '_id'> {
+    uid: {
+        uid: string;
+        username: string;
+        photoUrl: string;
+    }
+}   
+
+interface Friendship extends Omit<FriendshipBase, 'ids'> {
+    ids: {
+        username: string;
+        photoUrl: string | null
+        uid: string;
+    }[]
+}
+
+interface FilteredUsers {
+    uid: string;
+    username: string;
+    photoUrl: string | null;
+    createdAt?: string;
+}
+
+interface FollowersProps {
+    isFollowersModalOpen: boolean;
+    setIsFollowersModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const Followers: React.FC<FollowersProps> = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => {
+
+    const [handlingProfile, setHandlingProfile] = useState<string | null>(null)
+    const { uid, username, photoUrl } = useSelector((state: RootState) => state.auth)
 
     const { 
             fetchingUsers, fetchingMoreFollowers,
@@ -47,13 +85,14 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
             errorMessage,
             errorWhileFetching
 
-          } = useFollowersData(uid);
+          } = useFollowersData(uid as string);
         
     const [searchTerm, setSearchTerm] = useState('');        
     const [ render, setRender ] = useState('followers')
     const [filterType, setFilterType] = useState('followers'); 
-    const renderDivRef = useRef(null);
-
+    const renderDivRef = useRef<HTMLDivElement | null>(null);
+        
+    
     const navigate = useNavigate()
 
     const handleClose = () => {
@@ -69,7 +108,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
         }
     };
 
-    const handleUnfollow = (uid, type, friendshipRef) => {
+    const handleUnfollow = (uid: string, type: string, friendshipRef: string | null) => {
         const followingMapCopy = new Map(followingMap)
         followingMapCopy.set(uid, false)
         setFollowingMap(followingMapCopy)
@@ -87,25 +126,25 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
         }
     };
 
-    const handleFollow = (uid, type, followedProfile, friendship) => {
+    const handleFollow = (uid: string, type: string, followedProfile: FollowedProfile, friendship: Friendship) => {
         const followingMapCopy = new Map(followingMap)
         followingMapCopy.set(uid, true)
         setFollowingMap(followingMapCopy)
 
         if( type === 'friendship' ){
             setFriends([friendship, ...friends])
-            setFollowing([followedProfile, ...following])
+            setFollowing([{...followedProfile, mutualFollow: true}, ...following])
             setfollowingLength(followingLength + 1)
             setfriendsLength(friendsLength + 1)
             setHandlingProfile(null)
         } else {
-            setFollowing([followedProfile, ...following])
+            setFollowing([{...followedProfile, mutualFollow: false}, ...following])
             setfollowingLength(followingLength + 1)
             setHandlingProfile(null)
         }
     };
 
-    const handleFollowUnfollow = (uid, ) => {
+    const handleFollowUnfollow = (uid: string) => {
         if (followingMap.get(uid)) {
             unfollowUser(uid)
         } else {
@@ -113,36 +152,36 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
         }
     };
 
-    const filterFriend = (frienship) => {
+    const filterFriend = (frienship: Friendship): PopulatedUser => {
         const { ids, createdAt } = frienship
         const friend = ids.filter(u => u.uid !== uid)
         return { ...friend[0], createdAt }
     };
 
-    const followUser = (profileUID, ) => {
+    const followUser = (profileUID: string ) => {
         axios.post(`${backendUrl}/users/follow-profile`,{ profileUID, uid, username, photoUrl })
         .then( res => {
           const { followedProfile, friendship, type } = res.data
           handleFollow(profileUID, type, followedProfile, friendship)
         })
-        .catch( error => {
+        .catch( () => {
             setHandlingProfile(null)
         })
     }
 
-    const unfollowUser = (followedUID) => {
+    const unfollowUser = (followedUID: string) => {
         axios.delete(`${backendUrl}/users/unfollow-profile/${followedUID}`, { 
             params: { uid }
         })
         .then( res => {
             handleUnfollow(followedUID, res.data.type, res.data.friendshipRef)
         })
-        .catch( error => {
+        .catch( () => {
             setHandlingProfile(null)
         })
     };
 
-    const renderLength = ( type ) => {
+    const renderLength = ( type: string ) => {
         switch (type) {
             case 'followers':
                 return followersLength
@@ -162,7 +201,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
         }
     };
 
-    const renderType = ( type ) => {
+    const renderType = ( type: string ) => {
         switch (type) {
             case 'followers':
                 return (                  
@@ -267,7 +306,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
                                     <h4><span className='font-semibold'>@</span>{friend.username}</h4>
                                 </div>
                                 <p className='text-[13px] font-semibold'>
-                                    Since <span>{new Date(friend.createdAt).toLocaleDateString()}</span> 
+                                    Since <span>{new Date(friend.createdAt as string).toLocaleDateString()}</span> 
                                 </p>
                             </div>
                         )
@@ -283,7 +322,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
     };
 
     const filteredUsers = useMemo(() => {
-        let usersToFilter = [];
+        let usersToFilter: FilteredUsers[] = [];
         if (filterType === 'followers') {
           usersToFilter = followers.map((f) => f.followerId);
         } else if (filterType === 'following') {
@@ -292,6 +331,8 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
           usersToFilter = friends.map((f) => filterFriend(f));
         }
         return usersToFilter.filter((user) => user.username.toLowerCase().includes(searchTerm.toLowerCase()));
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm, followers, following, friends, filterType]);
 
     useEffect(() => {
@@ -299,8 +340,8 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
             // Asegúrate de que el modal existe antes de intentar acceder a él
             // Luego, después de un breve retraso, inicia la transición de opacidad
             const timer = setTimeout(() => {
-            document.getElementById('followersModal').classList.remove('opacity-0');
-            document.getElementById('followersModal').classList.add('opacity-100');
+            document.getElementById('followersModal')?.classList.remove('opacity-0');
+            document.getElementById('followersModal')?.classList.add('opacity-100');
             }, 20); // Un retraso de 20ms suele ser suficiente
             return () => clearTimeout(timer);
         }
@@ -340,9 +381,12 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
             }
           };
         }
+        
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [isFollowersModalOpen, filterType, FollowersPage, FollowingPage, FriendsPage, totalFollowersPages, 
         totalFollowingPages, totalFriendsPages, fetchingMoreFollowers, fetchingMoreFollowing, fetchingMoreFriends]);
-      
+
+        // console.log('filteredUsers', filteredUsers)
 
   return (
     <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
@@ -412,7 +456,7 @@ export const Followers = ({ isFollowersModalOpen, setIsFollowersModalOpen }) => 
                                 fetchingUsers ?  
                                 (
                                     <div className='flex w-full h-full items-center justify-center'>
-                                        <ScaleLoader color='#000' loading={fetchingUsers} size={20} />
+                                        <ScaleLoader color='#000' loading={fetchingUsers} />
                                     </div>  
                                   )
                                 :                                

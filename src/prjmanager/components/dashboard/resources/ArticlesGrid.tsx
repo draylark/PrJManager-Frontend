@@ -6,7 +6,7 @@ import sea from '../../../assets/imgs/sea.jpg'
 import figures from '../../../assets/imgs/projectbg.jpg'
   
   
-export function BentoGridSecondDemo() {
+export function ArticleGrid() {
   return (
     <BentoGrid className="w-full px-7 md:auto-rows-[355px]">
       {items.map((item, i) => (
@@ -17,13 +17,11 @@ export function BentoGridSecondDemo() {
           src={item.src}
           textColor={item.textColor}
           className={item.className}
-          icon={item.icon}
         />
       ))}
     </BentoGrid>
   );
 }
-
 
 export const BentoGrid = ({
     className,
@@ -51,8 +49,7 @@ export const BentoGridItem = ({
     textColor,
     title,
     description,
-    header,
-    icon,
+    header
   }: {
     src?: string;
     className?: string;
@@ -104,7 +101,6 @@ export const BentoGridItem = ({
 const Skeleton = () => (
   <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl   dark:bg-dot-white/[0.2] bg-dot-black/[0.2] [mask-image:radial-gradient(ellipse_at_center,white,transparent)]  border border-transparent dark:border-white/[0.2] bg-neutral-100 dark:bg-black"></div>
 );
-
 
 const items = [
   {

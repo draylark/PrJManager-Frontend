@@ -1,5 +1,5 @@
 
-import { useState} from 'react'
+import React, { useState} from 'react'
 import ArrowCircleDown48Regular from '@ricons/fluent/ArrowCircleDown48Regular'
 import { Accordion, AccordionDetails } from '@mui/material';
 import { Avatar } from '@mui/material';
@@ -7,12 +7,18 @@ import LoadingCircle from '../../../../../auth/helpers/Loading';
 import moment from 'moment';
 import { DiffOutlined } from '@ricons/antd'
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import { CommitFromServer } from '../hooks/useRepositoryCommitsData';
 import '../styles/commits.css'
 
-export const RenderCommits = ({ commits, isLoading }) => {
 
-    const [expanded, setExpanded] = useState(false);
+interface RenderCommitsProps {
+  commits: CommitFromServer[];
+  isLoading: boolean;
+}
+
+export const RenderCommits: React.FC<RenderCommitsProps> = ({ commits, isLoading }) => {
+
+    const [expanded, setExpanded] = useState<string | null>(null);
     const location = useLocation()
     const navigate = useNavigate()
 
@@ -24,12 +30,12 @@ export const RenderCommits = ({ commits, isLoading }) => {
     return (   
       <div id='commits-scroll-container' className='flex flex-col w-full  overflow-y-auto px-5 space-y-4 h-full py-4'>
         {  
-          commits.map((commit, index) => {
+          commits.map((commit) => {
             return (
               <Accordion 
               key={commit.uuid} 
               expanded={expanded === commit.uuid}
-              onChange={() => setExpanded(expanded === commit.uuid ? false : commit.uuid)}
+              onChange={() => setExpanded(expanded === commit.uuid ? null : commit.uuid)}
               // ref={(el) => accordionRefs.current[commit.commit_hash] = el}
             >
                 <div className="flex w-full p-4 rounded shadow-lg  bg-white hover:bg-gray-100 transition-colors border-[1px] border-yellow-300">
@@ -53,23 +59,23 @@ export const RenderCommits = ({ commits, isLoading }) => {
 
                             <div className='flex space-x-3 items-center'>                    
                                   <DiffOutlined 
-                                      className='w-[22px] h-[22px] ml-4 cursor-pointer hover:text-green-600 transition-colors duration-500'
-                                      onClick={() => navigate(
-                                        `${commit.uuid}`, 
-                                        { state: { 
-                                          project, 
-                                          layer, 
-                                          repository, 
-                                          commits: commitstate, 
+                                    className='w-[22px] h-[22px] ml-4 cursor-pointer hover:text-green-600 transition-colors duration-500'
+                                    onClick={() => navigate(
+                                      `${commit.uuid}`,
+                                      {
+                                        state: {
+                                          project,
+                                          layer,
+                                          repository,
+                                          commits: commitstate,
                                           commitHash: commit.uuid,
-                                          branch: commit.branch }
-                                        })}                                                             
-                                  />       
+                                          branch: commit.branch
+                                        }
+                                      })} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                  />       
                                                                                                       
                                   <ArrowCircleDown48Regular 
-                                      className='w-[22px] h-[22px] ml-4 cursor-pointer hover:text-green-600 transition-colors duration-500' 
-                                      onClick={() => setExpanded(expanded ? false : commit.uuid)} 
-                                  />                                                 
+                                    className='w-[22px] h-[22px] ml-4 cursor-pointer hover:text-green-600 transition-colors duration-500'
+                                    onClick={() => setExpanded(expanded ? null : commit.uuid)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                                  />                                                 
                             </div>
                         </div>
                     </div>
@@ -105,7 +111,7 @@ export const RenderCommits = ({ commits, isLoading }) => {
                         <div className="flex flex-col space-y-2">
                           <h5 className="text-md font-semibold">Committed By</h5>
                           <div className="flex items-center">
-                            <Avatar alt={commit.author.username} src={commit.author.photoUrl || commit.author.name} sx={{ width: 24, height: 24 }} />
+                            <Avatar alt={commit.author.name} src={commit.author.photoUrl || commit.author.name} sx={{ width: 24, height: 24 }} />
                             <span className="ml-2 text-sm text-gray-700">{commit.author.name}</span>
                           </div>
                         </div>

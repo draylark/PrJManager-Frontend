@@ -6,27 +6,37 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
-import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 
-const TaskNotesDialog = ({ open, setOpen, notes, setNotes, handleParticipation }) => {
+
+interface TaskNotesDialogProps {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    notes: string[];
+    setNotes: React.Dispatch<React.SetStateAction<string[]>>;
+    handleParticipation: () => void;
+}
+
+const TaskNotesDialog: React.FC<TaskNotesDialogProps> = ({ open, setOpen, notes, setNotes, handleParticipation }) => {
     const [currentNote, setCurrentNote] = useState("");
 
-    const handleAddNote = (event) => {
+    const handleAddNote = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' && currentNote.trim()) {
             event.preventDefault();
-            setNotes(prevNotes => { return [ ...prevNotes, currentNote ] });  
+            setNotes((prevNotes: string[]) => {
+                return [...prevNotes, currentNote];
+              });
             setCurrentNote("");
         }
     };
 
-    const handleDeleteNote = (noteToDelete) => {
-        setNotes(prevNotes => {
-            return prevNotes.filter(note => note !== noteToDelete);
+    const handleDeleteNote = (noteToDelete: string) => {
+        setNotes((prevNotes: string[]) => {
+            return prevNotes.filter(note => note !== noteToDelete); 
         });
     };
 
-    const truncateText = (text, maxLength) => {
+    const truncateText = (text: string, maxLength: number) => {
         if (text.length > maxLength) {
             return text.substring(0, maxLength) + "...";
         }
@@ -57,7 +67,7 @@ const TaskNotesDialog = ({ open, setOpen, notes, setNotes, handleParticipation }
                         variant="outlined"
                         value={currentNote}
                         onChange={(e) => setCurrentNote(e.target.value)}
-                        onKeyPress={handleAddNote}
+                        onKeyDown={handleAddNote}
                     />
                     
                     <div className='flex flex-wrap max-h-[100px] overflow-y-auto'>        

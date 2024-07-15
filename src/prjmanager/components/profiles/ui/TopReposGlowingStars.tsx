@@ -5,8 +5,10 @@ import {
   GlowingStarsDescription,
   GlowingStarsTitle,
 } from "./glowing-stars";
- 
-export function TopReposGlowingStars({ topProjects }) {
+import { TopProjects } from "../hooks/useProfileData"; 
+
+
+export function TopReposGlowingStars({ topProjects }: {topProjects: TopProjects[]}) {
 
   const navigate = useNavigate();
   const [mouseEnter, setMouseEnter] = useState(false);
@@ -26,7 +28,7 @@ export function TopReposGlowingStars({ topProjects }) {
 
   return (  
       <GlowingStarsBackgroundCard mouseEnter={mouseEnter}>
-        <GlowingStarsTitle  setMouseEnter={setMouseEnter} currentProject={currentProject} navigate={navigate}>
+        <GlowingStarsTitle  setMouseEnter={setMouseEnter} currentProject={currentProject as TopProjects} navigate={navigate}>
           {currentProject.name}
         </GlowingStarsTitle>
         <div className="flex flex-grow w-full justify-between  min-h-[55px] items-end">

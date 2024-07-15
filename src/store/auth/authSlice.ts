@@ -7,7 +7,7 @@ const initialState: Auth = {
   uid: '',
   email: '',
   username: '',
-  photoURL: '',
+  photoUrl: '',
   description: '',
   followers: 0,
   topProjects: [],
@@ -18,8 +18,6 @@ const initialState: Auth = {
   gitlabAuth: false,
   errorMessage: '',
   state: true,
-  friendsRequests: [],
-  friends: []
 };
 
 export const authSlice = createSlice({
@@ -36,7 +34,7 @@ export const authSlice = createSlice({
           state.uid = payload.uid,
           state.email = payload.email,
           state.username = payload.username,
-          state.photoURL = payload.photoUrl || null,
+          state.photoUrl = payload.photoUrl || null,
           state.description = payload.description || null,
           state.topProjects = payload.topProjects || [],
           state.website = payload.website || null,
@@ -46,9 +44,6 @@ export const authSlice = createSlice({
           state.followers = payload.followers || 0,
           state.errorMessage = null,
           state.state = payload.state
-          state.friendsRequests = payload.friendsRequests || []
-          state.friends = payload.friends || []
-
         },
 
         setGitlabAuth: ( state, { payload } ) => {
@@ -62,7 +57,7 @@ export const authSlice = createSlice({
           state.uid = null,
           state.email = null,
           state.username = null,
-          state.photoURL = null,
+          state.photoUrl = null,
           state.errorMessage = payload?.msg || null
           state.state = payload?.b ?? null
 

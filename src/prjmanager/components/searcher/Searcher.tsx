@@ -3,13 +3,17 @@ import { TextField} from '@mui/material';
 import axios from 'axios'
 import { RenderUsers } from './RenderUsers';
 import { RenderProjects } from './RenderProjects';
+import { UserBase, ProjectBase } from '../../../interfaces/models';
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 
+export interface UserResult extends Pick<UserBase,  'username' | 'photoUrl' | 'projects'>{
+    uid: string;
+}
+
 export const Searcher = () => {
-    const [results, setResults] = useState([])
+    const [results, setResults] = useState<UserResult[] | ProjectBase[]>([])
     const [searchTerm, setSearchTerm] = useState('')
     const [searchType, setSearchType] = useState('profiles')
-
 
     useEffect(() => {
         const fetchSearch = async () => {
@@ -87,8 +91,8 @@ export const Searcher = () => {
 
                 :
                     searchType === 'profiles' 
-                    ? ( <RenderUsers users={results}  /> )      
-                    : ( <RenderProjects projects={results} />)          
+                    ? ( <RenderUsers users={ results as UserResult[] }/> )      
+                    : ( <RenderProjects projects={ results as ProjectBase[] }/>)          
             }
         </div>   
     </div>

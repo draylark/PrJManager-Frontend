@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ImCancelCircle } from "react-icons/im";
 import formbg from './assets/formbg.jpg'
 import { PuffLoader  } from 'react-spinners';
@@ -10,8 +10,20 @@ import { GoIssueOpened } from "react-icons/go";
 import { RepoHeatMap } from '../RepoHeatMap';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { RepositoryBase } from '../../../../../interfaces/models/repository';
+import { capitalizeFirstLetter } from '../../../../helpers/helpers';
 
-export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRepoInfoOpen }) => {
+
+interface RepositoryInfoProps {
+    uid: string;
+    repo: RepositoryBase;
+    instructions: string;
+    isRepoInfoOpen: boolean;
+    setRepoInfoOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+}
+
+export const RepositoryInfo: React.FC<RepositoryInfoProps> = ({ uid, repo, instructions, isRepoInfoOpen, setRepoInfoOpen }) => {
     const [modalOpacity, setModalOpacity] = useState(0);
     const [isBackgroundReady, setIsBackgroundReady] = useState(false);      
     const [areInstructionsOpen, setAreInstructionsOpen] = useState(false)
@@ -24,13 +36,6 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
           setRepoInfoOpen(false);
         }, 700);
       }
-    };
-
-    const capitalizeFirstLetter = (text) => {
-        if (typeof text !== 'string' || text.length === 0) {
-          return ''; // Si el texto está vacío o no es una cadena, retorna una cadena vacía
-        }
-        return text.charAt(0).toUpperCase() + text.slice(1); // Convierte la primera letra a mayúscula y concatena el resto
     };
 
     useEffect(() => {
@@ -84,7 +89,7 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
                           <span className='mr-1'>
                             {
                                 repo.visibility === 'restricted' ? 
-                                    <Locked className='w-4 h-4'/>
+                                    <Locked className='w-4 h-4' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                                 :
                                 repo.visibility === 'internal' ?
                                     <GoIssueOpened/>
@@ -112,16 +117,16 @@ export const RepositoryInfo = ({ uid, repo, instructions, isRepoInfoOpen, setRep
                                       Branches {repo.branches.length}
                                       </p>
                                       <div className='flex px-4 py-1 rounded-extra glassi bg-yellow-400/60 text-[13px] border-[1px] border-gray-400 mr-4 mt-2'>
-                                      <GitCompare className='w-5 h-5 mr-2'/>  57 Commits
+                                      <GitCompare className='w-5 h-5 mr-2' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>  57 Commits
                                       </div>
                                       <div className='flex px-4 py-1 rounded-extra glassi  bg-blue-400/60 text-[13px] text-white border-[1px] border-gray-400 mr-4 mt-2'>
-                                      <TaskComplete className='w-5 h-5 mr-2'/>  20 Completed
+                                      <TaskComplete className='w-5 h-5 mr-2' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>  20 Completed
                                       </div>
                                       <div className='flex px-4 py-1 rounded-extra glassi  bg-yellow-200/60 text-[13px] border-[1px] border-gray-400 mr-4 mt-2'>
-                                      <TaskView className='w-5 h-5 mr-2'/>  5 Waiting For Approval
+                                      <TaskView className='w-5 h-5 mr-2' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>  5 Waiting For Approval
                                       </div>
                                       <div className='flex px-4 py-1 rounded-extra glassi  bg-red-400/60 text-[13px] text-white border-[1px] border-gray-400 mr-4 mt-2'>
-                                      <TaskRemove className='w-5 h-5 mr-2'/>  17 Pending
+                                      <TaskRemove className='w-5 h-5 mr-2' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>  17 Pending
                                       </div>
                                   </div>
 

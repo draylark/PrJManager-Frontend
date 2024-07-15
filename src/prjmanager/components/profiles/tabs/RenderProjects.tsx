@@ -4,8 +4,9 @@ import { Typography } from "@mui/material";
 import { FaLayerGroup, FaGitAlt } from 'react-icons/fa';
 import TaskComplete from '@ricons/carbon/TaskComplete';
 import GitCompare from '@ricons/tabler/GitCompare';
+import { ProfileProjects } from "../hooks/useProfileData";
 
-export const RenderProjects = ({ projects }) => {
+export const RenderProjects = ({ projects }: { projects: ProfileProjects[]}) => {
 
   const navigate = useNavigate()
 
@@ -54,12 +55,12 @@ export const RenderProjects = ({ projects }) => {
                             </div>
 
                             <div className='flex space-x-1 items-center'>
-                              <GitCompare className='w-5 h-5 text-yellow-500 mr-3'/>                  
+                              <GitCompare className='w-5 h-5 text-yellow-500 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>                  
                               <span className='font-semibold text-[15px] text-yellow-500 mr-3'>{project.commits}</span>
                             </div>
 
                             <div className='flex space-x-1 items-center'>
-                              <TaskComplete className='w-5 h-5 text-blue-500 mr-3'/>                  
+                              <TaskComplete className='w-5 h-5 text-blue-500 mr-3' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>                  
                               <span className='font-semibold text-[15px] text-blue-500 mr-3'>{project.completedTasks}</span>
                             </div>
                         </div>

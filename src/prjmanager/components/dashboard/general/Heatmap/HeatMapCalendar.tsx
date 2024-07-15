@@ -7,17 +7,16 @@ import { Tooltip } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { ScaleLoader   } from 'react-spinners';
 import '../../styles.css'
-
+import { RootState } from '../../../../../store/store';
 
 
 export const HeatMapCalendar = () => {
 
-
   const [isTorC, setTorC] = useState(false);
-  const { uid } = useSelector((state) => state.auth); 
+  const { uid } = useSelector(( state: RootState ) => state.auth); 
   const { startDate, setStartDate, endDate, setEndDate, currentDate, 
     formatDateFromHeatMap, tasks, commits, 
-    tasksDetailsByDay, commitsDetailsByDay, isLoading, errorWhileFetching, errorMessage } = useHeatMapDatesData(uid);
+    tasksDetailsByDay, commitsDetailsByDay, isLoading, errorWhileFetching, errorMessage } = useHeatMapDatesData(uid as string);
 
 
   const showYears = () => {
@@ -30,7 +29,7 @@ export const HeatMapCalendar = () => {
     } else {
       return `${start} - ${end}`;
     }
-  }
+  };
 
   const handleLeftButtonClick = () => {
       const newEndDate = new Date(startDate);
@@ -74,22 +73,22 @@ export const HeatMapCalendar = () => {
     setEndDate(newEndDate);
   };
 
-  const TooltipContent = ({ formattedDate, details, type }) => {
-
+  const TooltipContent = (
+    { formattedDate, details, type }:
+    { formattedDate: string, details: { count: number, date: string }, type: string }
+  ) => {
     return (
         <div className='flex space-x-2'>
             <h3>{formattedDate} |</h3>
           {
               type === 'tasks' ? 
               <button 
-                  className='hover:text-blue-200 transition-colors duration-100'
-                  onClick={() => console.log(`Completed Tasks: ${details.tasks}`)}>
+                  className='hover:text-blue-200 transition-colors duration-100'>        
                   Completed Tasks: {details.count}
               </button>
               :
               <button 
-                  className='hover:text-yellow-200 transition-colors duration-100'
-                  onClick={() => console.log(`Commits: ${details.commits}`)}>
+                  className='hover:text-yellow-200 transition-colors duration-100'>             
                   Commits: {details.count}
               </button>
           }
@@ -114,7 +113,7 @@ export const HeatMapCalendar = () => {
                     <button onClick={ handleLeftButtonClick } 
                     className='dashboard-buttons hover:bg-[#1f26870e] rounded-l-extra flex items-center justify-center w-[10%] h-8 transition-all duration-300 ease-in-out transform active:translate-y-[2px]'>
                       <Icon size={22}>
-                        <ArrowLeftFilled/>
+                        <ArrowLeftFilled onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                       </Icon>
                     </button>
                   <button 
@@ -125,7 +124,7 @@ export const HeatMapCalendar = () => {
                     <button onClick={ handleRightButtonClick } 
                         className='dashboard-buttons hover:bg-[#1f26870e] rounded-r-extra flex items-center justify-center w-[10%] h-8 transition-all duration-300 ease-in-out transform active:translate-y-[2px]'>
                       <Icon size={22}>
-                        <ArrowRightFilled/>
+                        <ArrowRightFilled onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                       </Icon>
                     </button>
 
@@ -171,7 +170,7 @@ export const HeatMapCalendar = () => {
                         rectRender={(props, data) => {
                           const formattedDate = formatDateFromHeatMap(data.date); 
                           let details = !isTorC ? tasksDetailsByDay.get(formattedDate) : commitsDetailsByDay.get(formattedDate)
-                          details = details || { count: 0 };
+                          details = details || { count: 0, date: formattedDate };
                           const type = !isTorC ? 'tasks' : 'commits';
 
                           return (

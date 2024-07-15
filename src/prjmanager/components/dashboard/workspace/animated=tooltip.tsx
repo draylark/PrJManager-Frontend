@@ -1,26 +1,22 @@
 "use client";
-// import Image from "next/image";
-import React, { useState } from "react";
-
+import { useState } from "react";
+import { PopulatedContributor } from "../../../../interfaces/models";
+import { CommitForWTask } from "../../../../interfaces/models";
 import {
   motion,
   useTransform,
-  AnimatePresence,
   useMotionValue,
   useSpring,
 } from "framer-motion";
- 
+import { getInitialsAvatar } from "../../projects/helpers/helpers"; 
+
 export const AnimatedTooltip = ({
   items, commits
 }: {
-  items: {
-    _id: number;
-    username: string;
-    designation: string;
-    photoUrl: string;
-  }[];
+  items: PopulatedContributor[];
+  commits: CommitForWTask[];
 }) => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
   const springConfig = { stiffness: 100, damping: 5 };
   const x = useMotionValue(0); // going to set this value on mouse move
   // rotate the tooltip
@@ -33,30 +29,24 @@ export const AnimatedTooltip = ({
     useTransform(x, [-100, 100], [-50, 50]),
     springConfig
   );
-  const handleMouseMove = (event: any) => {
-    const halfWidth = event.target.offsetWidth / 2;
+
+  const handleMouseMove = (
+    event: React.MouseEvent<HTMLImageElement, MouseEvent>
+  ) => {
+    const target = event.target as HTMLImageElement;  // Aserción de tipo a HTMLImageElement
+    const halfWidth = target.offsetWidth / 2;
     x.set(event.nativeEvent.offsetX - halfWidth); // set the x value, which is then used in transform and rotate
   };
 
-  const findUserCommits = (uid) => {
+  const findUserCommits = (uid: string) => {
     return commits.filter( commit => commit.author.uid === uid ).length
   }
 
-  const getInitialsAvatar = (name: string) => {
-    let initials = name.match(/\b\w/g) || [];
-    initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-    return `data:image/svg+xml;base64,${btoa(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
-            <rect width="36" height="36" fill="#333" />
-            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="18px" font-family="Arial, sans-serif">${initials}</text>
-        </svg>`
-    )}`;
-  };
  
   return (
     <>
       { 
-        items.map((item, idx) => (
+        items.map((item) => (
           <div
             className="-mr-4  relative group "
             key={item._id}
@@ -103,8 +93,9 @@ export const AnimatedTooltip = ({
               alt={item.uid.username}
               className="object-cover !m-0 !p-0 object-top rounded-full h-9 w-9 border-2 group-hover:scale-105 group-hover:z-30 border-white relative transition duration-500"
               onError={(e) => {
-                e.target.onerror = null; // Previene bucles infinitos en caso de que la imagen de las iniciales también falle
-                e.target.src = getInitialsAvatar(item.uid.username); // Establece la imagen de las iniciales si la imagen principal falla
+                const target = e.target as HTMLImageElement; // Asegura el tipo
+                target.onerror = null; // Previene el bucle de error
+                target.src = getInitialsAvatar(item.uid.username); // Establece la imagen de las iniciales si la imagen principal falla
               }}
             />
           </div>

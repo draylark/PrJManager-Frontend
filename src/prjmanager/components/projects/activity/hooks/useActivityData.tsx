@@ -1,55 +1,47 @@
 
-import {useState, useEffect } from 'react'
+import {useState, useEffect, useCallback } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
+import { CommitBase, TaskBase, ProjectBase, ModifiedTaskBase } from '../../../../../interfaces/models'
 
-export const useActivityData = ( project, uid ) => {
+
+interface ApiResponse {
+    message: string;
+    type: string;
+}
+
+export interface DedicatedCommit extends Omit<CommitBase, 'hash'>{}
+
+export const useActivityData = ( project: ProjectBase, uid: string ) => {
 
     const [isLoading, setIsLoading] = useState(false);
-    const [errorType, setErrorType] = useState(null);    
-    const [errorMessage, seterrorMessage] = useState(null);
-    const [errorWhileFetching, setErrorWhileFetching] = useState(false);
+    const [errorType, setErrorType] = useState<string | null>(null);    
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [errorWhileFetching, setErrorWhileFetching] = useState<boolean>(false);
 
-    const [commits, setCommits] = useState([]);
-    const [tasksCompleted, setTasksCompleted] = useState([]);
-    const [wFApprovalTasks, setWFApprovalTasks] = useState([]);
+    const [commits, setCommits] = useState<DedicatedCommit[]>([]);
+    const [tasksCompleted, setTasksCompleted] = useState<ModifiedTaskBase[]>([]);
+    const [wFApprovalTasks, setWFApprovalTasks] = useState<ModifiedTaskBase[]>([]);
 
 
-    const fetchCollaborators = async ( collaborators ) => {
-        try {
-          const response = await axios.post(`${backendUrl}/users?limit=${collaborators.length}`, { IDS: collaborators });
-          return response.data.users 
-        } catch (error) {
-          console.error("Error fetching collaborators:", error);
-        }
-    };
-
-    const fetchAndSetData = async (completedTasks, approvalTasks) => {
+    const fetchAndSetData = async (completedTasks: TaskBase[], approvalTasks: TaskBase[]) => {
         setIsLoading(true);
-        try {
-            const tasksWithCollaborators = await Promise.all(completedTasks.map(async (task) => {
-                const collaborators = await fetchCollaborators(task.contributorsIds);
-                return { ...task, contributors: collaborators };
-            }));
-            
-            const wFTasksWithCollaborators = await Promise.all(approvalTasks.map(async (task) => {
-                const collaborators = await fetchCollaborators(task.contributorsIds);
-                return { ...task, contributors: collaborators };
-            }));
+        const tasksWithCollaborators = await Promise.all(completedTasks.map(async (task: TaskBase) => {
+            const { contributorsIds, ...rest } = task
+            return { ...rest, contributors: contributorsIds } 
+        })) as ModifiedTaskBase[];
+        
+        const wFTasksWithCollaborators = await Promise.all(approvalTasks.map(async (task: TaskBase) => {
+            const { contributorsIds, ...rest } = task
+            return { ...rest, contributors: contributorsIds } 
+        })) as ModifiedTaskBase[];
 
-            setTasksCompleted(tasksWithCollaborators);
-            setWFApprovalTasks(wFTasksWithCollaborators);
-            setIsLoading(false)
-        } catch (error) {
-            console.error("Error fetching collaborators:", error);
-            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-            setErrorType(error.response.data.type || 'Error');
-            setErrorWhileFetching(true)
-        }
+        setTasksCompleted(tasksWithCollaborators);
+        setWFApprovalTasks(wFTasksWithCollaborators);
         setIsLoading(false);
     };
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback( async () => {
         try {
             const { data: { completedTasks, approvalTasks }} = await axios.get(`${backendUrl}/tasks/activity-data/${project.pid}`, { 
                 params: {
@@ -60,16 +52,24 @@ export const useActivityData = ( project, uid ) => {
                     'Authorization': localStorage.getItem('x-token')
                 }
             });
+
             fetchAndSetData(completedTasks, approvalTasks)
         } catch (error) {
-            // console.error("Error fetching Tasks:", error);
-            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-            setErrorType(error.response.data.type || 'Error')
-            setErrorWhileFetching(true)
-        }
-    }
+            const axiosError = error as AxiosError<ApiResponse>; // Asumir que es un error de Axios
 
-    const fetchCommits = async () => {
+            if (axiosError.response) {
+                setErrorMessage(axiosError.response.data.message || 'An error occurred while fetching data');
+                setErrorType(axiosError.response.data.type || 'Error');
+            } else {
+                // Manejar errores que no son de Axios
+                setErrorMessage('An unexpected error occurred');
+                setErrorType('Unknown Error');
+            }
+            setErrorWhileFetching(true);
+        }
+    }, [project, uid]);
+
+    const fetchCommits = useCallback( async () => {
         try {
             const { data: { commits } } = await axios.get(`${backendUrl}/commits/activity-data/${project.pid}`, {  
                 params: {
@@ -83,26 +83,32 @@ export const useActivityData = ( project, uid ) => {
 
             setCommits(commits)
         } catch (error) {
-            // console.error("Error fetching Commits:", error);
-            seterrorMessage(error.response.data.message || 'An error occurred while fetching data');
-            setErrorType(error.response.data.type || 'Error')
-            setErrorWhileFetching(true)
+            const axiosError = error as AxiosError<ApiResponse>; // Asumir que es un error de Axios
+
+            if (axiosError.response) {
+                setErrorMessage(axiosError.response.data.message || 'An error occurred while fetching data');
+                setErrorType(axiosError.response.data.type || 'Error');
+            } else {
+                // Manejar errores que no son de Axios
+                setErrorMessage('An unexpected error occurred');
+                setErrorType('Unknown Error');
+            }
+            setErrorWhileFetching(true);
         }
-    }
+    }, [project, uid]);
 
 
     const fetchData = () => {
         setIsLoading(true)
         fetchTasks()
         fetchCommits()
-    }
+    };
 
     useEffect(() => {
         setIsLoading(true)
         fetchTasks()
         fetchCommits()
-    }, [project])
-
+    }, [project, fetchTasks, fetchCommits]);
 
   return {
     isLoading,

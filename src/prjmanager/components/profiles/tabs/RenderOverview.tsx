@@ -7,15 +7,23 @@ import { Typography } from '@mui/material';
 import { FaGitAlt } from 'react-icons/fa';
 import { useNavigate } from "react-router-dom";
 import { cleanUrl } from '../../projects/helpers/helpers';
+import { TopProjects, TopRepos, ProfileData } from '../hooks/useProfileData';
+import { Location } from 'react-router-dom';
+
+interface RenderOverviewProps {
+    user: ProfileData;
+    topRepos: TopRepos[];
+    topProjects: TopProjects[];
+    location: Location;
+}
 
 
-export const RenderOverview = ({ user, topRepos, topProjects, location }) => {
+export const RenderOverview = ({ user, topRepos, topProjects, location }: RenderOverviewProps) => {
 
     const [ animationStep, setAnimationStep ] = useState(0);
     const [ year, setYear ] = useState(new Date().getFullYear().toString());
     const { data, detailsMap, formatDateFromHeatMap, fetchingUserActivity, errorWhileFetching, errorMessage } = useProfileHeatMapData(location, year);
     const navigate = useNavigate();
-    
 
     useEffect(() => {
         const maxSteps = 1; // Tienes 9 elementos animados aparte del welcome
@@ -49,7 +57,7 @@ export const RenderOverview = ({ user, topRepos, topProjects, location }) => {
                         :  
                             topRepos.map(repo => (
                                 <div 
-                                    key={repo.id} 
+                                    key={repo._id} 
                                     className='min-h-[95px] p-4 rounded-lg border-[1px] border-gray-400 treechart-container hover:bg-blue-100 transition-colors duration-200 cursor-pointer'
                                     onClick={() => navigate(`/projects/${cleanUrl(repo.projectID.name)}/${cleanUrl(repo.layerID.name)}/${cleanUrl(repo.name)}`, {
                                         state: {

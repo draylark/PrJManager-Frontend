@@ -8,41 +8,64 @@ import { getLanguageFromFileName } from '../../../projects/Repos/helpers/repos-f
 import { ScaleLoader } from 'react-spinners';
 import { IoIosArrowForward, IoIosArrowBack  } from "react-icons/io";
 const backendUrl = import.meta.env.VITE_BACKEND_URL
+import { CommitForWTask } from '../../../../../interfaces/models';
+import { getInitialsAvatar } from '../../../projects/helpers/helpers';
 
-export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, selecteDiffData }) => {
+interface Diff {
+  uuid1: string;
+  uuid2: string;
+  diffData: {
+    diffs: {
+      new_path: string;
+      old_path: string;
+      diff: string;
+    }[]
+  }
+
+}
+interface DiffData {
+  hash: string;
+  diffs: {
+    new_path: string;
+    old_path: string;
+    diff: string;
+  }[]
+}
+interface DiffReference {
+  hash: string; 
+  new: boolean | undefined
+}
+interface DiffModalProps {
+  isDiffModalOpen: boolean;
+  setIsDiffModalOpen: (isOpen: boolean) => void;
+  commits: CommitForWTask[];
+  selecteDiffData: DiffReference;
+}
+
+export const DiffModal: React.FC<DiffModalProps> = ({ isDiffModalOpen, setIsDiffModalOpen, commits, selecteDiffData }) => {
 
   const [errorMessage, setErrorMessage] = useState(null)
   const [errorWhileFetching, setErrorWhileFetching] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [leftWidth, setLeftWidth] = useState(70);  
-  const [diff1, setDiff1] = useState({ hash: selecteDiffData.hash || '', new: selecteDiffData.new || undefined })
-  const [diff2, setDiff2] = useState({ hash: '', new: undefined })
+  const [diff1, setDiff1] = useState<DiffReference>({ hash: selecteDiffData.hash || '', new: selecteDiffData.new || undefined })
+  const [diff2, setDiff2] = useState<DiffReference>({ hash: '', new: undefined })
 
-  const [diff, setDiff] = useState(null)
-  const [diffData1, setDiffData1] = useState(null)
-  const [diffData2, setDiffData2] = useState(null)
+  const [diff, setDiff] = useState<Diff | null>(null)
+  const [diffData1, setDiffData1] = useState<DiffData | null>(null)
+  const [diffData2, setDiffData2] = useState<DiffData | null>(null)
 
   const [diffIndex, setDiffIndex] = useState(0)
   const [diff1Index, setDiff1Index] = useState(0)
   const [diff2Index, setDiff2Index] = useState(0)
 
-  const [buttonWidth, setButtonWidth] = useState(null);
-  const ref = useRef(null);
+  const [buttonWidth, setButtonWidth] = useState<number | undefined | null>(null);
+  const ref = useRef<HTMLButtonElement | null>(null);
+    
 
-  const formatDate = (date) => {
+  const formatDate = (date: string) => {
       const formattedDate = new Date(date).toLocaleDateString();
       return formattedDate;
-  };
-
-  const getInitialsAvatar = (name: string) => {
-      let initials = name.match(/\b\w/g) || [];
-      initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-      return `data:image/svg+xml;base64,${btoa(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
-              <rect width="36" height="36" fill="#333" />
-              <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="18px" font-family="Arial, sans-serif">${initials}</text>
-          </svg>`
-      )}`;
   };
 
   const handleClose = () => {
@@ -55,7 +78,7 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
       }
   };
 
-  const diffToFetch = (hash) => {
+  const diffToFetch = (hash: string) => {
     if( diff1.hash === hash) {
       setDiff1({ hash: '', new: undefined })
     } else if( diff2.hash === hash) {
@@ -67,7 +90,7 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
     } else {
       setDiff2({ hash, new: true })
     }
-  }
+  };
 
   const fetchDiffs = () => {
     setDiffData1(null)
@@ -121,10 +144,11 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
     }
   };
 
+
   useEffect(() => {
     if(ref.current){
       setButtonWidth(ref.current.offsetWidth);
-      const handleResize = () => setButtonWidth(ref.current.offsetWidth);
+      const handleResize = () => setButtonWidth(ref?.current?.offsetWidth);
 
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
@@ -134,20 +158,24 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
   useEffect(() => {
       if (isDiffModalOpen) {
         const timer = setTimeout(() => {
-          document.getElementById('diffModal').classList.remove('opacity-0');
-          document.getElementById('diffModal').classList.add('opacity-100');
+          document.getElementById('diffModal')?.classList.remove('opacity-0');
+          document.getElementById('diffModal')?.classList.add('opacity-100');
         }, 20);
         return () => clearTimeout(timer);
       }
   }, [isDiffModalOpen]);
 
   useEffect(() => {
-    const resizer = document.getElementById('resizer');
-    const container = resizer.parentNode;
+
+    const resizer: HTMLElement | null = document.getElementById('resizer');
+    const container: HTMLElement | null = resizer?.parentNode as HTMLElement | null;
+
     let startX = 0;
     let startWidth = leftWidth;
 
-    const startResizing = (mouseDownEvent) => {
+    const startResizing = (
+      mouseDownEvent: MouseEvent
+    ) => {
         startX = mouseDownEvent.clientX;
         startWidth = leftWidth;
         document.addEventListener('mousemove', resize);
@@ -155,12 +183,13 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
         mouseDownEvent.preventDefault();
     };
 
-    const resize = (mouseMoveEvent) => {
+    const resize = ( mouseMoveEvent: MouseEvent) => {
+      if(!container) return
         const delta = mouseMoveEvent.clientX - startX;
         const maxWidthRight = 365; // Máximo ancho para el panel derecho
         const minWidthLeft = 853; // Mínimo ancho para el panel izquierdo
         let newLeftWidth = startWidth + (delta / container.offsetWidth) * 100;
-        let rightWidth = 100 - newLeftWidth;
+        const rightWidth = 100 - newLeftWidth;
 
         if (container.offsetWidth * (rightWidth / 100) > maxWidthRight) {
             newLeftWidth = 100 - (maxWidthRight / container.offsetWidth * 100);
@@ -177,17 +206,19 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
         document.removeEventListener('mouseup', stopResizing);
     };
 
-    resizer.addEventListener('mousedown', startResizing);
+    resizer?.addEventListener('mousedown', startResizing);
 
     return () => {
-        resizer.removeEventListener('mousedown', startResizing);
+        resizer?.removeEventListener('mousedown', startResizing);
     };
   }, [leftWidth]);
+
 
   useEffect(() => {
     if(selecteDiffData.hash !== ''){
       fetchDiffs()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selecteDiffData])
   
 
@@ -209,7 +240,7 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
                       isLoading 
                       ? 
                         ( <div className='flex flex-grow items-center justify-center'>
-                            <ScaleLoader  color="#FFFFFF" size={20} /> 
+                            <ScaleLoader  color="#FFFFFF" /> 
                           </div> 
                         ) 
                       :
@@ -476,8 +507,9 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
                                       alt={commit.author.name} 
                                       className="w-9 h-9 rounded-full mr-3" 
                                       onError={(e) => {
-                                        e.target.onerror = null; // Previene bucles infinitos en caso de que la imagen de las iniciales también falle
-                                        e.target.src = getInitialsAvatar(commit.author.name); // Establece la imagen de las iniciales si la imagen principal falla
+                                        const target = e.target as HTMLImageElement;
+                                        target.onerror = null; // Previene bucles infinitos en caso de que la imagen de las iniciales también falle
+                                        target.src = getInitialsAvatar(commit.author.name); // Establece la imagen de las iniciales si la imagen principal falla
                                       }}
                                     />
                                     <div className="flex flex-col flex-1 min-w-0">
@@ -495,7 +527,7 @@ export const DiffModal = ({ isDiffModalOpen, setIsDiffModalOpen, commits, select
                             <button 
                               ref={ref}
                               onClick={fetchDiffs} 
-                              className={`w-[80%] transition-opacity duration-500 ${buttonWidth <= 100 ? 'opacity-0' : 'opacity-100'} ease-in-out transform active:translate-y-[2px] inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50`}
+                              className={`w-[80%] transition-opacity duration-500 ${buttonWidth as number <= 100 ? 'opacity-0' : 'opacity-100'} ease-in-out transform active:translate-y-[2px] inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50`}
                             >
                               Find
                             </button>

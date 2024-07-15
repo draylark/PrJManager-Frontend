@@ -1,8 +1,15 @@
-import { useState, memo } from 'react'
+import React, { useState, memo } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogActions, Button, TextField } from '@mui/material';
 
 
-export const RejectTaskDialog = memo(({ open, onClose, onSubmit }) => {
+interface RejectTaskDialogProps {
+    open: boolean;
+    onClose: () => void;
+    onSubmit: (reasons: string) => void;
+}
+
+
+export const RejectTaskDialog: React.FC<RejectTaskDialogProps> = memo(({ open, onClose, onSubmit }) => {
     const [reasonsTextField, setReasonsTextField] = useState('');
   
     return (

@@ -13,12 +13,34 @@ import { useSelector } from "react-redux";
 import { Tooltip } from "@mui/material";
 import { abbreviateNumber } from "../../../helpers/helpers";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { UserRelation, ProfileData } from "../hooks/useProfileData";
+import { RootState } from "../../../../store/store";
 
 type Tab = {
   title: string;
   value: string;
-  content?: string | React.ReactNode | any;
+  content?: string | React.ReactNode ;
 };
+
+
+interface ProfileTabsProps {
+  firstTime: boolean;
+  setFirstTime: (firstTime: boolean) => void;
+  setTabToRender: (tab: string) => void;
+  tabs: Tab[];
+  setTabs: (tabs: Tab[]) => void;
+  active: Tab;
+  setActive: (tab: Tab) => void;
+  setHovering: (hovering: boolean) => void;
+  user: ProfileData;
+  usersRelation: UserRelation;
+  isProfileFollowersModalOpen: boolean;
+  setIsProfileFollowersModalOpen: (isProfileFollowersModalOpen: boolean) => void;
+  containerClassName?: string;
+  activeTabClassName?: string;
+  tabClassName?: string;
+  contentClassName?: string;
+}
 
 export const ProfileNav = ({
   firstTime,
@@ -31,36 +53,19 @@ export const ProfileNav = ({
   setHovering,
   usersRelation,
   user,
-  isProfileFollowersModalOpen,
   setIsProfileFollowersModalOpen,
   containerClassName,
   activeTabClassName,
   tabClassName,
-  contentClassName,
-}: {
-  firstTime: boolean;
-  setFirstTime: (firstTime: boolean) => void;
-  setTabToRender: (tab: string) => void;
-  tabs: Tab[];
-  setTabs: (tabs: Tab[]) => void;
-  active: Tab;
-  setActive: (tab: Tab) => void;
-  setHovering: (hovering: boolean) => void;
-  user: any;
-  containerClassName?: string;
-  activeTabClassName?: string;
-  tabClassName?: string;
-  contentClassName?: string;
-}) => {
+}: ProfileTabsProps ) => {
 
-  const { uid, username, photoUrl } = useSelector( (state) => state.auth )
+  const { uid, username, photoUrl } = useSelector( (state: RootState) => state.auth )
   const [following, setFollowing] = useState(usersRelation.iFollow || false)
-  const [followsMe, setFollowsMe] = useState(usersRelation.followsMe || false)
   const [friends, setFriends] = useState(usersRelation.friendship || false)
+  const followsMe = usersRelation.followsMe || false
 
 
-
-  const handleUnfollowRes = (type) => {
+  const handleUnfollowRes = (type: string) => {
     switch (type) {
       case 'friendship':
         setFriends(false)
@@ -77,7 +82,7 @@ export const ProfileNav = ({
     }
   };
 
-  const handleFollowRes = (type) => {
+  const handleFollowRes = (type: string) => {
     switch (type) {
       case 'friendship':
         setFriends(true)
@@ -94,7 +99,7 @@ export const ProfileNav = ({
     }
   };
 
-  const followProfile = (profileUID) => {
+  const followProfile = (profileUID: string) => {
     axios.post(`${backendUrl}/users/follow-profile`,{ profileUID, uid, username, photoUrl })
     .then( res => {
       // console.log(res)
@@ -105,7 +110,7 @@ export const ProfileNav = ({
     })
   };
 
-  const unfollowProfile = (profileUID) => {
+  const unfollowProfile = (profileUID: string) => {
     axios.delete(`${backendUrl}/users/unfollow-profile/${profileUID}`, { 
         params: { uid }
     })
@@ -148,7 +153,7 @@ export const ProfileNav = ({
                         {
                           user?.website && (
                             <a href={user?.website} target="_blank" rel="noreferrer" className="flex items-center space-x-1">
-                              <IosLink className="w-4 h-4 text-gray-700" />
+                              <IosLink className="w-4 h-4 text-gray-700" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                               <span className="text-[13px] text-gray-700">Website</span>
                             </a>
                           )
@@ -156,7 +161,7 @@ export const ProfileNav = ({
                         {
                           user?.github && (
                             <a href={user?.github} target="_blank" rel="noreferrer" className="flex items-center space-x-1">
-                              <Github className="w-4 h-4 text-gray-700" />
+                              <Github className="w-4 h-4 text-gray-700" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                               <span className="text-[13px] text-gray-700">Github</span>
                             </a>
                           )
@@ -167,7 +172,7 @@ export const ProfileNav = ({
                         {
                           user?.linkedin && (
                             <a href={user?.linkedin} target="_blank" rel="noreferrer" className="flex items-center space-x-1">
-                              <LogoLinkedin className="w-4 h-4 text-gray-700" />
+                              <LogoLinkedin className="w-4 h-4 text-gray-700" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                               <span className="text-[13px] text-gray-700">Linkedin</span>
                             </a>
                           )
@@ -204,17 +209,18 @@ export const ProfileNav = ({
                             (
                                 <Tooltip
                                   title="Unfollow"
-                                  placement="top"
-                                  className=""
+                                  placement="left"
                                 >
+                                  <div className="flex flex-col space-y-1">
                                     <button 
                                       onClick={ () => unfollowProfile(user.uid)}
                                       className='flex items-center justify-center w-10 h-8 rounded-xl glassi border-1 border-black mx-auto hover:bg-blue-300/40 transition-all duration-150 ease-in-out transform active:translate-y-[2px]'>
                                         <Icon >
-                                            <Friendship className='text-green-600'/>
+                                            <Friendship className='text-green-600' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                                         </Icon>
                                     </button>
-                                    <p className='text-[9px] mx-auto text-center'>Friends</p>                   
+                                    <p className='text-[9px] mx-auto text-center'>Friends</p>                                     
+                                  </div> 
                                 </Tooltip>                       
                             )
                         :
@@ -223,16 +229,19 @@ export const ProfileNav = ({
                             (
                                 <Tooltip
                                   title="Follow back?"
-                                  placement="top"                             
+                                  placement="left"                             
                                 >
+                                  <div className="flex flex-col space-y-1">
                                     <button 
                                       onClick={ () => followProfile(user.uid)}
                                       className='flex items-center justify-center w-10 h-8 rounded-xl glassi border-1 border-black mx-auto hover:bg-blue-300/40 transition-all duration-150 ease-in-out transform active:translate-y-[2px]'>
                                         <Icon >
-                                            <UserAdmin className='text-green-600' />
+                                            <UserAdmin className='text-green-600' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                                         </Icon>
+                                    
                                     </button>
-                                    <p className='text-[9px] mx-auto text-center'>Follows you</p>                   
+                                    <p className='text-[9px] mx-auto text-center'>Follows you</p> 
+                                  </div>                  
                                 </Tooltip>             
                             )
                         :
@@ -241,16 +250,18 @@ export const ProfileNav = ({
                           (                 
                               <Tooltip
                                 title="Unfollow"
-                                placement="top"                      
+                                placement="left"                      
                               >
-                                <button 
-                                  onClick={ () => unfollowProfile(user.uid)}
-                                  className='flex items-center justify-center w-10 h-8 rounded-xl glassi border-1 border-black mx-auto hover:bg-blue-300/40 transition-all duration-150 ease-in-out transform active:translate-y-[2px]'>
-                                    <Icon>
-                                        <CheckRound/>
-                                    </Icon>
-                                </button>
-                                <p className='text-[9px] mx-auto text-center'>Following</p>      
+                                <div className="flex flex-col space-y-1">
+                                  <button 
+                                    onClick={ () => unfollowProfile(user.uid)}
+                                    className='flex items-center justify-center w-10 h-8 rounded-xl glassi border-1 border-black mx-auto hover:bg-blue-300/40 transition-all duration-150 ease-in-out transform active:translate-y-[2px]'>
+                                      <Icon>
+                                          <CheckRound onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
+                                      </Icon>
+                                  </button>
+                                  <p className='text-[9px] mx-auto text-center'>Following</p>                                    
+                                </div>
                               </Tooltip>
                           ) 
                         : 
@@ -260,7 +271,7 @@ export const ProfileNav = ({
                                   onClick={ () => followProfile(user.uid)}
                                   className='w-10 h-8 rounded-xl glassi border-1 border-black mx-auto hover:bg-blue-300/40 transition-all duration-150 ease-in-out transform active:translate-y-[2px]'>
                                     <Icon >
-                                        <PlusOutlined/>
+                                        <PlusOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
                                     </Icon>
                                 </button>
                                 <p className='text-[9px] mx-auto text-center'>Follow</p>            

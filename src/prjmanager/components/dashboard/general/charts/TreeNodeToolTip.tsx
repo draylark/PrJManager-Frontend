@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { TreeNode } from '../../hooks/useTreeChartData';
 
-export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
-  const [toolTipData, setToolTipData] = useState(null);
+
+interface TreeNodeToolTipProps {
+  data: TreeNode;
+  id: string;
+  position: { top: number; left: number }
+  visible: boolean;
+  type: string;
+}
+
+export const TreeNodeToolTip: React.FC<TreeNodeToolTipProps> = ({ data, id, position, visible, type }) => {
+  const [toolTipData, setToolTipData] = useState<TreeNode | null>(null);
 
   // Función para buscar un nodo por ID en la estructura jerárquica
-  const findNodeById = (treeNode, nodeId) => {
+  const findNodeById = (treeNode: TreeNode, nodeId: string): TreeNode | null => {
     if (treeNode.id === nodeId) {
       return treeNode;
     }
@@ -21,11 +31,11 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
     return null; // Devuelve null si no se encuentra el nodo
   };
 
-  const removePrefix = (name) => {
+  const removePrefix = (name: string) => {
     return name.replace(/^[^-]+-/, ''); // Elimina todo antes del primer guion
   };
 
-  const capitalizeFirstLetter = (text) => {
+  const capitalizeFirstLetter = (text: string) => {
     if (!text) return ''; // Si el texto está vacío o es undefined, devuelve una cadena vacía
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
@@ -54,19 +64,21 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
           break;
       }
 
-      setToolTipData(item); // Establece la información para el tooltip
+      setToolTipData(item as TreeNode); // Establece la información para el tooltip
     };
 
     if (visible) {
       fetchToolTipData(); // Solo obtiene datos si el tooltip es visible
     }
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, id, visible, data]);
 
   if (!visible) {
     return null; // No muestra el tooltip si no es visible
   }
 
-  const formatDate = (date) => {
+  const formatDate = (date: string) => {
     const formattedDate = new Date(date).toLocaleDateString();
     return formattedDate;
   };
@@ -90,8 +102,8 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
           <div className='text-sm text-white'>{toolTipData.description}</div>
 
           <div className='flex space-x-2 text-white'>
-            <div className='text-sm'>Start Date: {formatDate(toolTipData.startDate)}</div>
-            <div className='text-sm'>End Date: {formatDate(toolTipData.endDate)}</div>
+            <div className='text-sm'>Start Date: {formatDate(toolTipData.startDate as string)}</div>
+            <div className='text-sm'>End Date: {formatDate(toolTipData.endDate as string)}</div>
           </div>
 
           {/* <div className='text-sm'>Status: {toolTipData.status}</div> */}
@@ -107,8 +119,8 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
                     <div className='text-[12px] text-white'>#{toolTipData.id}</div>
                 </div>
                 <div className='flex space-x-2 text-white'>
-                    <div className='text-[12px]'>{capitalizeFirstLetter(toolTipData.status)}</div>
-                    <div className='text-[12px]'>{capitalizeFirstLetter(toolTipData.priority)}</div>
+                    <div className='text-[12px]'>{capitalizeFirstLetter(toolTipData.status as string)}</div>
+                    <div className='text-[12px]'>{capitalizeFirstLetter(toolTipData.priority as string)}</div>
                 </div>
             </div>
             <div className='text-sm text-white'>{toolTipData.description}</div>
@@ -136,10 +148,11 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
                                     className="w-5 h-5 border-2 border-white rounded-full dark:border-gray-800"
                                     src={contributor.photoUrl || `https://dummyimage.com/500x500/000/fff&text=${contributor.username.charAt(0).toUpperCase()}`}
                                     alt={`${contributor.username}'s profile`}
-                                    onError={(e) => {
-                                        e.target.onerror = null; // prevents looping
-                                        e.target.src = `https://dummyimage.com/500x500/000/fff&text=${contributor.username.charAt(0).toUpperCase()}`;
-                                    }}
+                                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                                      const target = e.target as HTMLImageElement; // Asegura el tipo
+                                      target.onerror = null; // Previene el bucle de error
+                                      target.src = `https://dummyimage.com/500x500/000/fff&text=${contributor.username.charAt(0).toUpperCase()}`;
+                                  }}
                                 />
                             ))
                         : null
@@ -157,7 +170,7 @@ export const TreeNodeToolTip = ({ data, id, position, visible, type }) => {
                     }
                 </div>
 
-                <div className='text-sm'>Deadline: <span className='text-red-500'>{formatDate(toolTipData.deadline)}</span> </div>
+                <div className='text-sm'>Deadline: <span className='text-red-500'>{formatDate(toolTipData.deadline as string)}</span> </div>
             </div>
 
 

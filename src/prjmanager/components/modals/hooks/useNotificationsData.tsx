@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 import axios from 'axios'
+import { NotiBase } from '../../../../interfaces/models/notification';
 
-export const useNotificationsData = (uid) => {
+export const useNotificationsData = (uid: string) => {
 
-    const [notifications, setNotifications] = useState([])
+    const [notifications, setNotifications] = useState<NotiBase[]>([])
     const [fetchingNotifications, setFetchingNotifications] = useState(true)
 
     const [errorMessage, seterrorMessage] = useState(null)
@@ -34,11 +35,10 @@ export const useNotificationsData = (uid) => {
         })
     }
 
-
     useEffect(() => {
         fetchNotifications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
-
 
   return {
     notifications,

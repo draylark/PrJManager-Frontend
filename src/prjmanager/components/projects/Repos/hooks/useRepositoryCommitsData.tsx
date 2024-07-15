@@ -2,9 +2,21 @@ import { useState, useEffect } from 'react'
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 import '../styles/commits.css'
+import { LocalStateBase } from '../../../../../interfaces/localstate';
+import { CommitBase, TaskBase } from '../../../../../interfaces/models';
 
-export const useRepositoryCommitsData = ( repository: string ) => {
-  const [commits, setCommits] = useState([])
+interface Repository extends Omit<LocalStateBase, 'state'> {
+    repoID: string;
+    repoName: string;
+}
+
+export interface CommitFromServer extends Omit<CommitBase, 'hash' | 'associated_task'> {
+  associated_task: Pick<TaskBase, '_id' | 'task_name'>
+}
+
+
+export const useRepositoryCommitsData = ( repository: Repository ) => {
+  const [commits, setCommits] = useState<CommitFromServer[]>([])
   const [isLoading, setIsLoading] = useState(false)
   
   const fetchCommits = async () => {
@@ -27,6 +39,7 @@ export const useRepositoryCommitsData = ( repository: string ) => {
   useEffect(() => {
     setIsLoading(true)
     fetchCommits()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

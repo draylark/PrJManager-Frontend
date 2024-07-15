@@ -1,49 +1,35 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 const backendUrl = import.meta.env.VITE_BACKEND_URL
+import { TaskBase, ModifiedTaskBase } from '../../../../../interfaces/models'
 
+
+interface ApiResponse {
+  message: string;
+  type: string;
+}
 
 export const useRepositoryTasksData = ( repoID: string ) => {
 
-    const [tasks, setTasks] = useState([]);
+
+    const [tasks, setTasks] = useState<ModifiedTaskBase[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [errorWhileFetching, setErrorWhileFetching] = useState(false);
 
-    const [errorMessage, setErrorMessage] = useState(null)
-    const [errorWhileFetching, setErrorWhileFetching] = useState(false)
 
-    const fetchCollaborators = async ( collaborators ) => {
-        try {
-          const response = await axios.post(`${backendUrl}/users?limit=${collaborators.length}`, { IDS: collaborators });
-          return response.data.users 
-        } catch (error) {
-          console.error("Error fetching collaborators:", error);
-        }
+    const reorganizeAndSetData = async (tasks: TaskBase[]) => {
+      setIsLoading(true);
+
+      const tasksWithCollaborators = await Promise.all(tasks.map(async (task: TaskBase) => {
+        const { contributorsIds, ...rest } = task;
+          return { ...rest, contributors: contributorsIds };
+      })) as ModifiedTaskBase[];
+
+      setTasks(tasksWithCollaborators);
+      setIsLoading(false);
     };
 
-    const fetchAndSetData = async (tasks) => {
-        setIsLoading(true);
-        try {
-        const tasksWithCollaborators = await Promise.all(tasks.map(async (task) => {
-            const collaborators = await fetchCollaborators(task.contributorsIds);
-            console.log('collaborators', collaborators)
-            return { ...task, contributors: collaborators };
-        }));
-        
-        // const wFTasksWithCollaborators = await Promise.all(wFApprovalTasksData.map(async (task) => {
-        //   const collaborators = await fetchCollaborators(task.collaboratorsIds);
-        //   const { completedBy, ...rest } = task;
-        //   return { ...rest, completedBy: collaborators };
-        // }));
-
-        // console.log(wFTasksWithCollaborators)
-
-        setTasks(tasksWithCollaborators);
-        setIsLoading(false)
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        }
-        setIsLoading(false);
-    };
 
     const fetchTasks = async () => {
         try {
@@ -54,18 +40,26 @@ export const useRepositoryTasksData = ( repoID: string ) => {
                     'Authorization': localStorage.getItem('x-token')
                 }
             });
-            // console.log(res)
-            fetchAndSetData(res.data.tasks)
+            reorganizeAndSetData(res.data.tasks)
         } catch (error) {
-            console.error('Error fetching tasks:', error);
-            setIsLoading(false)
-            setErrorWhileFetching(true)
-            setErrorMessage(error.response.data.message || 'There was an error while fetching repository tasks.')
+          const axiosError = error as AxiosError<ApiResponse>; // Asumir que es un error de Axios
+
+          if (axiosError.response) {
+              setErrorWhileFetching(true);    
+              setErrorMessage(axiosError.response.data.message || 'An error occurred while fetching data');
+              setIsLoading(false)
+          } else {
+              // Manejar errores que no son de Axios
+              setErrorWhileFetching(true);              
+              setErrorMessage('An unexpected error occurred');
+              setIsLoading(false)
+          }
         }
     };
 
     useEffect(() => {
-        fetchTasks()
+        fetchTasks()    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
   return {

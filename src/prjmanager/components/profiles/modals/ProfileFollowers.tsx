@@ -7,12 +7,26 @@ import { useNavigate } from 'react-router-dom';
 import { TextField } from '@mui/material';
 import { abbreviateNumber, capitalizeFirstLetter } from '../../../helpers/helpers';
 
-export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFollowersModalOpen, profileUID, profileName }) => {
+interface ProfileFollowersProps {
+    isProfileFollowersModalOpen: boolean;
+    setIsProfileFollowersModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    profileUID: string;
+    profileName: string;
+}
+
+interface UserFilter {
+    uid: string;    
+    username: string;
+    photoUrl: string | null;
+}
+
+export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFollowersModalOpen, profileUID }: ProfileFollowersProps) => {
 
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');    
     const [ render, setRender ] = useState('followers');
     const [filterType, setFilterType] = useState('followers'); 
+    const renderDivRef = useRef<HTMLDivElement | null>(null);    
     const { followers, following, fetchingUsers, 
         totalFollowersPages, totalFollowingPages, 
         FollowersPage, FollowingPage,
@@ -23,9 +37,8 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
         errorMessage
     } = useProfileFollowersData(profileUID);
 
-    const renderDivRef = useRef(null);
-
-    const renderLength = ( type ) => {
+    
+    const renderLength = ( type: string ) => {
         switch (type) {
             case 'followers':
                 return followersLength
@@ -36,7 +49,20 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
         }
     }
 
-    const renderType = ( type ) => {
+    const handleClose = () => {
+        const modal = document.getElementById('profileFollowersModal');
+        if (modal) {
+            // Inicia la transición de opacidad a 0
+            modal.classList.replace('opacity-100', 'opacity-0');
+  
+            // Espera a que la animación termine antes de ocultar el modal completamente
+            setTimeout(() => {
+                setIsProfileFollowersModalOpen(false);
+            }, 500); // Asume que la duración de tu transición es de 500ms
+        }
+    };
+
+    const renderType = ( type: string ) => {
         switch (type) {
             case 'followers':
                 return (                  
@@ -109,7 +135,8 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
     };
 
     const filteredUsers = useMemo(() => {
-        let usersToFilter = [];
+        let usersToFilter: UserFilter[]= [];
+        
         if (filterType === 'followers') {
           usersToFilter = followers.map((f) => f.followerId);
         } else if (filterType === 'following') {
@@ -119,26 +146,15 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
         return usersToFilter.filter((user) => user.username.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [searchTerm, followers, following, filterType]);
     
-    const handleClose = () => {
-        const modal = document.getElementById('profileFollowersModal');
-        if (modal) {
-            // Inicia la transición de opacidad a 0
-            modal.classList.replace('opacity-100', 'opacity-0');
-  
-            // Espera a que la animación termine antes de ocultar el modal completamente
-            setTimeout(() => {
-                setIsProfileFollowersModalOpen(false);
-            }, 500); // Asume que la duración de tu transición es de 500ms
-        }
-    };
+
 
     useEffect(() => {
         if (isProfileFollowersModalOpen) {
             // Asegúrate de que el modal existe antes de intentar acceder a él
             // Luego, después de un breve retraso, inicia la transición de opacidad
             const timer = setTimeout(() => {
-            document.getElementById('profileFollowersModal').classList.remove('opacity-0');
-            document.getElementById('profileFollowersModal').classList.add('opacity-100');
+            document.getElementById('profileFollowersModal')?.classList.remove('opacity-0');
+            document.getElementById('profileFollowersModal')?.classList.add('opacity-100');
             }, 20); // Un retraso de 20ms suele ser suficiente
             return () => clearTimeout(timer);
         }
@@ -150,7 +166,6 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
         // console.log('useEffect handleScroll scrolling');
         const renderDiv = renderDivRef?.current;
         if (renderDiv) {
-            console.log('Entrando a handleScroll')
         //   console.log(`scrollTop: ${renderDiv.scrollTop}, clientHeight: ${renderDiv.clientHeight}, scrollHeight: ${renderDiv.scrollHeight}`);
             if (renderDiv.scrollTop + renderDiv.clientHeight >= renderDiv.scrollHeight - 5) { // Ajustar el umbral si es necesario
                 // console.log('Entrando a la condicion base');
@@ -167,7 +182,7 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
     
         const renderDiv = renderDivRef.current;
         if (renderDiv) {
-        renderDiv.addEventListener('scroll', handleScroll);
+            renderDiv.addEventListener('scroll', handleScroll);
         }
     
         return () => {
@@ -176,9 +191,9 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
         }
         };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isProfileFollowersModalOpen, filterType, FollowersPage, FollowingPage, totalFollowersPages, totalFollowingPages,  fetchingMoreFollowers, fetchingMoreFollowing]);
       
-
 
   return (
     <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>
@@ -238,7 +253,7 @@ export const ProfileFollowers = ({ isProfileFollowersModalOpen, setIsProfileFoll
                                 fetchingUsers ?  
                                 (
                                     <div className='flex w-full h-full items-center justify-center'>
-                                        <ScaleLoader color='#000' loading={fetchingUsers} size={20} />
+                                        <ScaleLoader color='#000' loading={fetchingUsers} />
                                     </div>  
                                   )
                                 :                                

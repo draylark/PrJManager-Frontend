@@ -10,23 +10,37 @@ import { getInitialsAvatar } from "../projects/helpers/helpers";
 import { useNavigate } from "react-router-dom";
 import { formateDate, cleanUrl } from "../../helpers/helpers";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { RootState } from "../../../store/store";
+import { NotiBase } from '../../../interfaces/models/notification';
+
 
 type MyComponentProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+type RequestHandler = {
+  [key: string]: 'loading' | 'accepted' | 'rejected';
 };
 
 
 export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
 
   const navigate = useNavigate()
-  const { uid, photoURL, username } = useSelector( (selector) => selector.auth);
-  const { notifications, fetchingNotifications, errorMessage, errorWhileFetching } = useNotificationsData(uid)
-
-  const [handledRequests, setHandledRequests] = useState({})
+  const { uid, photoUrl, username } = useSelector( (state: RootState) => state.auth);
+  const { notifications, fetchingNotifications, errorMessage, errorWhileFetching } = useNotificationsData(uid as string)
+  const [handledRequests, setHandledRequests] = useState<RequestHandler>({})
+  
   const [isActive, setIsActive] = useState(false);
   const modalRef = useRef(null);
 
-  const handleRequest = async (notiID, uid, requester, requestStatus, type, additional ) => {
+  const handleRequest = async (
+    notiID: string, 
+    uid: string, 
+    requester: string, 
+    requestStatus: string, 
+    type: string, 
+    additional: { projectID: string, accessLevel: string, ref: string } 
+  ) => {
     try {
       switch (type) {
         case 'friend-request': {
@@ -45,6 +59,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
           })
           .catch((error) => {
             setHandledRequests((prev) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { [notiID]: _, ...rest } = prev;
               return rest;
             });
@@ -60,7 +75,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
   
         case 'project-invitation': {
           handlingR(notiID);
-          await axios.put(`${backendUrl}/projects/handle-invitation/${additional.projectID}`, { requestStatus, uid, name: username, photoUrl: photoURL, accessLevel: additional.accessLevel, notiID }, {
+          await axios.put(`${backendUrl}/projects/handle-invitation/${additional.projectID}`, { requestStatus, uid, name: username, photoUrl, accessLevel: additional.accessLevel, notiID }, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': localStorage.getItem('x-token')
@@ -75,6 +90,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
           })
           .catch((error) => {
             setHandledRequests((prev) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { [notiID]: _, ...rest } = prev;
               return rest;
             });
@@ -96,14 +112,14 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
     }
   };
 
-  const handlingR = (requestId) => {
+  const handlingR = (requestId: string) => {
     setHandledRequests((prev) => ({
       ...prev,
       [requestId]: 'loading'
     }));
   };
 
-  const renderNotiType = (type, request) => {
+  const renderNotiType = (type: string, request: NotiBase) => {
     switch (type) {
       case 'friend-request':
         return (
@@ -264,7 +280,7 @@ export const NotificationsModal: FC<MyComponentProps> = ({ setIsOpen }) => {
 
               <div className="flex flex-grow h-full justify-end  px-3">
                 <p className="text-black font-semibold text-[12px]">
-                  {formateDate(request.createdAt)}
+                  {formateDate(request.createdAt as string)}
                 </p> 
               </div>  
             </div>
