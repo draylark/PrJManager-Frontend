@@ -52,9 +52,10 @@ export const RegisterForm = () => {
         dispatch(startLoginWEmailPassword(response.data));
         setSubmitting(false);
       } catch (error) {
+        
         const err = error as AxiosError<ApiResponse>
         setSubmitting(false);
-
+        console.log('backendUrl', backendUrl)
         if( err.response ) {
             Swal.fire({
                 icon: 'error',
@@ -90,6 +91,7 @@ export const RegisterForm = () => {
         dispatch(startGoogleLoginWEmailPassword(userData))
         
       } catch (error) {
+        console.log('backendUrl', backendUrl)
         const err = error as AxiosError<ApiResponse>
         if( err.response ) {
             Swal.fire({
