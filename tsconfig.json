@@ -24,7 +24,7 @@
     /* Source Maps */
     "sourceMap": true,
   },
-  "include": ["src", "manager/routes/ManagerRoutes.tsx"],
+  "include": ["src/**/*", "types/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "exclude": ["node_modules", "dist", "**/*.test.ts"],
 }

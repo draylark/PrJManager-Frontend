@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Fragment } from 'react';
-import { TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, Divider, Box, IconButton, Dialog, DialogContent, DialogTitle, DialogActions, Typography } from '@mui/material';
+import { TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, Divider, IconButton, Dialog, DialogContent, DialogTitle, DialogActions, Typography } from '@mui/material';
 import ReplyIcon from '@mui/icons-material/Reply';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -174,12 +174,12 @@ export const Comments = () => {
             const commentLikes = likes.filter(like => like.commentId === commentId && like.isLike === true).length
 
             return (
-                <Box sx={{ marginRight: 1, display: 'flex', alignItems: 'center', ...style } }> 
+                <div style={{ marginRight: 1, display: 'flex', alignItems: 'center', ...style } }> 
                     <IconButton onClick={() => handleLikeDislike(commentId)}>
                         <ThumbUpAltIcon sx={{ width: 20, height: 20 }}  color={myLike ? 'primary' : 'inherit'} />
                     </IconButton>
                     <span>{commentLikes}</span>
-                </Box>
+                </div>
             );
         };
 
@@ -431,9 +431,9 @@ export const Comments = () => {
                             )}
 
                         {showReplies[comment.id] && (
-                            <Box sx={{ ml: 2 }}>
+                            <div style={{ marginLeft: 2 }}>
                                 {renderCommentsReplies(comment.id, comment.current_page, comment.total_pages)}
-                            </Box>
+                            </div>
                         )}
                     </div>
                 ))}

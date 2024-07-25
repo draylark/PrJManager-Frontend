@@ -8,7 +8,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Formik, Form } from 'formik';
 import { useGlobalUsersSearcher } from '../../../forms/hooks/useGlobalUsersSearcher';
 import { styled } from '@mui/system';
-import { TextField, Select, MenuItem, FormControl, InputLabel, InputAdornment , Chip, Box, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete, ListItemAvatar, Avatar, Popper } from '@mui/material';
+import { TextField, Select, MenuItem, FormControl, InputLabel, InputAdornment , Chip, Accordion, AccordionSummary, AccordionDetails, Typography, Tooltip, Autocomplete, ListItemAvatar, Avatar, Popper } from '@mui/material';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const CustomPopper = styled(Popper)({
@@ -409,7 +409,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ uid, setGoalsExpanded, goals
                             rows={2}
                             fullWidth
                         />
-                        <Box className="flex-wrap py-4 max-h-[65px] overflow-y-auto">
+                        <div className="flex-wrap py-4 max-h-[65px] overflow-y-auto">
                             {values.goals.length === 0 ? (
                             <Typography className='text-center pt-2 my-auto'>No goals added yet</Typography>
                             ) : (
@@ -428,7 +428,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ uid, setGoalsExpanded, goals
                             </Tooltip>
                             ))
                             )}
-                        </Box>
+                        </div>
                         </AccordionDetails>
                     </Accordion>
 

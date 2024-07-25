@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "start": "node server.js",
-    "tsc:watch": "set NODE_OPTIONS=--max-old-space-size=8192 && npx tsc --watch",
-    "build": "set NODE_OPTIONS=--max-old-space-size=8192 && npx tsc && vite build"
+    "build": "set NODE_OPTIONS=--max-old-space-size=12288 && npx tsc && vite build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
