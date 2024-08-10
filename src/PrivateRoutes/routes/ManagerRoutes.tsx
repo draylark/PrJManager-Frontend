@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import PrJManager from '../views/PrJManager'
 import { Projects, Dashboard, Project, Layer, Repository, Comments, Searcher, TreeChart, Activity, Commits, Commit, Workspace, Resources, TaskSetDetails, PersonalArea, Profile } from '../components'
 
@@ -38,6 +38,8 @@ const ManagerRoutes = () => {
             <Route path='personal-area/:username' element={ <PersonalArea/> }/>    
             <Route path='profile/:username' element={ <Profile/> }/>
             <Route path='searcher' element={ <Searcher/> }/>
+
+            <Route path="*" element={<Navigate to="/projects" replace />} />
         </Routes>
     </PrJManager>
   )

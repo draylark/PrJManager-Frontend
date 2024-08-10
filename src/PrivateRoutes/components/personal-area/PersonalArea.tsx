@@ -22,9 +22,9 @@ import { abbreviateNumber } from '../../helpers/helpers';
 import { RootState } from '../../../store/store';
 import { ProjectCreated, LayerCreated, RepositoryCreated, NewCommit, NewCommitWTask, TaskCreated, TaskCompleted, TaskContributorCompleted, TaskContributorMarkedReady,
   TaskContributorReviewSubmission, TaskReviewSubmission } from '../../../interfaces/others/timeline';
+import { ExtConnections } from './modals/ExtConnections';
 
 type Data = ProjectCreated | LayerCreated | RepositoryCreated | TaskCreated | TaskReviewSubmission | TaskCompleted | TaskContributorReviewSubmission | TaskContributorCompleted | TaskContributorMarkedReady | NewCommit | NewCommitWTask;
-
 
 const eventIcons: { [key: string]: JSX.Element } = {
   project_created: <TbFolderPlus />,
@@ -228,6 +228,7 @@ export const PersonalArea = () => {
     timelineErrorMessage, timelineErrorWhileFetching, projectsErrorMessage, projectsErrorWhileFetching,
     endDate, startDate, fetchingProjects, fetchingTimelineData, handleNext, handlePrevious } = usePersonalData(uid as string);
 
+  const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false)
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false)
   const [isMyLinksModalOpen, setIsMyLinksModalOpen] = useState(false)
 
@@ -243,6 +244,7 @@ export const PersonalArea = () => {
   return (
     <div className="flex min-h-screen h-full w-full p-6 bg-blue-50">
 
+      { isConnectionModalOpen && <ExtConnections isConnectionModalOpen={isConnectionModalOpen} setIsConnectionModalOpen={setIsConnectionModalOpen} /> }
       { isMyLinksModalOpen && <MyLinks isMyLinksModalOpen={isMyLinksModalOpen} setIsMyLinksModalOpen={setIsMyLinksModalOpen} /> }
       { isFollowersModalOpen && <Followers isFollowersModalOpen={isFollowersModalOpen} setIsFollowersModalOpen={setIsFollowersModalOpen} /> }
 
@@ -253,9 +255,10 @@ export const PersonalArea = () => {
             <h1 className="text-2xl font-bold nav-button">@{username || "Unknown User"}</h1>
             <p className="text-black text-sm font-semibold">{email || "No email"}</p>
             <div className='flex space-x-2'>
-            <p className="text-black text-sm font-semibold">{abbreviateNumber(followersLength || followers)} <span onClick={() => setIsFollowersModalOpen(true)} className='font-normal cursor-pointer hover:text-gray-700 transition-colors duration-200'>followers</span> </p>
-            <p onClick={() => setIsMyLinksModalOpen(true)} className="ttext-black text-sm cursor-pointer hover:text-gray-700 transition-colors duration-200r">My Links</p>
+              <p className="text-black text-sm font-semibold">{abbreviateNumber(followersLength || followers)} <span onClick={() => setIsFollowersModalOpen(true)} className='font-normal cursor-pointer hover:text-gray-700 transition-colors duration-200'>followers</span> </p>
+              <p onClick={() => setIsMyLinksModalOpen(true)} className="text-black text-sm cursor-pointer hover:text-gray-700 transition-colors duration-200">My Links</p>
             </div>
+            <p onClick={() => setIsConnectionModalOpen(true)} className="text-black text-sm cursor-pointer hover:text-gray-700 transition-colors duration-200">Connections</p>
           </div>
         </div>
 

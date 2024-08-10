@@ -8,6 +8,7 @@ import { usePrJDispatch } from '../../../../store/dispatch';
 import { startGoogleLoginWEmailPassword, startLoginWEmailPassword } from '../../../../store/auth/thunks';
 import { useGoogleLogin } from '@react-oauth/google';
 import Swal from 'sweetalert2';
+import { Link } from "react-router-dom";
 import * as Yup from 'yup';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL
@@ -173,7 +174,7 @@ export const RegisterForm = () => {
                   </button>
 
                   <p className="text-white text-sm pt-3">You already have an account? 
-                    <a href="/auth/login" className="text-blue-300"> Sign In</a>
+                    <Link to="/auth/login" className="text-blue-400"> Login</Link>
                   </p>
                 </Form>
           )}

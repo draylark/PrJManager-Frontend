@@ -7,7 +7,7 @@ export function Navbar({ className }: { className?: string }) {
   const [active, setActive] = useState<string | null>(null);
   return (
     <div
-      className={cn("absolute top-10 inset-x-0 w-full md:left-1 z-50", className)}
+      className={cn("absolute inset-x-0 md:left-1 z-50", className)}
     >
       <Menu setActive={setActive}>
         <MenuItem setActive={setActive} active={active} item="Home">

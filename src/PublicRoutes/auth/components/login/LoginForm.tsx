@@ -11,6 +11,7 @@ import { startGoogleLoginWEmailPassword, startLoginWEmailPassword } from '../../
 import { useGoogleLogin } from '@react-oauth/google';
 import Swal from 'sweetalert2';
 import * as Yup from 'yup';
+import { Link } from "react-router-dom";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 import {
@@ -161,7 +162,7 @@ export const LoginForm = () => {
             </button>
 
             <p className="text-white text-sm pt-3">You don't have an account?
-              <a href="/auth/register" className="text-blue-300"> Sign Up</a>
+              <Link to="/auth/register" className="text-blue-400"> Register</Link>
             </p>
           </Form>
         )}

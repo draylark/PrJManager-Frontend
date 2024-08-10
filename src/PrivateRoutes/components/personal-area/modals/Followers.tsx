@@ -91,7 +91,6 @@ export const Followers: React.FC<FollowersProps> = ({ isFollowersModalOpen, setI
     const [ render, setRender ] = useState('followers')
     const [filterType, setFilterType] = useState('followers'); 
     const renderDivRef = useRef<HTMLDivElement | null>(null);
-        
     
     const navigate = useNavigate()
 
@@ -386,7 +385,6 @@ export const Followers: React.FC<FollowersProps> = ({ isFollowersModalOpen, setI
       }, [isFollowersModalOpen, filterType, FollowersPage, FollowingPage, FriendsPage, totalFollowersPages, 
         totalFollowingPages, totalFriendsPages, fetchingMoreFollowers, fetchingMoreFollowing, fetchingMoreFriends]);
 
-        // console.log('filteredUsers', filteredUsers)
 
   return (
     <div className='fixed flex w-screen h-full pb-5 top-0 right-0 justify-center items-center bg-black/30 z-50'>

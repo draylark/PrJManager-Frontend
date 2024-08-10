@@ -1,4 +1,4 @@
-import { useLocation, Navigate } from "react-router-dom"
+import { useLocation, Navigate, useNavigate } from "react-router-dom"
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import axios, { AxiosError } from "axios";
@@ -26,6 +26,7 @@ interface ApiResponse {
 
 
 const ExtAuth = () => {
+    const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true)
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,16 +38,18 @@ const ExtAuth = () => {
 
     const { authCode, npmsocketid, type, port } = decodeParams(location.search);
 
+    const handleRedirect = (path: string) => {
+        navigate(path, { replace: true });
+    };
+
     const sendCodeToExtension = async (code: string) => {
         if (!socket || !isConnected) {
-            console.log('Socket no está conectado');
             return;
         }
 
         try {
             await axios.post(`http://localhost:${port}/receive-code`, { code, FRONTENDTID: socket.id });
             socket.on('authenticationResult', (data) => {
-                console.log(data)
                 setRespStatus( data.status.authStatus || data.status );
                 setIsLoading(false);
                 clearTimeout(timeoutRef.current as NodeJS.Timeout); // Limpia el temporizador
@@ -63,7 +66,7 @@ const ExtAuth = () => {
             }, 60000); // 60 segundos
 
         } catch (error) {
-            console.error('Error al enviar el código:', error);
+            socket.close();
             setRespStatus({ success: false, message: 'Network error or timed out' });
             setIsLoading(false);
         }
@@ -92,7 +95,7 @@ const ExtAuth = () => {
                 clearTimeout(timeoutRef.current as NodeJS.Timeout); // Limpia el temporizador
                 socket.close();              
             }
-            // // Iniciar el temporizador
+            // Iniciar el temporizador
             timeoutRef.current = setTimeout(() => {
                 if (isLoading) {
                     setRespStatus({ success: false, message: 'Network error or timed out' });
@@ -102,56 +105,44 @@ const ExtAuth = () => {
             }, 60000); // 60 segundos
 
         } catch (error) {
-            // console.error('Error al enviar al autenticarse', error);
-
             const axiosError = error as AxiosError<ApiResponse>;
-
+            socket.close();
             if(axiosError.response){
                 socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: axiosError.response.data.msg || 'There was an error during authentication' } );
                 setRespStatus({ success: false, message: axiosError.response.data.msg || 'There was an error during authentication' });
                 setIsLoading(false);
-                socket.close();
+
             } else {
                 socket.emit('onPrJCUPersistance', { npmsocketid, success: false, message: 'There was an error during authentication' } );
                 setRespStatus({ success: false, message: 'There was an error during authentication' });
                 setIsLoading(false);
-                socket.close();
             }
         }
     };
 
-    useEffect( () => {
-        const newSocket = io('http://localhost:8081');
-        setSocket(newSocket);
-
-        newSocket.on('connect', () => {
-            setIsConnected(true);
-        });
-
-        return () => {
-            newSocket.close();
-            return; 
-        };
-    }, []);
-
     useEffect(() => { 
-        if (!respStatus || typeof respStatus.success === 'undefined') return; // Verifica si respStatus tiene la propiedad success
+        if(!respStatus) return;
+
+        setTimeout(() => {
+            handleRedirect("/login"); // Redirecciona a la página del usuario
+        }, 5000);
+
         if (respStatus.success) {
-                Swal.fire(
-                    'Done!',
-                    respStatus.message,
-                    'success'
-                )
-            setTimeout(() => {
-                window.close()
-            }, 5000);
+            Swal.fire({
+                title: 'Done!',
+                text: respStatus.message || 'You have been authenticated successfully',
+                icon: 'success',
+                confirmButtonText: 'Close'
+            })
         } else {
-            Swal.fire(
-                'Error',
-                respStatus.message,
-                'error'
-            )
+            Swal.fire({
+                title: 'Error',
+                text: respStatus.message || 'There was an error during authentication',
+                icon: 'error',
+                confirmButtonText: 'Close'
+            })
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [respStatus])
      
     useEffect(() => {
@@ -172,31 +163,43 @@ const ExtAuth = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authCode, isConnected]);
 
+    useEffect( () => {
+        const newSocket = io('https://prj-socketserver-5b972d7517e7.herokuapp.com/');
+        setSocket(newSocket);
+
+        newSocket.on('connect', () => {
+            setIsConnected(true);
+        });
+
+        return () => {
+            newSocket.close();
+            return; 
+        };
+    }, []);
+
     if (!authCode) return <Navigate to='/register'/>;
 
     return (
-        <div className="flex w-screen h-screen justify-center items-center">      
-            <div className="flex glass2 w-[95%] h-[95%] rounded-extra border-1 border-gray-400 justify-center items-center">         
-                {
-                    isLoading ? <LoadingCircle/> 
-                    : <>
-                    
-                        {
-                            respStatus?.success ? 
-                            <div className="flex flex-col justify-center items-center">
-                                <h1 className="text-4xl font-bold text-gray-700">Successful authentication</h1>
-                                <p className="text-lg font-semibold text-gray-700">You can now close this window</p>
-                             </div>                           
-                            : 
-                            <div className="flex flex-col justify-center items-center">
-                                <h1 className="text-4xl font-bold text-gray-700">Ups! There was an error authenticating</h1>
-                                <p className="text-lg font-semibold text-gray-700">please try again.</p>
-                            </div>
-                        }
-                    
-                    </>
-                }
-            </div>    
+        <div className="flex w-screen h-screen justify-center items-center bg-[#0a1128]">      
+            {
+                isLoading ? <LoadingCircle/> 
+                : <>
+                
+                    {
+                        respStatus?.success ? 
+                        <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-4xl font-bold text-white">Successful authentication</h1>
+                            <p className="text-lg font-semibold text-white">You can now close this window</p>
+                            </div>                           
+                        : 
+                        <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-4xl font-bold text-white">Ups! There was an error authenticating</h1>
+                            <p className="text-lg font-semibold text-white">please try again.</p>
+                        </div>
+                    }
+                
+                </>
+            }
         </div>
     );
 };

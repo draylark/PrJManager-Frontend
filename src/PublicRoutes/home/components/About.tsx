@@ -6,15 +6,15 @@ export const About = () => {
 
   return (
     <div className='flex flex-col h-screen w-full overflow-hidden bg-[#0a1128]'>
-      <Navbar className="top-10" />
+      <Navbar className='pt-10 bg-[#0a1128]' />
 
-      <div className="flex flex-col space-y-4 h-full px-[4%] md:px-[8%] pt-[30%] py-10 md:pt-[9%] my-auto overflow-y-auto">   
+      <div className="flex flex-col space-y-4 h-full px-[4%] pt-[20%] md:px-[8%] py-10 md:pt-[9%] my-auto overflow-y-auto">   
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            className='flex flex-col space-y-2 pt-2'
+            className='flex flex-col space-y-2 pt-10 lg:pt-5'
           >
             <h1 className='text-5xl bebas-neue-regular text-white'>
               About PrJManager

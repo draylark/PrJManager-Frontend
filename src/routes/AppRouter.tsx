@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom"
+import { Routes, Route, useLocation, Navigate } from "react-router-dom"
 import useCheckAuth from "../PublicRoutes/auth/hooks/useCheckAuth";
 import PrivateRoutes from "./PrivateRoutes";
 import PublicRoutes from "./PublicRoutes";
@@ -26,18 +26,10 @@ export const AppRouter = () => {
   return (
 
     <Routes>
-      <Route path="/auth/*" element={
-        <PublicRoutes>
-          <AuthRoutes />
-        </PublicRoutes>
-      } />
 
-
-      <Route path="/home/*" element={
-        <PublicRoutes>
-          <HomeRoutes />
-        </PublicRoutes>
-      } />
+      <Route path="/auth/*" element={<PublicRoutes><AuthRoutes /></PublicRoutes>} />
+      <Route path="/home/*" element={<PublicRoutes><HomeRoutes /></PublicRoutes>} />
+      <Route path="/*" element={<PrivateRoutes><ManagerRoutes /></PrivateRoutes>} />
 
       {/* <Route path="/docs/*" element={
         <PublicRoutes>
@@ -45,11 +37,7 @@ export const AppRouter = () => {
         </PublicRoutes>
       } /> */}
 
-      <Route path="/*" element={
-        <PrivateRoutes>
-          <ManagerRoutes />
-        </PrivateRoutes>
-      } />
+      <Route path="*" element={<Navigate to="/auth/login" replace />} />
     </Routes>
 
   )
