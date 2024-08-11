@@ -88,7 +88,6 @@ export const LayerForm: FC<LayerProps> = ({ isLayerFormOpen, setIsLayerFormOpen 
 
         try {
             const response = await axios.post(`${backendUrl}/layer/create-layer/${ID}`, values, {
-                withCredentials: true,
                 params: {
                     uid
                 },
