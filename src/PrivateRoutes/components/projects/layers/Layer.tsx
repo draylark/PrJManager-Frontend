@@ -78,8 +78,10 @@ export const Layer = () => {
         fetchLayerData()
       }
     } 
-  }, [ fetchLayerData, layerID, layers])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ layerID, layers])
   
+
   if( repository?.repoID ) return <Outlet/>
 
   if( errorWhileFetching ) return (
@@ -184,7 +186,7 @@ export const Layer = () => {
 
         }
 
-        { layer !== null && <Repositories layer={layer} project={project as ProjectBase} uid={uid as string} /> }
+    { layer !== null && <Repositories layer={layer} project={project as ProjectBase} uid={uid as string} /> } {/*  */}   
           
         { isRepositoryFormOpen && <RepositoryForm setIsRepositoryFormOpen={ setIsRepositoryFormOpen } isRepositoryFormOpen={ isRepositoryFormOpen } /> }
         { isLayerConfigFormOpen && <LayerConfigForm layer={layer as LayerBase} setIsLayerConfigFormOpen={ setIsLayerConfigFormOpen } isLayerConfigFormOpen={isLayerConfigFormOpen}/> }

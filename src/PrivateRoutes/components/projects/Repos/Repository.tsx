@@ -265,21 +265,21 @@ export const Repository = () => {
         : files.length === 0 
         ?               
             (
-              <div className="flex flex-col w-full h-full space-y-3">
-                  <div className="flex items-center justify-between px-1">
+              <div className="flex flex-col w-full h-full overflow-x-auto space-y-3 bg-[#282a36]">
+                  <div className="flex items-center justify-between px-5 pt-5">
                     <button className="flex items-center space-x-2" onClick={() => navigate(-1)}>
                       <Icon size={20}>
-                        <ArrowBackUp onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                        <ArrowBackUp className='text-white' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                       </Icon>      
                     </button>
                     <button className="flex items-center space-x-2" onClick={() => loadRepoFiles()}>
                       <Icon size={18}>
-                        <ReloadSharp onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                        <ReloadSharp className='text-white' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                       </Icon>
                     </button>
                   </div>
 
-                  <div className='overflow-y-auto bg-[#282a36] rounded-b-3xl'>
+                  <div className='overflow-y-auto  bg-[#282a36] max-h-[86vh]'>
                       <SyntaxHighlighter  language="bash" style={dracula} customStyle={{ fontSize: '13px' }}>
                         {gitInstructions}
                       </SyntaxHighlighter>

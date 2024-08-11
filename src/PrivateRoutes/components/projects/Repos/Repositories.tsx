@@ -39,16 +39,17 @@ export const Repositories: React.FC<RepositoriesProps> = ({ layer, project, uid 
     return name.replace(/\./g, '').replace(/\s+/g, '-');
   };
 
-  useEffect(() => {
-    const filteredRepos = repositories.filter( repo => repo.layerID === layer._id )
-    setLayerRepositories(filteredRepos)
-  }, [repositories, layer])
 
   useEffect(() => {
     if( !repositories.some(repo => repo.layerID === layer._id) ){
       dispatch(fetchLayerRepositories( project?.pid, layer._id, uid))
-    }  
-  }, [dispatch, layer, project, uid, repositories])
+    } else {
+      const filteredRepos = repositories.filter( repo => repo.layerID === layer._id )
+      setLayerRepositories(filteredRepos)
+    }
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ layer, project, uid ])
   
   if(fetchingResources) return  ( 
     <div className='flex h-full w-full items-center justify-center'>

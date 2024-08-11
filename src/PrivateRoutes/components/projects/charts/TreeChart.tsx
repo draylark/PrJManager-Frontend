@@ -36,6 +36,7 @@ export const TreeChart = () => {
     const { currentProject, fetchingResources, errorWhileFetching, errorMessage, errorType } = useSelector((state: RootState) => state.platypus );
     const project = currentProject as ProjectBase;
 
+
     const { treeData, handleMouseMove, 
       handleMouseOver, currentNode, showModal, translate, modalPosition, setTranslate, setShowModal } = useOrgChart(project, projectState, uid as string)
    

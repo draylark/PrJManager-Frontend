@@ -83,6 +83,7 @@ export const fetchLayerRepositories = (
         }
         )
         .then( ( response ) => {
+          console.log('repos', response)
             dispatch( setRepositories( response.data.repos ) )
             dispatch( setFetchingResources( false ) )
         })

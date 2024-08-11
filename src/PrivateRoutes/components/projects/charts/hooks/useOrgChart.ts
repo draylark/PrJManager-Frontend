@@ -82,7 +82,7 @@ export const useOrgChart = (project: ProjectBase, projectState: projectState, ui
     };
       
     useEffect(() => {
-        if (layers.length > 0 && repositories.length > 0) {
+        if (layers.length > 0 || repositories.length > 0) {
             newTreeData(project);
         }
     }, [layers, repositories, project, newTreeData ])

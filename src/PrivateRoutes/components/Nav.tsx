@@ -4,20 +4,29 @@ import Dashboard  from '@ricons/carbon/DashboardReference'
 import Folder from '@ricons/fluent/FolderOpen24Filled'
 import GlobeSearch20Filled from '@ricons/fluent/GlobeSearch20Filled'
 import platy from '../assets/imgs/platy.jpg'
-import Noti from '@ricons/material/NotificationsNoneOutlined'
 import { Link, useLocation } from 'react-router-dom';
 import './styles/fonts.css'
 import { NotificationsModal } from './modals/NotificationsModal'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store/store'
 import { getImageOrDefault } from '../helpers/helpers'
+import { CiLogout, CiBellOn } from "react-icons/ci";
+import { usePrJDispatch } from '../../store/dispatch'
+import { logout } from '../../store/auth/authSlice'
 
 export const Nav = () => {
 
+    const dispatch = usePrJDispatch()
     const location = useLocation();
     const pathName = location.pathname
     const [isNotisModalOpen, setIsNotisModalOpen] = useState(false)
     const { username, photoUrl } = useSelector( (state: RootState) => state.auth )
+
+
+    const logoutSession = () => {
+        localStorage.removeItem('x-token')
+        dispatch(logout({}))
+    }
     
     return (
       <div id='Nav' className="flex flex-col items-center bg-[#0a1128] text-white min-h-screen w-64">
@@ -61,10 +70,16 @@ export const Nav = () => {
         <div className="user-info flex flex-grow items-end  pb-10 p-5 w-full  pl-9">
             <div className='flex flex-col  space-y-6 '>
                 <button 
+                    className={`ml-[16px] flex items-center justify-center glassi w-8 h-8 rounded-full transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}
+                    onClick={logoutSession} 
+                >   
+                    <CiLogout className='w-5 h-5' />            
+                </button>
+                <button 
                     className={`ml-[16px] flex items-center justify-center ${isNotisModalOpen ? 'bg-blue-50 text-sky-950' : ''} glassi w-8 h-8 rounded-full transition-all duration-150 ease-in-out transform active:translate-y-[2px]`}
                     onClick={() => setIsNotisModalOpen(!isNotisModalOpen)} // Modificado aquí
                 >   
-                    <Noti className='w-5 h-5' onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>            
+                    <CiBellOn className='w-5 h-5' />            
                 </button>
                 <div className='flex space-x-2 items-center'>
                     <Link to={`personal-area/${username}`}>
