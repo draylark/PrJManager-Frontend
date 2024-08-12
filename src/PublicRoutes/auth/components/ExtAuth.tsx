@@ -3,12 +3,12 @@ import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import axios, { AxiosError } from "axios";
 import Swal from "sweetalert2";
-import LoadingCircle from "../helpers/Loading";
 import { decodeParams } from "../helpers/decodeParams";
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 import { Socket } from "socket.io-client";
+import { ScaleLoader } from 'react-spinners';
 
-
+// https://prj-socketserver-5b972d7517e7.herokuapp.com/
 
 interface IRespStatus {
     success: boolean;
@@ -182,7 +182,7 @@ const ExtAuth = () => {
     return (
         <div className="flex w-screen h-screen justify-center items-center bg-[#0a1128]">      
             {
-                isLoading ? <LoadingCircle/> 
+                isLoading ? <ScaleLoader color={'#FFFFFF'} loading={true}  />
                 : <>
                 
                     {
