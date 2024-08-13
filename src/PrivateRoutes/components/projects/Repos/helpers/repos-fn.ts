@@ -109,6 +109,7 @@ export const loadFolderContents = async (
   _: string, 
   setFiles: React.Dispatch<React.SetStateAction<File[]>>
 ) => {
+  console.log('folderPath',folderPath)
     try {
       const response = await axios.get(`${backendUrl}/gitlab/loadFolderContents/${repo._id}`, {        
         headers: {

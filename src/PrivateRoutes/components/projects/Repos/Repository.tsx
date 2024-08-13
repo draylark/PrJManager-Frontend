@@ -1,5 +1,5 @@
 import axios from 'axios';
-import  { useState, useEffect, useCallback } from 'react';
+import  { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { RootState } from '../../../../store/store';
@@ -80,7 +80,7 @@ export const Repository = () => {
     loadRepoFiles(branch)
   };
 
-  const loadRepoFiles = useCallback(async(branch?: string ) => {
+  const loadRepoFiles = async(branch?: string ) => {
       await axios.get(`${backendUrl}/gitlab/loadRepoFiles/${repoID}/${ branch ? branch : currentBranch }`, {
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ export const Repository = () => {
         setErrorType(error.response.data.type || 'Error')
         seterrorMessage(error.response.data.message || 'An error occurred while fetching data')
       });        
-  }, [repoID, currentBranch]);
+  };
 
   const getExtension = (fileName?: string) => {
     const nameToSplit = fileName !== undefined ? fileName : selectedFileName;
@@ -107,7 +107,7 @@ export const Repository = () => {
     return extension === 'md' ? true : false
   };
 
-  const handleRepoData = useCallback((repository: RepositoryBase) => {
+  const handleRepoData = (repository: RepositoryBase) => {
     setRepo(repository);
     // Encuentra la rama por defecto o usa 'null' si no existe ninguna
     const defaultBranchInfo = repository.branches?.find(branch => branch.default === true);
@@ -123,10 +123,10 @@ export const Repository = () => {
       setlayer(null);
     }
     setIsLoading(false);
-}, [layers, layerID, loadRepoFiles]);
+  };
 
 
-  const fetchRepositoryData = useCallback( async() => {
+  const fetchRepositoryData =  async() => {
     axios.get(`${backendUrl}/repos/${repoID}`, {
       params: {
         projectID: ID
@@ -137,17 +137,15 @@ export const Repository = () => {
       }
     })
     .then( res => {
-      // console.log(res)
       handleRepoData(res.data.repo)
     })
     .catch( error => {
-      // console.log(error)
       setIsLoading(false)
       setErrorWhileFetching(true)
       setErrorType(error.response.data.type || 'Error')
       seterrorMessage(error.response.data.message || 'An error occurred while fetching data')
     });
-  }, [ID, repoID, handleRepoData]);
+  };
 
 
   useEffect(() => {  
@@ -159,7 +157,9 @@ export const Repository = () => {
           fetchRepositoryData() 
         }
     }
-  }, [repoID, repositories, fetchRepositoryData, handleRepoData]);
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repoID, repositories]);
 
 
   const gitInstructions = `

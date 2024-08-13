@@ -63,12 +63,12 @@ export const FileTree: React.FC<FileTreeProps> = ({ branch, files, onFileClick, 
     };
 
     return (
-      <ul id='fileTree' className='overflow-y-auto overflow-x-auto h-full  px-5 pt-2 rounded-bl-extra'>
+      <ul id='fileTree' className='overflow-y-auto overflow-x-auto h-full rounded-bl-extra px-4'>
 
         {files.map(file => (
           <Fragment key={file.id}>
             <li
-              className={`flex items-center space-x-1 cursor-pointer hover:bg-blue-300 ${ file.name === selectedFileName ? 'bg-blue-300' : ''} transition-all duration-100 ease-in-out rounded-lg`}
+              className={`flex items-center cursor-pointer hover:bg-blue-300 ${ file.name === selectedFileName ? 'bg-blue-300' : ''} transition-all duration-100 ease-in-out rounded-lg`}
               onClick={() => file.type === 'tree' ? handleOnFolderClick(repo, file.path, file.id, setFiles ) : onFileClick(branch, repo, file.path, setSelectedFileContent, setSelectedFileName )}
             >
               <div className='flex items-center justify-center w-[30px] h-[30px]'>
@@ -82,7 +82,7 @@ export const FileTree: React.FC<FileTreeProps> = ({ branch, files, onFileClick, 
             </li>
             {/* Renderiza recursivamente los archivos de la carpeta */}
             {file.type === 'tree' && file.files && (
-              <div className="pl-2">
+              <div >
                 <FileTree 
                   branch={branch} 
                   files={file.files} 
