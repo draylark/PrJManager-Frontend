@@ -1,1 +1,0 @@
-var c=function(){for(var e=arguments.length,n=[],r=0;r<e;r++)n[r]=arguments[r];if(n=n.filter(function(t){return t!=null}),n.length!==0)return n.length===1?n[0]:n.reduce(function(t,u){return function(){t.apply(this,arguments),u.apply(this,arguments)}})};export{c};

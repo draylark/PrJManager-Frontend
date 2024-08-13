@@ -1,1 +1,0 @@
-var h=c;function c(t,m,v,a){var r=0,s=0;a=a||{};var f=a.step||1,l=a.maxTimeMS||8,n=a.probeElements||5e3;setTimeout(i,0);function i(){var o=Math.min(t.length,r+n),e=r,u=new Date;for(e=r;e<o;e+=f)m(t[e],e,t);e<t.length?(s+=new Date-u,r=e,n=Math.round(r*l/s),setTimeout(i,0)):v(t)}}export{h as r};
