@@ -40,14 +40,15 @@ export const FileTree: React.FC<FileTreeProps> = ({ branch, files, onFileClick, 
       repo: RepositoryBase, 
       path: string, 
       id: string, 
-      setFiles: React.Dispatch<React.SetStateAction<File[]>>
+      setFiles: React.Dispatch<React.SetStateAction<File[]>>,
+      branch: string
     ) => {
         if (opened === id) {
             setFiles(currentFiles => toggleFolderFiles(currentFiles, id));
             setOpened(0);
         } else {
             setOpened(id);
-            onFolderClick(repo, path, id, setFiles);
+            onFolderClick(repo, path, id, setFiles, branch);
         }
     };
 
@@ -69,7 +70,7 @@ export const FileTree: React.FC<FileTreeProps> = ({ branch, files, onFileClick, 
           <Fragment key={file.id}>
             <li
               className={`flex items-center cursor-pointer hover:bg-blue-300 ${ file.name === selectedFileName ? 'bg-blue-300' : ''} transition-all duration-100 ease-in-out rounded-lg`}
-              onClick={() => file.type === 'tree' ? handleOnFolderClick(repo, file.path, file.id, setFiles ) : onFileClick(branch, repo, file.path, setSelectedFileContent, setSelectedFileName )}
+              onClick={() => file.type === 'tree' ? handleOnFolderClick(repo, file.path, file.id, setFiles, branch ) : onFileClick(branch, repo, file.path, setSelectedFileContent, setSelectedFileName )}
             >
               <div className='flex items-center justify-center w-[30px] h-[30px]'>
                 {file.type === 'blob' ? (

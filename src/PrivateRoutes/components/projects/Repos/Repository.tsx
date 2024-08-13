@@ -93,7 +93,6 @@ export const Repository = () => {
         setLoadingFiles(false)
       })
       .catch( error => {
-        console.log(error)
         setLoadingFiles(false)
         setErrorWhileFetching(true)
         setErrorType(error.response.data.type || 'Error')

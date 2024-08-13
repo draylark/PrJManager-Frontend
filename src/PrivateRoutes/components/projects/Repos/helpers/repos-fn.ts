@@ -107,9 +107,9 @@ export const loadFolderContents = async (
   repo: RepositoryBase, 
   folderPath: string, 
   _: string, 
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>,
+  branch: string
 ) => {
-  console.log('folderPath',folderPath)
     try {
       const response = await axios.get(`${backendUrl}/gitlab/loadFolderContents/${repo._id}`, {        
         headers: {
@@ -117,10 +117,10 @@ export const loadFolderContents = async (
           'Authorization': localStorage.getItem('x-token')
         },     
         params: {
-          folderPath: folderPath
+          folderPath: folderPath,
+          branch: branch
         }
       });
-      console.log('CARPETA',response)
       const newFiles = response.data.files;
   
       setFiles(currentFiles => updateFilesRecursively(currentFiles, folderPath, newFiles));

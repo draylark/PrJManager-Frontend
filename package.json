@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "node server.js"
+    "start": "node server.js",
+      "build": "set NODE_OPTIONS=--max-old-space-size=12288 && npx tsc && vite build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",

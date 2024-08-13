@@ -40,6 +40,7 @@ export const fetchProjectReposAndLayers = (
           })
         ]);
 
+
         dispatch(setRepositories(repoResponse.data.repos));
         dispatch(setLayers(layerResponse.data.layers));
         dispatch(setFetchingResources(false));

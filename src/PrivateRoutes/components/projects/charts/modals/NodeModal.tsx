@@ -69,8 +69,8 @@ export const NodeModal = ({ project, nodeData }: { project: ProjectState, nodeDa
             <div className="mt-5 border-t border-gray-200 pt-5">
               <div className="flex space-x-4 justify-between items-center">
                 <div>
-                  <span className="text-sm font-semibold text-gray-700">Pending Tasks:</span>
-                  <span className="ml-2 text-sm text-gray-500">57</span>
+                  <span className="text-sm font-semibold text-gray-700">Branches:</span>
+                  <span className="ml-2 text-sm text-gray-500">{data?.branches?.length || 0}</span>
                 </div>
                 <div>
                   <span className="text-sm font-semibold text-gray-700">Last Updated:</span>
@@ -119,7 +119,7 @@ export const NodeModal = ({ project, nodeData }: { project: ProjectState, nodeDa
               <div className="flex space-x-4 justify-between items-center">
                 <div>
                   <span className="text-sm font-semibold text-gray-700">Repositories</span>
-                  <span className="ml-2 text-sm text-gray-500">10</span>
+                  <span className="ml-2 text-sm text-gray-500">{data.repositories}</span>
                 </div>
                 <div>
                   <span className="text-sm font-semibold text-gray-700">Last Updated:</span>
