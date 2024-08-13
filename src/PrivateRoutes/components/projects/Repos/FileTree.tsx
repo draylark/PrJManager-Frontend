@@ -11,7 +11,7 @@ interface FileTreeProps {
   branch: string;
   files: File[];
   onFileClick: (branch: string, repo: RepositoryBase, path: string, setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>, setSelectedFileName: React.Dispatch<React.SetStateAction<string>>) => void;
-  onFolderClick: (repo: RepositoryBase, path: string, id: string, setFiles: React.Dispatch<React.SetStateAction<File[]>>) => void;
+  onFolderClick: (repo: RepositoryBase, path: string, id: string, setFiles: React.Dispatch<React.SetStateAction<File[]>>, branch: string) => void;
   repo: RepositoryBase;
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
   selectedFileName: string;
