@@ -4,6 +4,8 @@
 
 PrJManager is an intuitive platform designed to simplify the development ecosystem. It emulates the core functionalities of remote repository platforms while offering a personalized, streamlined experience tailored for developers who prioritize collaboration and productivity.
 
+Check 9.0.0.rc-1 branch for the latests updates.
+
 ---
 
 ## 🌐 Live Demo  
