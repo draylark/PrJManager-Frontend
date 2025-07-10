@@ -28,6 +28,16 @@
 
 This project is designed to work alongside [PrJExtension](https://marketplace.visualstudio.com/items?itemName=cclmal.prjextension)
  – a custom VSCode extension for interacting with PrJManager directly from the editor.
+
+ ## 🔌 VSCode Integration 
+
+This project is designed to work alongside:
+
+- **[PrJExtension](https://marketplace.visualstudio.com/items?itemName=cclmal.prjextension)** – A custom Visual Studio Code extension that allows remote interaction with PrJManager directly from the editor.
+- **[PrJConsole](https://www.npmjs.com/package/prjconsole)** – An interactive in-editor console that communicates with PrJExtension, allowing the execution of real-time commands and enhancing the development workflow from within VSCode.
+
+These tools together create a seamless development experience, connecting the code editor with the backend project management platform in real time.
+
  
 
 🤝 Contributing
