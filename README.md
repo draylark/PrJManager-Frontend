@@ -13,7 +13,7 @@
 - 🕒 **Real-Time Updates** – WebSocket-powered communication for instant collaboration.
 - 📦 **Custom Repository System** – Internal logic for storing and versioning code artifacts.
 - 🔐 **Secure Authentication** – (Extendable for OAuth2 or token-based systems).
-- ⚙️ **Built to integrate with [PrJExtension](https://github.com/your-username/PrJExtension)** – A custom VSCode extension for remote interaction.
+- ⚙️ **Built to integrate with [PrJExtension](https://github.com/nemrodc/PrJExtension)** – A custom VSCode extension for remote interaction.
 
 ## 🛠 Tech Stack
 
